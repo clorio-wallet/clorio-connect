@@ -3,14 +3,14 @@
  */
 
 export interface StorageArea {
-  get<T = any>(key: string): Promise<T | undefined>;
-  set(key: string, value: any): Promise<void>;
+  get<T>(key: string): Promise<T | undefined>;
+  set(key: string, value: unknown): Promise<void>;
   remove(key: string): Promise<void>;
   clear(): Promise<void>;
 }
 
 export const storage: StorageArea = {
-  get: async <T = any>(key: string): Promise<T | undefined> => {
+  get: async <T = unknown>(key: string): Promise<T | undefined> => {
     try {
       const result = await chrome.storage.local.get([key]);
       return result[key] as T;
@@ -20,7 +20,7 @@ export const storage: StorageArea = {
     }
   },
 
-  set: async (key: string, value: any): Promise<void> => {
+  set: async (key: string, value: unknown): Promise<void> => {
     try {
       await chrome.storage.local.set({ [key]: value });
     } catch (error) {
@@ -45,7 +45,7 @@ export const storage: StorageArea = {
       console.error('Error clearing storage:', error);
       throw error;
     }
-  }
+  },
 };
 
 export default storage;

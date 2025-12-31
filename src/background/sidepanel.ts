@@ -1,5 +1,5 @@
-function setPanelBehaviorFromMode(mode: "popup" | "sidepanel") {
-  const openPanel = mode === "sidepanel";
+function setPanelBehaviorFromMode(mode: 'popup' | 'sidepanel') {
+  const openPanel = mode === 'sidepanel';
   const sidePanel = chrome.sidePanel;
 
   if (sidePanel && sidePanel.setPanelBehavior) {
@@ -8,27 +8,27 @@ function setPanelBehaviorFromMode(mode: "popup" | "sidepanel") {
 }
 
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log("Extension installed");
+  console.log('Extension installed');
 
-  const sidePanel = (chrome as any).sidePanel;
+  const sidePanel = chrome.sidePanel;
   if (sidePanel && sidePanel.setOptions) {
-    sidePanel.setOptions({ enabled: true, path: "src/popup/index.html" });
+    sidePanel.setOptions({ enabled: true, path: 'src/popup/index.html' });
   }
 
-  if (details.reason === "install") {
-    chrome.storage.local.set({ uiMode: "sidepanel" }, () => {
-      setPanelBehaviorFromMode("sidepanel");
+  if (details.reason === 'install') {
+    chrome.storage.local.set({ uiMode: 'sidepanel' }, () => {
+      setPanelBehaviorFromMode('sidepanel');
     });
   } else {
-    chrome.storage.local.get({ uiMode: "sidepanel" }, (res) => {
-      setPanelBehaviorFromMode(res.uiMode as "popup" | "sidepanel");
+    chrome.storage.local.get({ uiMode: 'sidepanel' }, (res) => {
+      setPanelBehaviorFromMode(res.uiMode as 'popup' | 'sidepanel');
     });
   }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "SET_UIMODE") {
-    const mode = message.value === "sidepanel" ? "sidepanel" : "popup";
+  if (message.type === 'SET_UIMODE') {
+    const mode = message.value === 'sidepanel' ? 'sidepanel' : 'popup';
     chrome.storage.local.set({ uiMode: mode }, () => {
       setPanelBehaviorFromMode(mode);
       sendResponse({ ok: true });
