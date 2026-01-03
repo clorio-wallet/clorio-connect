@@ -3,11 +3,11 @@ import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
 import PlaygroundPage from './Playground';
-import WelcomePage from '@/pages/Welcome';
 import LoginPage from '@/pages/Login';
 import CreateWalletPage from '@/pages/onboarding/CreateWallet';
 import ImportWalletPage from '@/pages/onboarding/ImportWallet';
 import DashboardPage from '@/pages/Dashboard';
+import { WelcomePage } from '@/pages/welcome';
 
 const Layout = () => {
   const { uiMode } = useSidePanelMode();
