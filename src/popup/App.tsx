@@ -1,8 +1,13 @@
 import React from 'react';
-import { HashRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
 import PlaygroundPage from './Playground';
+import WelcomePage from '@/pages/Welcome';
+import LoginPage from '@/pages/Login';
+import CreateWalletPage from '@/pages/onboarding/CreateWallet';
+import ImportWalletPage from '@/pages/onboarding/ImportWallet';
+import DashboardPage from '@/pages/Dashboard';
 
 const Layout = () => {
   const { uiMode } = useSidePanelMode();
@@ -28,7 +33,13 @@ const App: React.FC = () => {
     <HashRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<PlaygroundPage />} />
+          <Route path="/" element={<Navigate to="/welcome" replace />} />
+          <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/onboarding/create" element={<CreateWalletPage />} />
+          <Route path="/onboarding/import" element={<ImportWalletPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/playground" element={<PlaygroundPage />} />
         </Route>
       </Routes>
     </HashRouter>
