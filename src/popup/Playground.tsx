@@ -3,10 +3,34 @@ import { ModeSelector } from '@/components/ui/mode-selector';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { BottomSheet, BottomSheetTrigger, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetDescription, BottomSheetFooter, BottomSheetClose } from '@/components/ui/bottom-sheet';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  BottomSheet,
+  BottomSheetTrigger,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetTitle,
+  BottomSheetDescription,
+  BottomSheetFooter,
+  BottomSheetClose,
+} from '@/components/ui/bottom-sheet';
 import { useTheme, Palette } from '@/components/theme-provider';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import {
@@ -19,14 +43,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -34,11 +58,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Spinner } from "@/components/ui/spinner";
-import { Separator } from "@/components/ui/separator";
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
+import { Separator } from '@/components/ui/separator';
 import {
   AddressDisplay,
   BalanceDisplay,
@@ -47,7 +71,7 @@ import {
   NetworkBadge,
   TransactionConfirmDialog,
   SeedPhraseDisplay,
-} from "@/components/wallet";
+} from '@/components/wallet';
 
 const PlaygroundPage: React.FC = () => {
   const [uiMode, setUiMode] = useState<'popup' | 'sidepanel'>('sidepanel');
@@ -75,9 +99,12 @@ const PlaygroundPage: React.FC = () => {
       className="space-y-8 pb-20"
     >
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">Design System Playground</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Design System Playground
+        </h1>
         <p className="text-muted-foreground">
-          Welcome to the Clorio Wallet component playground. Here you can test all available UI components and themes.
+          Welcome to the Clorio Wallet component playground. Here you can test
+          all available UI components and themes.
         </p>
       </div>
 
@@ -88,24 +115,38 @@ const PlaygroundPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Configuration</CardTitle>
-              <CardDescription>Manage application appearance and behavior.</CardDescription>
+              <CardDescription>
+                Manage application appearance and behavior.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label>UI Mode</Label>
                 <ModeSelector mode={uiMode} onChange={updateMode} />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Color Theme</Label>
                 <div className="flex gap-2">
-                  <Button variant={theme === 'light' ? 'default' : 'outline'} size="icon" onClick={() => setTheme('light')}>
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={() => setTheme('light')}
+                  >
                     <Sun className="h-4 w-4" />
                   </Button>
-                  <Button variant={theme === 'dark' ? 'default' : 'outline'} size="icon" onClick={() => setTheme('dark')}>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={() => setTheme('dark')}
+                  >
                     <Moon className="h-4 w-4" />
                   </Button>
-                  <Button variant={theme === 'system' ? 'default' : 'outline'} size="icon" onClick={() => setTheme('system')}>
+                  <Button
+                    variant={theme === 'system' ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={() => setTheme('system')}
+                  >
                     <Monitor className="h-4 w-4" />
                   </Button>
                 </div>
@@ -114,16 +155,18 @@ const PlaygroundPage: React.FC = () => {
               <div className="space-y-2">
                 <Label>Color Palette</Label>
                 <div className="flex flex-wrap gap-2">
-                  {(['default', 'green', 'violet', 'orange'] as Palette[]).map((p) => (
-                    <Button 
-                      key={p} 
-                      variant={palette === p ? 'default' : 'outline'} 
-                      onClick={() => setPalette(p)}
-                      className="capitalize"
-                    >
-                      {p}
-                    </Button>
-                  ))}
+                  {(['default', 'green', 'violet', 'orange'] as Palette[]).map(
+                    (p) => (
+                      <Button
+                        key={p}
+                        variant={palette === p ? 'default' : 'outline'}
+                        onClick={() => setPalette(p)}
+                        className="capitalize"
+                      >
+                        {p}
+                      </Button>
+                    ),
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -147,7 +190,9 @@ const PlaygroundPage: React.FC = () => {
                 <Button size="lg">Large</Button>
                 <Button size="default">Default</Button>
                 <Button size="sm">Small</Button>
-                <Button size="icon"><Sun className="h-4 w-4" /></Button>
+                <Button size="icon">
+                  <Sun className="h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -167,9 +212,18 @@ const PlaygroundPage: React.FC = () => {
                 <Input type="password" id="password" placeholder="Password" />
               </div>
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="error-input" className="text-destructive">Error State</Label>
-                <Input type="text" id="error-input" placeholder="Invalid input" error />
-                <p className="text-sm text-destructive">This field has an error.</p>
+                <Label htmlFor="error-input" className="text-destructive">
+                  Error State
+                </Label>
+                <Input
+                  type="text"
+                  id="error-input"
+                  placeholder="Invalid input"
+                  error
+                />
+                <p className="text-sm text-destructive">
+                  This field has an error.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -190,7 +244,8 @@ const PlaygroundPage: React.FC = () => {
                     <CardHeader>
                       <CardTitle>Account</CardTitle>
                       <CardDescription>
-                        Make changes to your account here. Click save when you're done.
+                        Make changes to your account here. Click save when
+                        you're done.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
@@ -213,7 +268,8 @@ const PlaygroundPage: React.FC = () => {
                     <CardHeader>
                       <CardTitle>Password</CardTitle>
                       <CardDescription>
-                        Change your password here. After saving, you'll be logged out.
+                        Change your password here. After saving, you'll be
+                        logged out.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
@@ -249,7 +305,8 @@ const PlaygroundPage: React.FC = () => {
                   <DialogHeader>
                     <DialogTitle>Edit profile</DialogTitle>
                     <DialogDescription>
-                      Make changes to your profile here. Click save when you're done.
+                      Make changes to your profile here. Click save when you're
+                      done.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
@@ -257,13 +314,21 @@ const PlaygroundPage: React.FC = () => {
                       <Label htmlFor="name" className="text-right">
                         Name
                       </Label>
-                      <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
+                      <Input
+                        id="name"
+                        defaultValue="Pedro Duarte"
+                        className="col-span-3"
+                      />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="username" className="text-right">
                         Username
                       </Label>
-                      <Input id="username" defaultValue="@peduarte" className="col-span-3" />
+                      <Input
+                        id="username"
+                        defaultValue="@peduarte"
+                        className="col-span-3"
+                      />
                     </div>
                   </div>
                   <DialogFooter>
@@ -278,9 +343,12 @@ const PlaygroundPage: React.FC = () => {
                 </BottomSheetTrigger>
                 <BottomSheetContent>
                   <BottomSheetHeader>
-                    <BottomSheetTitle>Are you absolutely sure?</BottomSheetTitle>
+                    <BottomSheetTitle>
+                      Are you absolutely sure?
+                    </BottomSheetTitle>
                     <BottomSheetDescription>
-                      This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                      This action cannot be undone. This will permanently delete
+                      your account and remove your data from our servers.
                     </BottomSheetDescription>
                   </BottomSheetHeader>
                   <BottomSheetFooter>
@@ -298,9 +366,12 @@ const PlaygroundPage: React.FC = () => {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                      This action cannot be undone. This will permanently delete
+                      your account and remove your data from our servers.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -322,7 +393,7 @@ const PlaygroundPage: React.FC = () => {
                 <Label>Switch</Label>
                 <Switch />
               </div>
-              
+
               <Separator />
 
               <div className="flex flex-col space-y-2 max-w-xs">
@@ -382,7 +453,7 @@ const PlaygroundPage: React.FC = () => {
                   <Spinner size="md" />
                   <Spinner size="lg" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Skeleton:</Label>
                   <div className="flex items-center space-x-4">
@@ -406,7 +477,10 @@ const PlaygroundPage: React.FC = () => {
                 <Label>Address Display</Label>
                 <div className="flex flex-col gap-2">
                   <AddressDisplay address="0x71C7656EC7ab88b098defB751B7401B5f6d8976F" />
-                  <AddressDisplay address="0x71C7656EC7ab88b098defB751B7401B5f6d8976F" truncate={false} />
+                  <AddressDisplay
+                    address="0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
+                    truncate={false}
+                  />
                 </div>
               </div>
 
@@ -415,7 +489,12 @@ const PlaygroundPage: React.FC = () => {
               <div className="space-y-2">
                 <Label>Balance Display</Label>
                 <div className="flex items-end gap-4">
-                  <BalanceDisplay balance={123.4567} symbol="ETH" showFiat fiatValue={246800.50} />
+                  <BalanceDisplay
+                    balance={123.4567}
+                    symbol="ETH"
+                    showFiat
+                    fiatValue={246800.5}
+                  />
                   <BalanceDisplay balance={123.4567} symbol="ETH" size="lg" />
                   <BalanceDisplay balance={0} symbol="ETH" loading />
                 </div>
@@ -438,10 +517,13 @@ const PlaygroundPage: React.FC = () => {
               <div className="space-y-2">
                 <Label>Hold To Confirm</Label>
                 <div className="flex gap-2">
-                  <HoldToConfirmButton onConfirm={() => alert("Confirmed!")}>
+                  <HoldToConfirmButton onConfirm={() => alert('Confirmed!')}>
                     Hold to Confirm
                   </HoldToConfirmButton>
-                  <HoldToConfirmButton onConfirm={() => alert("Deleted!")} variant="destructive">
+                  <HoldToConfirmButton
+                    onConfirm={() => alert('Deleted!')}
+                    variant="destructive"
+                  >
                     Hold to Delete
                   </HoldToConfirmButton>
                 </div>
@@ -452,20 +534,22 @@ const PlaygroundPage: React.FC = () => {
               <div className="space-y-2">
                 <Label>Transaction Dialog</Label>
                 <div>
-                  <Button onClick={() => setShowConfirmDialog(true)}>Open Transaction Dialog</Button>
+                  <Button onClick={() => setShowConfirmDialog(true)}>
+                    Open Transaction Dialog
+                  </Button>
                   <TransactionConfirmDialog
                     open={showConfirmDialog}
                     onOpenChange={setShowConfirmDialog}
                     onConfirm={() => {
-                      alert("Transaction Sent!");
+                      alert('Transaction Sent!');
                       setShowConfirmDialog(false);
                     }}
                     transaction={{
-                      to: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
-                      amount: "1.5",
-                      symbol: "ETH",
-                      fee: "0.002",
-                      network: "mainnet",
+                      to: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+                      amount: '1.5',
+                      symbol: 'ETH',
+                      fee: '0.002',
+                      network: 'mainnet',
                     }}
                     origin="https://app.uniswap.org"
                   />
@@ -477,16 +561,35 @@ const PlaygroundPage: React.FC = () => {
               <div className="space-y-2">
                 <Label>Password Input</Label>
                 <div className="max-w-sm">
-                  <PasswordInput showStrength label="New Password" placeholder="Enter password" />
+                  <PasswordInput
+                    showStrength
+                    label="New Password"
+                    placeholder="Enter password"
+                  />
                 </div>
               </div>
 
-               <Separator />
-               
-               <div className="space-y-2">
-                 <Label>Seed Phrase Display</Label>
-                 <SeedPhraseDisplay words={["witch", "collapse", "practice", "feed", "shame", "open", "despair", "creek", "road", "again", "ice", "least"]} />
-               </div>
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>Seed Phrase Display</Label>
+                <SeedPhraseDisplay
+                  mnemonic={[
+                    'witch',
+                    'collapse',
+                    'practice',
+                    'feed',
+                    'shame',
+                    'open',
+                    'despair',
+                    'creek',
+                    'road',
+                    'again',
+                    'ice',
+                    'least',
+                  ]}
+                />
+              </div>
             </CardContent>
           </Card>
         </section>

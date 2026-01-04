@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
 import PlaygroundPage from './Playground';
 import LoginPage from '@/pages/Login';
-import CreateWalletPage from '@/pages/onboarding/CreateWallet';
 import ImportWalletPage from '@/pages/onboarding/ImportWallet';
 import DashboardPage from '@/pages/Dashboard';
 import { WelcomePage } from '@/pages/welcome';
+import { CreateWalletPage } from '@/pages/onboarding/create-wallet';
 
 const Layout = () => {
   const { uiMode } = useSidePanelMode();
