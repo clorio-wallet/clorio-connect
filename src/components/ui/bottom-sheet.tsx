@@ -1,7 +1,8 @@
-import * as React from "react"
-import { Drawer as DrawerPrimitive } from "vaul"
+"use client";
 
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { Drawer as DrawerPrimitive } from "vaul";
+import { cn } from "@/lib/utils";
 
 const BottomSheet = ({
   shouldScaleBackground = true,
@@ -11,14 +12,12 @@ const BottomSheet = ({
     shouldScaleBackground={shouldScaleBackground}
     {...props}
   />
-)
-BottomSheet.displayName = "BottomSheet"
+);
+BottomSheet.displayName = "BottomSheet";
 
-const BottomSheetTrigger = DrawerPrimitive.Trigger
-
-const BottomSheetPortal = DrawerPrimitive.Portal
-
-const BottomSheetClose = DrawerPrimitive.Close
+const BottomSheetTrigger = DrawerPrimitive.Trigger;
+const BottomSheetPortal = DrawerPrimitive.Portal;
+const BottomSheetClose = DrawerPrimitive.Close;
 
 const BottomSheetOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
@@ -26,11 +25,11 @@ const BottomSheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80", className)}
+    className={cn("fixed inset-0 z-50 bg-black/60 backdrop-blur-sm", className)}
     {...props}
   />
-))
-BottomSheetOverlay.displayName = DrawerPrimitive.Overlay.displayName
+));
+BottomSheetOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const BottomSheetContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
@@ -41,17 +40,19 @@ const BottomSheetContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        `fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col 
+         rounded-t-2xl border-t bg-background`,
         className
       )}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      {/* Drag Handle */}
+      <div className="mx-auto mt-4 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
       {children}
     </DrawerPrimitive.Content>
   </BottomSheetPortal>
-))
-BottomSheetContent.displayName = "BottomSheetContent"
+));
+BottomSheetContent.displayName = "BottomSheetContent";
 
 const BottomSheetHeader = ({
   className,
@@ -61,8 +62,8 @@ const BottomSheetHeader = ({
     className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
     {...props}
   />
-)
-BottomSheetHeader.displayName = "BottomSheetHeader"
+);
+BottomSheetHeader.displayName = "BottomSheetHeader";
 
 const BottomSheetFooter = ({
   className,
@@ -72,8 +73,8 @@ const BottomSheetFooter = ({
     className={cn("mt-auto flex flex-col gap-2 p-4", className)}
     {...props}
   />
-)
-BottomSheetFooter.displayName = "BottomSheetFooter"
+);
+BottomSheetFooter.displayName = "BottomSheetFooter";
 
 const BottomSheetTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
@@ -81,14 +82,11 @@ const BottomSheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
-    className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
-      className
-    )}
+    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
     {...props}
   />
-))
-BottomSheetTitle.displayName = DrawerPrimitive.Title.displayName
+));
+BottomSheetTitle.displayName = DrawerPrimitive.Title.displayName;
 
 const BottomSheetDescription = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Description>,
@@ -99,8 +97,19 @@ const BottomSheetDescription = React.forwardRef<
     className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
-))
-BottomSheetDescription.displayName = DrawerPrimitive.Description.displayName
+));
+BottomSheetDescription.displayName = DrawerPrimitive.Description.displayName;
+
+const BottomSheetBody = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn("flex-1 overflow-auto px-4 py-2", className)}
+    {...props}
+  />
+);
+BottomSheetBody.displayName = "BottomSheetBody";
 
 export {
   BottomSheet,
@@ -113,4 +122,5 @@ export {
   BottomSheetFooter,
   BottomSheetTitle,
   BottomSheetDescription,
-}
+  BottomSheetBody,
+};
