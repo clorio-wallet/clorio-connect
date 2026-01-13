@@ -83,7 +83,7 @@ export function SeedPhraseInput({
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {Array.from({ length }).map((_, index) => (
           <div key={index} className="relative">
-            <span className="absolute left-2 top-2.5 text-xs text-muted-foreground select-none">
+            <span className="absolute left-2 top-3 text-xs text-muted-foreground select-none z-10">
               {index + 1}.
             </span>
             <Input

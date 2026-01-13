@@ -10,6 +10,7 @@ import { WelcomePage } from '@/pages/welcome';
 import { CreateWalletPage } from '@/pages/onboarding/create-wallet';
 import { VerifyMnemonicPage } from '@/pages/onboarding/verify-mnemonic';
 import { Toaster } from '@/components/ui/toaster';
+import { ProtectedRoute } from '@/components/auth/protected-route';
 
 const Layout = () => {
   const { uiMode } = useSidePanelMode();
@@ -42,7 +43,14 @@ const App: React.FC = () => {
           <Route path="/onboarding/create" element={<CreateWalletPage />} />
           <Route path="/onboarding/verify" element={<VerifyMnemonicPage />} />
           <Route path="/onboarding/import" element={<ImportWalletPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/playground" element={<PlaygroundPage />} />
         </Route>
       </Routes>

@@ -1,7 +1,7 @@
 import "./sidepanel";
 import Client from 'mina-signer';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
-import { AppMessage, DeriveKeysResponse } from '@/messages/types';
+import { AppMessage, DeriveKeysResponse, ValidatePrivateKeyResponse } from '@/messages/types';
 
 console.log("Clorio Background Service Worker Running");
 
@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener((
   message: AppMessage,
   sender,
-  sendResponse: (response: DeriveKeysResponse | { error: string }) => void
+  sendResponse: (response: DeriveKeysResponse | ValidatePrivateKeyResponse | { error: string }) => void
 ) => {
   if (message.type === 'DERIVE_KEYS_FROM_MNEMONIC') {
     (async () => {
@@ -36,6 +36,17 @@ chrome.runtime.onMessage.addListener((
     
     // Return true to indicate we will send a response asynchronously
     return true;
+  }
+
+  if (message.type === 'VALIDATE_PRIVATE_KEY') {
+    try {
+      const { privateKey } = message.payload;
+      const publicKey = client.derivePublicKey(privateKey);
+      sendResponse({ isValid: true, publicKey });
+    } catch (error) {
+      console.error('Private key validation failed:', error);
+      sendResponse({ isValid: false, error: 'Invalid private key' });
+    }
   }
 });
 

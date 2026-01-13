@@ -16,6 +16,10 @@ interface SessionState {
   // Vault state
   hasVault: boolean;
   setHasVault: (hasVault: boolean) => void;
+
+  // Actions
+  logout: () => void;
+  resetWallet: () => Promise<void>;
 }
 
 export const useSessionStore = create<SessionState>((set) => ({
@@ -30,4 +34,21 @@ export const useSessionStore = create<SessionState>((set) => ({
   
   hasVault: false,
   setHasVault: (hasVault) => set({ hasVault }),
+
+  logout: () => set({ 
+    tempPassword: null, 
+    tempMnemonic: null, 
+    isAuthenticated: false 
+  }),
+
+  resetWallet: async () => {
+    const { storage } = await import('@/lib/storage');
+    await storage.remove('clorio_vault');
+    set({
+      hasVault: false,
+      tempPassword: null,
+      tempMnemonic: null,
+      isAuthenticated: false
+    });
+  },
 }));

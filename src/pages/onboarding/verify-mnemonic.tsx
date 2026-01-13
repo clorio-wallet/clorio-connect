@@ -72,6 +72,7 @@ export const VerifyMnemonicPage: React.FC = () => {
         salt: encryptedData.salt,
         iv: encryptedData.iv,
         version: 1,
+        type: 'mnemonic',
         createdAt: Date.now(),
       });
 
