@@ -7,28 +7,28 @@ import { Label } from '@/components/ui/label';
 import { generateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { useSessionStore } from '@/stores/session-store';
-import { CryptoService } from '@/lib/crypto';
-import { storage } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { WalletKeysSheet } from '@/components/onboarding/wallet-keys-sheet';
 
 export const CreateWalletPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { tempPassword, setHasVault, setIsAuthenticated } = useSessionStore();
+  const { tempPassword, setTempMnemonic } = useSessionStore();
   const [mnemonic, setMnemonic] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
 
   const handleReveal = () => {
     // Generate mnemonic only when user is ready
-    const mn = generateMnemonic(wordlist);
+    // 128 bits = 12 words (Standard BIP39)
+    // Uses Cryptographically-Secure Random Number Generator
+    const mn = generateMnemonic(wordlist, 128);
     setMnemonic(mn.split(' '));
     setIsRevealed(true);
   };
 
-  const handleFinish = async () => {
+  const handleNext = () => {
     if (!tempPassword) {
       toast({
         variant: 'destructive',
@@ -39,44 +39,8 @@ export const CreateWalletPage: React.FC = () => {
       return;
     }
 
-    setIsCreating(true);
-    try {
-      const mnemonicString = mnemonic.join(' ');
-
-      // Encrypt the mnemonic
-      const encryptedData = await CryptoService.encrypt(
-        mnemonicString,
-        tempPassword,
-      );
-
-      // Save vault
-      await storage.set('clorio_vault', {
-        encryptedSeed: encryptedData.ciphertext,
-        salt: encryptedData.salt,
-        iv: encryptedData.iv,
-        version: 1,
-        createdAt: Date.now(),
-      });
-
-      setHasVault(true);
-      setIsAuthenticated(true);
-
-      toast({
-        title: 'Wallet Created',
-        description: 'Your wallet has been successfully created.',
-      });
-
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Failed to create wallet:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create wallet.',
-      });
-    } finally {
-      setIsCreating(false);
-    }
+    setTempMnemonic(mnemonic);
+    navigate('/onboarding/verify');
   };
 
   return (
@@ -101,26 +65,31 @@ export const CreateWalletPage: React.FC = () => {
       )}
 
       <div className={cn('space-y-2', !isRevealed && 'blur-sm')}>
-        <h1 className="text-xl font-bold">Secret Recovery Phrase</h1>
+        <h1 className="text-xl font-bold">
+          Secret Recovery Phrase
+        </h1>
         <p className="text-sm text-muted-foreground">
-          This phrase is the ONLY way to recover your wallet. Do not share it
-          with anyone.
+          This phrase is the ONLY way to recover your wallet. Do not share it with anyone.
         </p>
       </div>
 
       <div className={cn('flex-1', !isRevealed && 'blur-sm')}>
         <SeedPhraseDisplay mnemonic={mnemonic} />
 
-        <div className="flex items-center space-x-2 mt-4">
-          <Checkbox
-            id="saved"
-            checked={saved}
-            onCheckedChange={(c) => setSaved(c as boolean)}
-            disabled={!isRevealed}
-          />
-          <Label htmlFor="saved" className="text-sm">
-            I have saved my secret recovery phrase
-          </Label>
+        <div className="flex flex-col gap-4 mt-6">
+          <WalletKeysSheet mnemonic={mnemonic} />
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="saved"
+              checked={saved}
+              onCheckedChange={(c) => setSaved(c as boolean)}
+              disabled={!isRevealed}
+            />
+            <Label htmlFor="saved" className="text-sm">
+              I have saved my secret recovery phrase
+            </Label>
+          </div>
         </div>
       </div>
 
@@ -134,10 +103,10 @@ export const CreateWalletPage: React.FC = () => {
         </Button>
         <Button
           className="flex-1"
-          disabled={!saved || isCreating}
-          onClick={handleFinish}
+          disabled={!saved}
+          onClick={handleNext}
         >
-          {isCreating ? 'Creating...' : 'Finish'}
+          Next
         </Button>
       </div>
     </div>

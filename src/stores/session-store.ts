@@ -5,6 +5,10 @@ interface SessionState {
   tempPassword: string | null;
   setTempPassword: (password: string | null) => void;
 
+  // Temporary mnemonic storage during onboarding flow
+  tempMnemonic: string[] | null;
+  setTempMnemonic: (mnemonic: string[] | null) => void;
+
   // Authentication state
   isAuthenticated: boolean;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -17,6 +21,9 @@ interface SessionState {
 export const useSessionStore = create<SessionState>((set) => ({
   tempPassword: null,
   setTempPassword: (tempPassword) => set({ tempPassword }),
+  
+  tempMnemonic: null,
+  setTempMnemonic: (tempMnemonic) => set({ tempMnemonic }),
   
   isAuthenticated: false,
   setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
