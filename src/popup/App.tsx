@@ -8,6 +8,8 @@ import { ImportWalletPage } from '@/pages/onboarding/import-wallet';
 import DashboardPage from '@/pages/Dashboard';
 import { WelcomePage } from '@/pages/welcome';
 import { CreateWalletPage } from '@/pages/onboarding/create-wallet';
+import { VerifyMnemonicPage } from '@/pages/onboarding/verify-mnemonic';
+import { Toaster } from '@/components/ui/toaster';
 
 const Layout = () => {
   const { uiMode } = useSidePanelMode();
@@ -24,6 +26,7 @@ const Layout = () => {
       <main className="flex-1 overflow-auto relative px-4">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   );
 };
@@ -37,6 +40,7 @@ const App: React.FC = () => {
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/onboarding/create" element={<CreateWalletPage />} />
+          <Route path="/onboarding/verify" element={<VerifyMnemonicPage />} />
           <Route path="/onboarding/import" element={<ImportWalletPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/playground" element={<PlaygroundPage />} />
