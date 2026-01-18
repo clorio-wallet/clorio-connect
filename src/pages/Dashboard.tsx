@@ -1,11 +1,13 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BalanceDisplay } from '@/components/wallet/balance-display';
-import { AddressDisplay } from '@/components/wallet/address-display';
+import React, { useEffect, useState } from 'react';
+import { AccountCard } from '@/components/wallet/account-card';
 import { Button } from '@/components/ui/button';
-import { LogOut, Lock, BookPlus } from 'lucide-react';
+import { Lock, BookPlus, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '@/stores/session-store';
+import { useWalletStore } from '@/stores/wallet-store';
+import { useSettingsStore } from '@/stores/settings-store';
+import { DEFAULT_NETWORKS } from '@/lib/networks';
+import { useAccountByKeyQuery } from '@/graphql/generated';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -16,13 +18,40 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { logout, resetWallet } = useSessionStore();
+  const { publicKey } = useWalletStore();
+  const { networkId } = useSettingsStore();
   const { toast } = useToast();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const network = DEFAULT_NETWORKS[networkId] || DEFAULT_NETWORKS.mainnet;
+
+  useEffect(() => {
+    if (!publicKey) {
+      navigate('/welcome');
+    }
+  }, [publicKey, navigate]);
+
+  const { data, loading, error, refetch } = useAccountByKeyQuery({
+    variables: { publicKey: publicKey || '' },
+    skip: !publicKey,
+    pollInterval: 30000,
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const balanceRaw = data?.accountByKey?.balance?.total || 0;
+  const balanceMina = Number(balanceRaw) / 1e9;
+
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      description: 'Balance updated',
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -50,6 +79,15 @@ const DashboardPage: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
+            onClick={handleRefresh}
+            title="Refresh Balance"
+            disabled={loading}
+          >
+            <RefreshCcw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => navigate('/playground')}
           >
             <BookPlus className="h-5 w-5" />
@@ -62,17 +100,8 @@ const DashboardPage: React.FC = () => {
           >
             <Lock className="h-5 w-5" />
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                title="Delete Wallet"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </AlertDialogTrigger>
+          
+          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -96,37 +125,37 @@ const DashboardPage: React.FC = () => {
         </div>
       </header>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Total Balance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BalanceDisplay
-            balance={12.45}
-            symbol="MINA"
-            showFiat
-            fiatValue={24500.12}
-            size="lg"
-          />
-        </CardContent>
-      </Card>
-
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Your Address
-        </h3>
-        <Card>
-          <CardContent className="py-3">
-            <AddressDisplay
-              address="0x71C7656EC7ab88b098defB751B7401B5f6d8976F"
-              showCopy
-              showExplorer
-              explorerUrl="https://minascan.io"
-            />
-          </CardContent>
-        </Card>
+      <div className="space-y-4">
+        <AccountCard
+          account={{
+            name: 'Main Account',
+            address: publicKey || '',
+            balance: balanceMina.toString(),
+            symbol: 'MINA',
+          }}
+          isActive={true}
+          isLoading={loading}
+          explorerUrl={network.explorerUrl}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+          onViewPrivateKey={() => {
+            toast({
+              title: 'Not Implemented',
+              description: 'View private key functionality coming soon.',
+            });
+          }}
+          onRename={() => {
+            toast({
+              title: 'Not Implemented',
+              description: 'Rename functionality coming soon.',
+            });
+          }}
+        />
+        
+        {error && (
+          <p className="text-sm text-destructive text-center">
+            Failed to load balance: {error.message}
+          </p>
+        )}
       </div>
 
       {/* Placeholder for transaction history or other dashboard widgets */}

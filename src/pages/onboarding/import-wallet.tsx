@@ -7,6 +7,8 @@ import { useSessionStore } from '@/stores/session-store';
 import { CryptoService } from '@/lib/crypto';
 import { storage } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { useGetIdFromPublicKeyLazyQuery } from '@/graphql/generated';
+import { useWalletStore } from '@/stores/wallet-store';
 import { SeedPhraseInput } from '@/components/wallet/seed-phrase-input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -29,6 +31,8 @@ export const ImportWalletPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { tempPassword, setHasVault, setIsAuthenticated } = useSessionStore();
+  const { setWallet } = useWalletStore();
+  const [getId] = useGetIdFromPublicKeyLazyQuery();
   const [mnemonic, setMnemonic] = useState<string[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [activeTab, setActiveTab] = useState<'mnemonic' | 'privateKey'>(
@@ -141,6 +145,23 @@ export const ImportWalletPage: React.FC = () => {
 
       setHasVault(true);
       setIsAuthenticated(true);
+
+      try {
+        const { data } = await getId({
+          variables: { publicKey: derivedKeys.publicKey },
+        });
+        const accountId = data?.idByPublicKey?.id || null;
+        setWallet({
+          publicKey: derivedKeys.publicKey,
+          accountId,
+        });
+      } catch (error) {
+        console.error('Failed to fetch account ID:', error);
+        setWallet({
+          publicKey: derivedKeys.publicKey,
+          accountId: null,
+        });
+      }
 
       setDebugKeys(derivedKeys);
       setShowDebug(true);

@@ -23,6 +23,8 @@ interface AccountCardProps {
     fiatValue?: string;
   };
   isActive?: boolean;
+  isLoading?: boolean;
+  explorerUrl?: string;
   onSelect?: () => void;
   onRename?: () => void;
   onDelete?: () => void;
@@ -33,6 +35,8 @@ interface AccountCardProps {
 export function AccountCard({
   account,
   isActive = false,
+  isLoading = false,
+  explorerUrl,
   onSelect,
   onRename,
   onDelete,
@@ -86,6 +90,8 @@ export function AccountCard({
                 <AddressDisplay 
                   address={account.address} 
                   showCopy={false}
+                  showExplorer={!!explorerUrl}
+                  explorerUrl={explorerUrl}
                   className="text-muted-foreground"
                 />
                 <button
@@ -142,6 +148,7 @@ export function AccountCard({
               showFiat
               fiatValue={account.fiatValue}
               size="sm"
+              loading={isLoading}
             />
           </div>
         </div>

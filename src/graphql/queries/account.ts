@@ -13,3 +13,11 @@ export const GET_BALANCE = gql`
     }
   }
 `;
+
+export const GET_ID = gql`
+  query GetIDFromPublicKey($publicKey: String!) {
+    idByPublicKey(publicKey: $publicKey) {
+      id
+    }
+  }
+`;

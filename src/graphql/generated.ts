@@ -3,32 +3,19 @@ import * as ApolloReactCommon from '@apollo/client/react';
 import * as ApolloReactHooks from '@apollo/client/react';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
-export type MakeEmpty<
-  T extends { [key: string]: unknown },
-  K extends keyof T,
-> = { [_ in K]?: never };
-export type Incremental<T> =
-  | T
-  | {
-      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
-    };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
 };
 
 export type Account = {
@@ -121,10 +108,12 @@ export type Mutation = {
   broadcastTransaction: BroadcastTransaction;
 };
 
+
 export type MutationBroadcastDelegationArgs = {
   input: SendDelegationInput;
   signature?: InputMaybe<SignatureInput>;
 };
+
 
 export type MutationBroadcastTransactionArgs = {
   input: SendPaymentInput;
@@ -172,26 +161,32 @@ export type Query = {
   validatorsCount?: Maybe<ValidatorsCount>;
 };
 
+
 export type QueryAccountByKeyArgs = {
   publicKey: Scalars['String']['input'];
 };
+
 
 export type QueryIdByPublicKeyArgs = {
   publicKey: Scalars['String']['input'];
 };
 
+
 export type QueryMempoolArgs = {
   publicKey: Scalars['String']['input'];
 };
+
 
 export type QueryTransactionsArgs = {
   accountId: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
 };
 
+
 export type QueryTransactionsCountArgs = {
   accountId: Scalars['Int']['input'];
 };
+
 
 export type QueryValidatorsArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -297,34 +292,30 @@ export type AccountByKeyQueryVariables = Exact<{
   publicKey: Scalars['String']['input'];
 }>;
 
-export type AccountByKeyQuery = {
-  __typename?: 'Query';
-  accountByKey?: {
-    __typename?: 'Account';
-    balance?: {
-      __typename?: 'Balance';
-      total?: string | null;
-      liquid?: string | null;
-      locked?: string | null;
-      liquidUnconfirmed?: string | null;
-      unconfirmedTotal?: string | null;
-    } | null;
-  } | null;
-};
+
+export type AccountByKeyQuery = { __typename?: 'Query', accountByKey?: { __typename?: 'Account', balance?: { __typename?: 'Balance', total?: string | null, liquid?: string | null, locked?: string | null, liquidUnconfirmed?: string | null, unconfirmedTotal?: string | null } | null } | null };
+
+export type GetIdFromPublicKeyQueryVariables = Exact<{
+  publicKey: Scalars['String']['input'];
+}>;
+
+
+export type GetIdFromPublicKeyQuery = { __typename?: 'Query', idByPublicKey?: { __typename?: 'IdByPublicKey', id?: string | null } | null };
+
 
 export const AccountByKeyDocument = gql`
-  query accountByKey($publicKey: String!) {
-    accountByKey(publicKey: $publicKey) {
-      balance {
-        total
-        liquid
-        locked
-        liquidUnconfirmed
-        unconfirmedTotal
-      }
+    query accountByKey($publicKey: String!) {
+  accountByKey(publicKey: $publicKey) {
+    balance {
+      total
+      liquid
+      locked
+      liquidUnconfirmed
+      unconfirmedTotal
     }
   }
-`;
+}
+    `;
 
 /**
  * __useAccountByKeyQuery__
@@ -342,82 +333,65 @@ export const AccountByKeyDocument = gql`
  *   },
  * });
  */
-export function useAccountByKeyQuery(
-  baseOptions: ApolloReactHooks.QueryHookOptions<
-    AccountByKeyQuery,
-    AccountByKeyQueryVariables
-  > &
-    (
-      | { variables: AccountByKeyQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useQuery<
-    AccountByKeyQuery,
-    AccountByKeyQueryVariables
-  >(AccountByKeyDocument, options);
-}
-export function useAccountByKeyLazyQuery(
-  baseOptions?: ApolloReactHooks.LazyQueryHookOptions<
-    AccountByKeyQuery,
-    AccountByKeyQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useLazyQuery<
-    AccountByKeyQuery,
-    AccountByKeyQueryVariables
-  >(AccountByKeyDocument, options);
-}
+export function useAccountByKeyQuery(baseOptions: ApolloReactHooks.QueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables> & ({ variables: AccountByKeyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<AccountByKeyQuery, AccountByKeyQueryVariables>(AccountByKeyDocument, options);
+      }
+export function useAccountByKeyLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<AccountByKeyQuery, AccountByKeyQueryVariables>(AccountByKeyDocument, options);
+        }
 // @ts-ignore
-export function useAccountByKeySuspenseQuery(
-  baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<
-    AccountByKeyQuery,
-    AccountByKeyQueryVariables
-  >,
-): ApolloReactHooks.UseSuspenseQueryResult<
-  AccountByKeyQuery,
-  AccountByKeyQueryVariables
->;
-export function useAccountByKeySuspenseQuery(
-  baseOptions?:
-    | ApolloReactHooks.SkipToken
-    | ApolloReactHooks.SuspenseQueryHookOptions<
-        AccountByKeyQuery,
-        AccountByKeyQueryVariables
-      >,
-): ApolloReactHooks.UseSuspenseQueryResult<
-  AccountByKeyQuery | undefined,
-  AccountByKeyQueryVariables
->;
-export function useAccountByKeySuspenseQuery(
-  baseOptions?:
-    | ApolloReactHooks.SkipToken
-    | ApolloReactHooks.SuspenseQueryHookOptions<
-        AccountByKeyQuery,
-        AccountByKeyQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === ApolloReactHooks.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return ApolloReactHooks.useSuspenseQuery<
-    AccountByKeyQuery,
-    AccountByKeyQueryVariables
-  >(AccountByKeyDocument, options);
+export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<AccountByKeyQuery, AccountByKeyQueryVariables>;
+export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<AccountByKeyQuery | undefined, AccountByKeyQueryVariables>;
+export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<AccountByKeyQuery, AccountByKeyQueryVariables>(AccountByKeyDocument, options);
+        }
+export type AccountByKeyQueryHookResult = ReturnType<typeof useAccountByKeyQuery>;
+export type AccountByKeyLazyQueryHookResult = ReturnType<typeof useAccountByKeyLazyQuery>;
+export type AccountByKeySuspenseQueryHookResult = ReturnType<typeof useAccountByKeySuspenseQuery>;
+export type AccountByKeyQueryResult = ApolloReactCommon.QueryResult<AccountByKeyQuery, AccountByKeyQueryVariables>;
+export const GetIdFromPublicKeyDocument = gql`
+    query GetIDFromPublicKey($publicKey: String!) {
+  idByPublicKey(publicKey: $publicKey) {
+    id
+  }
 }
-export type AccountByKeyQueryHookResult = ReturnType<
-  typeof useAccountByKeyQuery
->;
-export type AccountByKeyLazyQueryHookResult = ReturnType<
-  typeof useAccountByKeyLazyQuery
->;
-export type AccountByKeySuspenseQueryHookResult = ReturnType<
-  typeof useAccountByKeySuspenseQuery
->;
-export type AccountByKeyQueryResult = ApolloReactCommon.QueryResult<
-  AccountByKeyQuery,
-  AccountByKeyQueryVariables
->;
+    `;
+
+/**
+ * __useGetIdFromPublicKeyQuery__
+ *
+ * To run a query within a React component, call `useGetIdFromPublicKeyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetIdFromPublicKeyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetIdFromPublicKeyQuery({
+ *   variables: {
+ *      publicKey: // value for 'publicKey'
+ *   },
+ * });
+ */
+export function useGetIdFromPublicKeyQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables> & ({ variables: GetIdFromPublicKeyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return ApolloReactHooks.useQuery<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>(GetIdFromPublicKeyDocument, options);
+      }
+export function useGetIdFromPublicKeyLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useLazyQuery<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>(GetIdFromPublicKeyDocument, options);
+        }
+// @ts-ignore
+export function useGetIdFromPublicKeySuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>;
+export function useGetIdFromPublicKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetIdFromPublicKeyQuery | undefined, GetIdFromPublicKeyQueryVariables>;
+export function useGetIdFromPublicKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>) {
+          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return ApolloReactHooks.useSuspenseQuery<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>(GetIdFromPublicKeyDocument, options);
+        }
+export type GetIdFromPublicKeyQueryHookResult = ReturnType<typeof useGetIdFromPublicKeyQuery>;
+export type GetIdFromPublicKeyLazyQueryHookResult = ReturnType<typeof useGetIdFromPublicKeyLazyQuery>;
+export type GetIdFromPublicKeySuspenseQueryHookResult = ReturnType<typeof useGetIdFromPublicKeySuspenseQuery>;
+export type GetIdFromPublicKeyQueryResult = ApolloReactCommon.QueryResult<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>;
