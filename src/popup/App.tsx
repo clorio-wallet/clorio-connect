@@ -59,7 +59,7 @@ const App: React.FC = () => {
   }, [fetchNetworks]);
 
   if (!isRestored) {
-    return null; 
+    return null;
   }
 
   return (
@@ -75,6 +75,14 @@ const App: React.FC = () => {
             <Route path="/onboarding/import" element={<ImportWalletPage />} />
             <Route
               path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
               element={
                 <ProtectedRoute>
                   <DashboardPage />
