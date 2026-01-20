@@ -46,10 +46,10 @@ export const WelcomePage: React.FC = () => {
           </h1>
 
           <div className="space-y-1 md:space-y-2">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl leading-tight font-serif">
               YOUR MINA
             </h2>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl leading-tight font-serif">
               YOUR CONTROL
             </h2>
           </div>
@@ -73,7 +73,7 @@ export const WelcomePage: React.FC = () => {
       </div>
 
       <PasswordSetupSheet
-        open={showPasswordSetup} 
+        open={showPasswordSetup}
         onOpenChange={setShowPasswordSetup}
         onSuccess={handlePasswordSuccess}
       />

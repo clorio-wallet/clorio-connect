@@ -188,8 +188,8 @@ export const ImportWalletPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full space-y-6 py-4">
-      <div className="space-y-2">
+    <div className="flex flex-col h-full">
+      <div className="flex-none p-4 space-y-2">
         <h1 className="text-xl font-bold">Import Wallet</h1>
         <p className="text-sm text-muted-foreground">
           Import your wallet using your Secret Recovery Phrase or Private Key.
@@ -198,37 +198,42 @@ export const ImportWalletPage: React.FC = () => {
 
       <Tabs
         defaultValue="mnemonic"
-        className="w-full"
+        className="flex flex-col flex-1 overflow-hidden"
         onValueChange={(val) => setActiveTab(val as 'mnemonic' | 'privateKey')}
       >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="mnemonic">Mnemonic</TabsTrigger>
-          <TabsTrigger value="privateKey">Private Key</TabsTrigger>
-        </TabsList>
-        <TabsContent value="mnemonic" className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label>Secret Recovery Phrase</Label>
-            <SeedPhraseInput length={12} onChange={setMnemonic} />
-          </div>
-        </TabsContent>
-        <TabsContent value="privateKey" className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="private-key">Private Key</Label>
-            <Input
-              id="private-key"
-              placeholder="Enter your private key (Base58)"
-              value={privateKey}
-              onChange={(e) => setPrivateKey(e.target.value)}
-              type="password"
-            />
-            <p className="text-xs text-muted-foreground">
-              Your private key is a long string starting with 'EK'.
-            </p>
-          </div>
-        </TabsContent>
+        <div className="px-4 shrink-0">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="mnemonic">Mnemonic</TabsTrigger>
+            <TabsTrigger value="privateKey">Private Key</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
+          <TabsContent value="mnemonic" className="mt-0 space-y-4 h-full">
+            <div className="space-y-2">
+              <Label>Secret Recovery Phrase</Label>
+              <SeedPhraseInput length={12} onChange={setMnemonic} />
+            </div>
+          </TabsContent>
+          <TabsContent value="privateKey" className="mt-0 space-y-4 h-full">
+            <div className="space-y-2">
+              <Label htmlFor="private-key">Private Key</Label>
+              <Input
+                id="private-key"
+                placeholder="Enter your private key (Base58)"
+                value={privateKey}
+                onChange={(e) => setPrivateKey(e.target.value)}
+                type="password"
+              />
+              <p className="text-xs text-muted-foreground">
+                Your private key is a long string starting with 'EK'.
+              </p>
+            </div>
+          </TabsContent>
+        </div>
       </Tabs>
 
-      <div className="pt-4 flex gap-2">
+      <div className="flex-none p-4 pt-0 flex gap-2">
         <Button
           variant="outline"
           className="flex-1"

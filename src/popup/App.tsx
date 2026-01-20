@@ -27,7 +27,8 @@ import { useSessionStore } from '@/stores/session-store';
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Dock from '@/components/ui/dock';
-import { Home, Settings } from 'lucide-react';
+import { Home, Settings, HeartHandshake } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 // Configuration: List of routes (pathname) that should NOT have transition animations
 const NO_ANIMATION_ROUTES: string[] = [];
@@ -37,6 +38,7 @@ const Layout = () => {
   const location = useLocation();
   const element = useOutlet();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const isAnimated = !NO_ANIMATION_ROUTES.includes(location.pathname);
 
@@ -45,6 +47,15 @@ const Layout = () => {
       icon: Home,
       label: 'Home',
       onClick: () => navigate('/dashboard'),
+    },
+    {
+      icon: HeartHandshake,
+      label: 'Staking',
+      onClick: () =>
+        toast({
+          title: 'Not Implemented',
+          description: 'Staking functionality coming soon.',
+        }),
     },
     {
       icon: Settings,
