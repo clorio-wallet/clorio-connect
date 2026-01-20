@@ -38,7 +38,7 @@ export const WelcomePage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-between h-full py-6 md:py-12 px-4 md:px-6 overflow-y-auto">
+    <div className="flex flex-col items-center justify-between h-[100vh] py-6 md:py-12 px-4 md:px-6 overflow-y-auto">
       <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 md:gap-12 min-h-[300px]">
         <div className="text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-display tracking-tight mb-8 md:mb-12">
@@ -46,10 +46,10 @@ export const WelcomePage: React.FC = () => {
           </h1>
 
           <div className="space-y-1 md:space-y-2">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl leading-tight font-serif">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display leading-tight">
               YOUR MINA
             </h2>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl leading-tight font-serif">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display leading-tight">
               YOUR CONTROL
             </h2>
           </div>
@@ -73,7 +73,7 @@ export const WelcomePage: React.FC = () => {
       </div>
 
       <PasswordSetupSheet
-        open={showPasswordSetup}
+        open={showPasswordSetup} 
         onOpenChange={setShowPasswordSetup}
         onSuccess={handlePasswordSuccess}
       />

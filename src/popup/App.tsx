@@ -13,8 +13,6 @@ import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
 import PlaygroundPage from './Playground';
 import WalletUnlockPage from '@/pages/wallet-unlock';
 import { ImportWalletPage } from '@/pages/onboarding/import-wallet';
-import DashboardPage from '@/pages/Dashboard';
-import SettingsPage from '@/pages/Settings';
 import { WelcomePage } from '@/pages/welcome';
 import { CreateWalletPage } from '@/pages/onboarding/create-wallet';
 import { VerifyMnemonicPage } from '@/pages/onboarding/verify-mnemonic';
@@ -29,6 +27,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Dock from '@/components/ui/dock';
 import { Home, Settings, HeartHandshake } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import DashboardPage from '@/pages/Dashboard';
+import SettingsPage from '@/pages/Settings';
 
 // Configuration: List of routes (pathname) that should NOT have transition animations
 const NO_ANIMATION_ROUTES: string[] = [];
