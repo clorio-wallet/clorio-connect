@@ -20,16 +20,21 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useMinimumLoading } from '@/hooks/use-minimum-loading';
+import { NetworkBadge } from '@/components/wallet';
+import { LoopingLottie } from '@/components/ui/looping-lottie';
+import ufoAnimation from '../animations/ufo.json';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { logout, resetWallet } = useSessionStore();
   const { publicKey } = useWalletStore();
-  const { networkId } = useSettingsStore();
+  const { networkId, balancePollInterval } = useSettingsStore();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const network = DEFAULT_NETWORKS[networkId] || DEFAULT_NETWORKS.mainnet;
+  const pollIntervalMs =
+    balancePollInterval > 0 ? balancePollInterval * 60 * 1000 : 0;
 
   useEffect(() => {
     if (!publicKey) {
@@ -37,10 +42,10 @@ const DashboardPage: React.FC = () => {
     }
   }, [publicKey, navigate]);
 
-  const { data, loading, error, refetch } = useAccountByKeyQuery({
+  const { data, loading, refetch } = useAccountByKeyQuery({
     variables: { publicKey: publicKey || '' },
     skip: !publicKey,
-    pollInterval: 30000,
+    pollInterval: pollIntervalMs,
     fetchPolicy: 'cache-and-network',
   });
 
@@ -72,9 +77,9 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 py-6">
+    <div className="space-y-6 py-2">
       <header className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <NetworkBadge network={network.name} />
         <div className="flex gap-2">
           <Button
             variant="ghost"
@@ -155,17 +160,17 @@ const DashboardPage: React.FC = () => {
             });
           }}
         />
-
-        {error && (
-          <p className="text-sm text-destructive text-center">
-            Failed to load balance: {error.message}
-          </p>
-        )}
       </div>
 
-      {/* Placeholder for transaction history or other dashboard widgets */}
-      <div className="text-center text-muted-foreground text-sm py-8">
-        No recent transactions
+      <div className="flex flex-col items-center justify-center text-muted-foreground text-sm py-8 space-y-4">
+        <div className="w-[200px] h-[200px]">
+          <LoopingLottie
+            animationData={ufoAnimation}
+            loopLastSeconds={2}
+            loopDelay={5000}
+          />
+        </div>
+        <p>No recent transactions</p>
       </div>
     </div>
   );

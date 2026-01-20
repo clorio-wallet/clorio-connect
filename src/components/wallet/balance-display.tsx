@@ -1,7 +1,7 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn, formatBalance } from "@/lib/utils";
-import { Skeleton } from "@/components/ui";
+import { cn } from "@/lib/utils";
+import { Skeleton, AnimatedNumber } from "@/components/ui";
 
 interface BalanceDisplayProps {
   balance: string | number;
@@ -26,6 +26,7 @@ export function BalanceDisplay({
   size = "md",
   className,
 }: BalanceDisplayProps) {
+  const [isFirstLoad, setIsFirstLoad] = React.useState(true);
   const sizeClasses = {
     sm: { balance: "text-lg", fiat: "text-xs" },
     md: { balance: "text-2xl", fiat: "text-sm" },
@@ -33,14 +34,23 @@ export function BalanceDisplay({
     xl: { balance: "text-4xl", fiat: "text-lg" },
   };
 
-  const formattedBalance = formatBalance(balance, decimals);
+  React.useEffect(() => {
+    if (!loading) {
+      setIsFirstLoad(false);
+    }
+  }, [loading]);
+
+  const showSkeleton = loading && isFirstLoad;
+  const numericBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
+  const numericFiatValue = typeof fiatValue === 'string' ? parseFloat(fiatValue) : fiatValue;
+
   const fiatSymbol =
     fiatCurrency === "USD" ? "$" : fiatCurrency === "EUR" ? "€" : fiatCurrency;
 
   return (
     <div className={cn("relative", className)}>
       <AnimatePresence mode="wait">
-        {loading ? (
+        {showSkeleton ? (
           <motion.div
             key="loading"
             initial={{ opacity: 0 }}
@@ -69,7 +79,12 @@ export function BalanceDisplay({
                 sizeClasses[size].balance
               )}
             >
-              {formattedBalance}{" "}
+              <AnimatedNumber
+                value={numericBalance}
+                decimals={decimals}
+                className="tabular-nums"
+              />
+              {" "}
               <span className="text-muted-foreground font-medium">
                 {symbol}
               </span>
@@ -82,7 +97,11 @@ export function BalanceDisplay({
                 )}
               >
                 ≈ {fiatSymbol}
-                {formatBalance(fiatValue, 2)}
+                <AnimatedNumber
+                  value={numericFiatValue as number}
+                  decimals={2}
+                  className="tabular-nums"
+                />
               </div>
             )}
           </motion.div>

@@ -17,7 +17,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useToast } from '@/hooks/use-toast';
 
-import Lottie from 'lottie-react';
+import { LoopingLottie } from '@/components/ui/looping-lottie';
 import lockAnimation from '../animations/lock.json';
 
 interface VaultData {
@@ -90,11 +90,6 @@ const WalletUnlockPage: React.FC = () => {
         });
       }
 
-      toast({
-        title: 'Welcome Back',
-        description: 'Wallet unlocked successfully.',
-      });
-
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
@@ -110,11 +105,8 @@ const WalletUnlockPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-[100vh]">
-      <div className='w-[200px] h-[200px]'>
-        <Lottie
-          animationData={lockAnimation}
-          loop={false}
-        />
+      <div className="w-[200px] h-[200px]">
+        <LoopingLottie animationData={lockAnimation} loopLastSeconds={3} />
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

@@ -29,12 +29,20 @@ export function useSidePanelMode() {
 
       if (next === 'sidepanel') {
         if (chrome.sidePanel && chrome.sidePanel.open && currentWindow.id) {
-          await chrome.sidePanel.open({ windowId: currentWindow.id });
+          try {
+            await chrome.sidePanel.open({ windowId: currentWindow.id });
+          } catch (e) {
+            console.warn('Could not open sidepanel automatically:', e);
+          }
           window.close();
         }
       } else {
         if (chrome.action && chrome.action.openPopup) {
-          await chrome.action.openPopup();
+          try {
+            await chrome.action.openPopup();
+          } catch (e) {
+            console.warn('Could not open popup automatically:', e);
+          }
           window.close();
         }
       }

@@ -115,6 +115,11 @@ const PlaygroundPage: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { theme, setTheme, palette, setPalette } = useTheme();
 
+  // Debug state for BalanceDisplay
+  const [debugBalance, setDebugBalance] = useState(123.4567);
+  const [debugLoading, setDebugLoading] = useState(false);
+  const [balanceDisplayKey, setBalanceDisplayKey] = useState(0);
+
   useEffect(() => {
     if (chrome?.storage?.local) {
       chrome.storage.local.get({ uiMode: 'sidepanel' }, (res) => {
@@ -525,15 +530,48 @@ const PlaygroundPage: React.FC = () => {
 
               <div className="space-y-2">
                 <Label>Balance Display</Label>
-                <div className="flex items-end gap-4">
-                  <BalanceDisplay
-                    balance={123.4567}
-                    symbol="MINA"
-                    showFiat
-                    fiatValue={246800.5}
-                  />
-                  <BalanceDisplay balance={123.4567} symbol="MINA" size="lg" />
-                  <BalanceDisplay balance={0} symbol="MINA" loading />
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-card">
+                    <BalanceDisplay
+                      key={balanceDisplayKey}
+                      balance={debugBalance}
+                      symbol="MINA"
+                      showFiat
+                      fiatValue={debugBalance * 2000}
+                      loading={debugLoading}
+                    />
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={() => setDebugBalance(prev => prev + (Math.random() * 100))}
+                      >
+                        Update Balance
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant={debugLoading ? "default" : "outline"}
+                        onClick={() => setDebugLoading(prev => !prev)}
+                      >
+                        Loading: {debugLoading ? 'ON' : 'OFF'}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setBalanceDisplayKey(prev => prev + 1);
+                          setDebugLoading(true);
+                        }}
+                      >
+                        Reset (First Load)
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-end gap-4">
+                    <BalanceDisplay balance={123.4567} symbol="MINA" size="lg" />
+                    <BalanceDisplay balance={0} symbol="MINA" loading />
+                  </div>
                 </div>
               </div>
 
