@@ -5,6 +5,7 @@ import { useSettingsStore } from '@/stores/settings-store';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import {
   BottomSheet,
   BottomSheetContent,
@@ -21,6 +22,7 @@ interface NetworkSheetProps {
 }
 
 export const NetworkSheet: React.FC<NetworkSheetProps> = ({ open, onOpenChange }) => {
+  const { t } = useTranslation();
   const { networks } = useNetworkStore();
   const { networkId, setNetworkId } = useSettingsStore();
   const { toast } = useToast();
@@ -29,9 +31,9 @@ export const NetworkSheet: React.FC<NetworkSheetProps> = ({ open, onOpenChange }
     <BottomSheet open={open} onOpenChange={onOpenChange}>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <BottomSheetTitle>Select Network</BottomSheetTitle>
+          <BottomSheetTitle>{t('settings.network_sheet.title')}</BottomSheetTitle>
           <BottomSheetDescription>
-            Choose the Mina network you want to connect to.
+            {t('settings.network_sheet.desc')}
           </BottomSheetDescription>
         </BottomSheetHeader>
         <div className="p-4 space-y-2">
@@ -47,7 +49,7 @@ export const NetworkSheet: React.FC<NetworkSheetProps> = ({ open, onOpenChange }
               onClick={() => {
                 setNetworkId(net.label);
                 onOpenChange(false);
-                toast({ description: `Switched to ${net.name}` });
+                toast({ description: t('settings.network_sheet.switched_toast', { networkName: net.name }) });
               }}
             >
               <div className="flex flex-col">
@@ -62,7 +64,7 @@ export const NetworkSheet: React.FC<NetworkSheetProps> = ({ open, onOpenChange }
         </div>
         <BottomSheetFooter>
           <BottomSheetClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t('common.cancel')}</Button>
           </BottomSheetClose>
         </BottomSheetFooter>
       </BottomSheetContent>

@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatBalance, cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export type TransactionCardStatus = 'pending' | 'applied' | 'failed';
 export type TransactionType = 'payment' | 'delegation' | 'zkapp';
@@ -30,6 +31,8 @@ export function TransactionCard({
   symbol = 'MINA',
   onClick,
 }: TransactionCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Card
       className="p-4 hover:bg-muted/50 transition-colors cursor-pointer border-none shadow-sm"
@@ -53,8 +56,8 @@ export function TransactionCard({
           </div>
           <div className="space-y-1">
             <div className="font-medium text-sm">
-              {isIncoming ? 'Received' : 'Sent'}{' '}
-              {type === 'delegation' ? 'Delegation' : ''}
+              {isIncoming ? t('transactions.received') : t('transactions.sent')}{' '}
+              {type === 'delegation' ? t('transactions.delegation') : ''}
             </div>
             <div className="text-xs text-muted-foreground">{timestamp}</div>
           </div>
@@ -75,7 +78,7 @@ export function TransactionCard({
               variant="secondary"
               className="text-[10px] h-5 px-1.5 font-normal"
             >
-              {status}
+              {t(`transactions.status.${status}`)}
             </Badge>
           </div>
         </div>

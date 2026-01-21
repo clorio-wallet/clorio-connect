@@ -11,6 +11,7 @@ import {
   BottomSheetFooter,
 } from '@/components/ui/bottom-sheet';
 import { Checkbox } from '../ui/checkbox';
+import { useTranslation } from 'react-i18next';
 
 interface PasswordSetupSheetProps {
   open: boolean;
@@ -23,6 +24,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -42,10 +44,10 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
 
   const getStrengthLabel = (s: number) => {
     if (s === 0) return '';
-    if (s < 30) return 'Weak';
-    if (s < 60) return 'Kinda weak';
-    if (s < 80) return 'Strong';
-    return 'Very strong';
+    if (s < 30) return t('onboarding.password_sheet.strength_weak');
+    if (s < 60) return t('onboarding.password_sheet.strength_kinda_weak');
+    if (s < 80) return t('onboarding.password_sheet.strength_strong');
+    return t('onboarding.password_sheet.strength_very_strong');
   };
 
   const getStrengthColor = (s: number) => {
@@ -65,18 +67,17 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
       <BottomSheetContent className="h-[90vh] sm:h-[85vh]">
         <BottomSheetHeader className="text-left px-6 pt-6">
           <BottomSheetTitle className="text-4xl font-display font-normal">
-            Security first
+            {t('onboarding.password_sheet.title')}
           </BottomSheetTitle>
           <BottomSheetDescription className="text-base mt-2 text-muted-foreground">
-            Let's create a password. It will encrypt and keep safe your wallet.
-            Keep it safe, you won't be able to recover it.
+            {t('onboarding.password_sheet.desc')}
           </BottomSheetDescription>
         </BottomSheetHeader>
 
         <div className="flex-1 px-6 py-6 space-y-6 overflow-y-auto">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('onboarding.password_sheet.password_label')}</Label>
               <PasswordInput
                 id="password"
                 value={password}
@@ -89,7 +90,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
                 <div className="space-y-2 pt-1">
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">
-                      Strength:{' '}
+                      {t('onboarding.password_sheet.strength_label')}{' '}
                       <span
                         className={getStrengthColor(strength).replace(
                           'bg-',
@@ -111,7 +112,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Label htmlFor="confirm-password">{t('onboarding.password_sheet.confirm_password_label')}</Label>
               <PasswordInput
                 id="confirm-password"
                 value={confirmPassword}
@@ -121,7 +122,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
               />
               {confirmPassword && password !== confirmPassword && (
                 <p className="text-xs text-destructive">
-                  Passwords do not match
+                  {t('onboarding.password_sheet.password_mismatch')}
                 </p>
               )}
             </div>
@@ -139,7 +140,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
               htmlFor="terms"
               className="text-sm font-normal text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I accept Terms of Condition
+              {t('onboarding.password_sheet.terms_label')}
             </Label>
           </div>
 
@@ -153,7 +154,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
               !acceptedTerms
             }
           >
-            Continue
+            {t('onboarding.create.next_button')}
           </Button>
         </BottomSheetFooter>
       </BottomSheetContent>

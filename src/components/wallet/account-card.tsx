@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Copy, Check, MoreVertical, Eye, Edit2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export function AccountCard({
   onViewPrivateKey,
   className,
 }: AccountCardProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -84,7 +86,7 @@ export function AccountCard({
                 <h3 className="font-medium truncate">{account.name}</h3>
                 {isActive && (
                   <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                    Active
+                    {t('settings.account_card.active')}
                   </span>
                 )}
               </div>
@@ -125,11 +127,11 @@ export function AccountCard({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onRename}>
                   <Edit2 className="h-4 w-4 mr-2" />
-                  Rename
+                  {t('settings.account_card.rename')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onViewPrivateKey}>
                   <Eye className="h-4 w-4 mr-2" />
-                  View Private Key
+                  {t('settings.account_card.view_private_key')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
@@ -137,7 +139,7 @@ export function AccountCard({
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Remove
+                  {t('settings.account_card.remove')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

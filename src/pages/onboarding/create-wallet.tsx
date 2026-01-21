@@ -10,8 +10,10 @@ import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { WalletKeysSheet } from '@/components/onboarding/wallet-keys-sheet';
+import { useTranslation } from 'react-i18next';
 
 export const CreateWalletPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { tempPassword, setTempMnemonic } = useSessionStore();
@@ -32,8 +34,8 @@ export const CreateWalletPage: React.FC = () => {
     if (!tempPassword) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Password not set. Please restart onboarding.',
+        title: t('onboarding.create.error_title') || 'Error',
+        description: t('onboarding.create.error_password'),
       });
       navigate('/');
       return;
@@ -50,15 +52,14 @@ export const CreateWalletPage: React.FC = () => {
           <div className="space-y-6 max-w-[280px] text-center animate-in fade-in duration-500">
             <div className="space-y-2">
               <h2 className="text-3xl font-serif text-foreground tracking-tight">
-                MAKE SURE YOU'RE ALONE
+                {t('onboarding.create.make_sure_alone_title')}
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Confirm that your screen is not being recorded and is visible
-                only to you.
+                {t('onboarding.create.make_sure_alone_desc')}
               </p>
             </div>
             <Button onClick={handleReveal} className="w-full" size="lg">
-              Let's start
+              {t('onboarding.create.start_button')}
             </Button>
           </div>
         </div>
@@ -66,10 +67,10 @@ export const CreateWalletPage: React.FC = () => {
 
       <div className={cn('space-y-2', !isRevealed && 'blur-sm')}>
         <h1 className="text-xl font-bold">
-          Secret Recovery Phrase
+          {t('onboarding.create.phrase_title')}
         </h1>
         <p className="text-sm text-muted-foreground">
-          This phrase is the ONLY way to recover your wallet. Do not share it with anyone.
+          {t('onboarding.create.phrase_desc')}
         </p>
       </div>
 
@@ -87,7 +88,7 @@ export const CreateWalletPage: React.FC = () => {
               disabled={!isRevealed}
             />
             <Label htmlFor="saved" className="text-sm">
-              I have saved my secret recovery phrase
+              {t('onboarding.create.saved_label')}
             </Label>
           </div>
         </div>
@@ -99,14 +100,14 @@ export const CreateWalletPage: React.FC = () => {
           className="flex-1"
           onClick={() => navigate(-1)}
         >
-          Back
+          {t('onboarding.create.back_button')}
         </Button>
         <Button
           className="flex-1"
           disabled={!saved}
           onClick={handleNext}
         >
-          Next
+          {t('onboarding.create.next_button')}
         </Button>
       </div>
     </div>

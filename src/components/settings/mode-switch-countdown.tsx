@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ModeSwitchCountdownProps {
   seconds: number;
@@ -12,6 +13,7 @@ export const ModeSwitchCountdown: React.FC<ModeSwitchCountdownProps> = ({
   onComplete,
 }) => {
   const [timeLeft, setTimeLeft] = useState(seconds);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -26,9 +28,17 @@ export const ModeSwitchCountdown: React.FC<ModeSwitchCountdownProps> = ({
     return () => clearInterval(timer);
   }, [timeLeft, onComplete]);
 
+  const modeLabel =
+    targetMode === 'sidepanel'
+      ? t('settings.display_mode_sheet.sidepanel')
+      : t('settings.display_mode_sheet.popup');
+
   return (
     <span>
-      Switching to {targetMode === 'sidepanel' ? 'Side Panel' : 'Popup'} in {timeLeft} seconds...
+      {t('settings.display_mode_sheet.countdown', {
+        mode: modeLabel,
+        seconds: timeLeft,
+      })}
     </span>
   );
 };

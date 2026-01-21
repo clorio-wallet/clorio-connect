@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatAddress, cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ValidatorCardProps {
   name?: string;
@@ -24,6 +25,8 @@ export function ValidatorCard({
   isDelegated,
   onDelegate,
 }: ValidatorCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Card className={cn(
       "p-4 transition-all hover:shadow-md",
@@ -41,7 +44,7 @@ export function ValidatorCard({
               </h3>
               {isDelegated && (
                 <Badge variant="default" className="text-[10px] h-5">
-                  Current
+                  {t("validators.current_badge")}
                 </Badge>
               )}
             </div>
@@ -57,26 +60,26 @@ export function ValidatorCard({
           onClick={onDelegate}
           disabled={isDelegated}
         >
-          {isDelegated ? "Delegated" : "Delegate"}
+          {isDelegated ? t("validators.delegated_badge") : t("validators.delegate_button")}
         </Button>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2 py-3 bg-muted/50 rounded-lg">
         <div className="text-center space-y-1 border-r border-border last:border-0">
           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-            <Percent className="h-3 w-3" /> Fee
+            <Percent className="h-3 w-3" /> {t("validators.fee_label")}
           </div>
           <div className="font-medium text-sm">{fee}%</div>
         </div>
         <div className="text-center space-y-1 border-r border-border last:border-0">
           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-            <Users className="h-3 w-3" /> Users
+            <Users className="h-3 w-3" /> {t("validators.users_label")}
           </div>
           <div className="font-medium text-sm">{delegators || "-"}</div>
         </div>
         <div className="text-center space-y-1">
           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-            Total Stake
+            {t("validators.total_stake_label")}
           </div>
           <div className="font-medium text-sm">{(stake / 1000000).toFixed(1)}M</div>
         </div>

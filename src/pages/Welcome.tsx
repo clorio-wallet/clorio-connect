@@ -5,8 +5,10 @@ import { storage } from '@/lib/storage';
 import { useNavigate } from 'react-router-dom';
 import { PasswordSetupSheet } from '@/components/onboarding/password-setup-sheet';
 import { MethodSelectionSheet } from '@/components/onboarding/method-selection-sheet';
+import { useTranslation } from 'react-i18next';
 
 export const WelcomePage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [showMethodSelection, setShowMethodSelection] = useState(false);
@@ -42,15 +44,15 @@ export const WelcomePage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 md:gap-12 min-h-[300px]">
         <div className="text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-display tracking-tight mb-8 md:mb-12">
-            Clorio
+            {t('welcome.title')}
           </h1>
 
           <div className="space-y-1 md:space-y-2">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-display leading-tight">
-              YOUR MINA
+              {t('welcome.subtitle_1')}
             </h2>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-display leading-tight">
-              YOUR CONTROL
+              {t('welcome.subtitle_2')}
             </h2>
           </div>
         </div>
@@ -61,15 +63,15 @@ export const WelcomePage: React.FC = () => {
             onClick={handleStart}
             className="w-full text-base md:text-lg h-10 md:h-12"
           >
-            Let's start
+            {t('welcome.start_button')}
           </Button>
         </div>
       </div>
 
       <div className="text-[10px] md:text-xs text-muted-foreground mt-4 md:mt-8 shrink-0">
-        <button className="hover:underline">Terms of Service</button>
+        <button className="hover:underline">{t('welcome.terms')}</button>
         <span className="mx-2">/</span>
-        <button className="hover:underline">Privacy Policy</button>
+        <button className="hover:underline">{t('welcome.privacy')}</button>
       </div>
 
       <PasswordSetupSheet

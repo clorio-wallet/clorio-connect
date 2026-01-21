@@ -16,6 +16,7 @@ import {
 } from "@/components/ui";
 import { sendTransactionSchema, type SendTransactionFormData } from "@/lib/validations";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { useTranslation } from 'react-i18next';
 
 interface SendFormProps {
   balance: string;
@@ -34,6 +35,7 @@ export function SendForm({
   onCancel,
   className,
 }: SendFormProps) {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -69,7 +71,7 @@ export function SendForm({
       setError(null);
       await onSubmit(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send transaction");
+      setError(err instanceof Error ? err.message : t('send.error_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -82,7 +84,7 @@ export function SendForm({
     >
       {/* Amount Input */}
       <div className="space-y-2">
-        <Label>Amount</Label>
+        <Label>{t('send.amount_label')}</Label>
         <div className="relative">
           <Input
             {...register("amount")}
@@ -106,7 +108,7 @@ export function SendForm({
         </div>
         <div className="flex justify-between text-xs text-muted-foreground px-1">
           <span>
-            Available: {formatBalance(balance)} {symbol}
+            {t('send.available_label')}: {formatBalance(balance)} {symbol}
           </span>
           <span>≈ ${formatBalance(fiatValue.toString(), 2)}</span>
         </div>
@@ -117,11 +119,11 @@ export function SendForm({
 
       {/* Recipient Input */}
       <div className="space-y-2">
-        <Label>Recipient</Label>
+        <Label>{t('send.recipient_label')}</Label>
         <div className="relative">
           <Input
             {...register("recipient")}
-            placeholder="Address"
+            placeholder={t('send.recipient_placeholder')}
             className="pl-9 font-mono text-sm"
           />
           <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -133,10 +135,10 @@ export function SendForm({
 
       {/* Memo Input */}
       <div className="space-y-2">
-        <Label>Memo (Optional)</Label>
+        <Label>{t('send.memo_label')}</Label>
         <Input
           {...register("memo")}
-          placeholder="Public note..."
+          placeholder={t('send.memo_placeholder')}
         />
         {errors.memo && (
           <p className="text-sm text-destructive">{errors.memo.message}</p>
@@ -147,11 +149,11 @@ export function SendForm({
       <Card className="p-4 bg-muted/50 border-0">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Network Fee</span>
+            <span className="text-muted-foreground">{t('send.network_fee_label')}</span>
             <span>0.1 {symbol}</span>
           </div>
           <div className="flex justify-between font-medium pt-2 border-t">
-            <span>Total</span>
+            <span>{t('send.total_label')}</span>
             <div className="text-right">
               <div>
                 <AnimatedNumber
@@ -190,7 +192,7 @@ export function SendForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         )}
         <Button
@@ -198,7 +200,7 @@ export function SendForm({
           className="flex-1"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Sending..." : "Send"}
+          {isSubmitting ? t('send.sending_button') : t('send.send_button')}
           {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
         </Button>
       </div>

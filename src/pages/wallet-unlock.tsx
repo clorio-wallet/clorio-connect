@@ -16,6 +16,7 @@ import { CryptoService } from '@/lib/crypto';
 import { useSessionStore } from '@/stores/session-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 import { LoopingLottie } from '@/components/ui/looping-lottie';
 import lockAnimation from '../animations/lock.json';
@@ -29,6 +30,7 @@ interface VaultData {
 }
 
 const WalletUnlockPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { setIsAuthenticated, setHasVault, setTempPassword, isAuthenticated } =
@@ -61,8 +63,8 @@ const WalletUnlockPage: React.FC = () => {
       if (!vault) {
         toast({
           variant: 'destructive',
-          title: 'No Wallet Found',
-          description: 'Please create or import a wallet first.',
+          title: t('wallet_unlock.error_no_wallet_title'),
+          description: t('wallet_unlock.error_no_wallet_desc'),
         });
         navigate('/welcome'); // Or wherever the start is
         return;
@@ -95,8 +97,8 @@ const WalletUnlockPage: React.FC = () => {
       console.error('Login failed:', error);
       toast({
         variant: 'destructive',
-        title: 'Incorrect Password',
-        description: 'Please try again.',
+        title: t('wallet_unlock.error_incorrect_password_title'),
+        description: t('wallet_unlock.error_incorrect_password_desc'),
       });
     } finally {
       setIsLoading(false);
@@ -110,17 +112,17 @@ const WalletUnlockPage: React.FC = () => {
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Welcome Back</CardTitle>
+          <CardTitle>{t('wallet_unlock.title')}</CardTitle>
           <CardDescription>
-            Enter your password to unlock your wallet
+            {t('wallet_unlock.desc')}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleUnlock}>
           <CardContent className="space-y-4">
             <PasswordInput
               id="password"
-              placeholder="Enter password"
-              label="Password"
+              placeholder={t('wallet_unlock.password_placeholder')}
+              label={t('wallet_unlock.password_label')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -131,7 +133,7 @@ const WalletUnlockPage: React.FC = () => {
               className="w-full"
               disabled={!password || isLoading}
             >
-              {isLoading ? 'Unlocking...' : 'Unlock'}
+              {isLoading ? t('wallet_unlock.unlocking') : t('wallet_unlock.unlock_button')}
             </Button>
             <Button
               variant="link"
@@ -139,7 +141,7 @@ const WalletUnlockPage: React.FC = () => {
               type="button"
               onClick={() => navigate('/onboarding/import')}
             >
-              Forgot password? Reset wallet
+              {t('wallet_unlock.forgot_password')}
             </Button>
           </CardFooter>
         </form>

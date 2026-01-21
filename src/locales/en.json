@@ -1,0 +1,280 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "continue": "Continue",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "copied": "Copied"
+  },
+  "send": {
+    "amount_label": "Amount",
+    "available_label": "Available",
+    "recipient_label": "Recipient",
+    "recipient_placeholder": "Address",
+    "memo_label": "Memo (Optional)",
+    "memo_placeholder": "Public note...",
+    "network_fee_label": "Network Fee",
+    "total_label": "Total",
+    "error_failed": "Failed to send transaction",
+    "sending_button": "Sending...",
+    "send_button": "Send"
+  },
+  "staking": {
+    "validator_label": "Validator",
+    "validator_placeholder": "Select validator",
+    "amount_label": "Amount to Stake",
+    "max_button": "MAX",
+    "available_label": "Available",
+    "estimated_rewards_title": "Estimated Yearly Rewards",
+    "estimated_rewards_desc": "Based on {{apy}}% APY from {{name}}",
+    "warning_text": "Staked funds are locked for 21 days after unstaking. You will not earn rewards during the unbonding period.",
+    "error_failed": "Failed to stake",
+    "staking_button": "Staking...",
+    "stake_button": "Stake"
+  },
+  "validators": {
+    "current_badge": "Current",
+    "delegated_badge": "Delegated",
+    "delegate_button": "Delegate",
+    "fee_label": "Fee",
+    "users_label": "Users",
+    "total_stake_label": "Total Stake",
+    "search_placeholder": "Search validator...",
+    "empty_list": "No validators found"
+  },
+  "transaction_confirm": {
+    "title": "Confirm Transaction",
+    "request_from": "Request from:",
+    "recipient_label": "Recipient",
+    "amount_label": "Amount",
+    "memo_label": "Memo",
+    "network_fee_label": "Network Fee",
+    "total_label": "Total",
+    "network_label": "Network",
+    "processing": "Processing...",
+    "hold_to_confirm": "Hold to Confirm"
+  },
+  "transactions": {
+    "no_transactions": "No transactions found",
+    "received": "Received",
+    "sent": "Sent",
+    "delegation": "Delegation",
+    "status": {
+      "pending": "Pending",
+      "applied": "Applied",
+      "failed": "Failed"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "refresh_balance": "Refresh Balance",
+    "logout": "Logout",
+    "logout_title": "Logged Out",
+    "logout_desc": "Your session has been cleared.",
+    "delete_wallet": "Delete Wallet",
+    "delete_wallet_title": "Wallet Deleted",
+    "delete_wallet_desc": "Your wallet has been removed from this device.",
+    "confirm_delete_title": "Are you absolutely sure?",
+    "confirm_delete_desc": "This action cannot be undone. This will permanently delete your wallet from this device. Make sure you have backed up your Secret Recovery Phrase or Private Key.",
+    "no_transactions": "No recent transactions",
+    "not_implemented": "Not Implemented",
+    "rename_coming_soon": "Rename functionality coming soon."
+  },
+  "settings": {
+    "title": "Settings",
+    "current_account": "Current account",
+    "manage": "Manage",
+    "display_mode": "Display Mode",
+    "network": "Network",
+    "security": "Security",
+    "balance_refresh": "Balance Refresh",
+    "connected_apps": "Connected zkApps",
+    "advanced": "Advanced",
+    "reset_wallet": "Reset Wallet",
+    "about": "About",
+    "faq": "FAQ",
+    "view_private_key": "View Private Key",
+    "language_title": "Language",
+    "language_desc": "Choose your preferred language.",
+    "network_sheet": {
+      "title": "Select Network",
+      "desc": "Choose the Mina network you want to connect to.",
+      "switched_toast": "Switched to {{networkName}}"
+    },
+    "security_sheet": {
+      "title": "Security Settings",
+      "desc": "Manage your wallet security preferences.",
+      "auto_lock_timer": "Auto-lock Timer",
+      "options": {
+          "window_close": "On window close",
+          "5_min": "5 minutes",
+          "15_min": "15 minutes",
+          "30_min": "30 minutes",
+          "1_hour": "1 hour",
+          "never": "Never"
+      }
+    },
+    "reset_sheet": {
+      "title": "Reset Wallet?",
+      "desc": "This action will permanently delete your wallet from this device. Make sure you have backed up your mnemonic phrase or private key. This action cannot be undone.",
+      "confirm_button": "Reset Wallet",
+      "success_title": "Wallet Reset",
+      "success_desc": "Your wallet has been removed from this device."
+    },
+    "refresh_sheet": {
+      "title": "Balance Refresh Rate",
+      "desc": "Choose how often your balance should update automatically.",
+      "options": {
+        "1_min": "1 minute",
+        "2_min": "2 minutes",
+        "5_min": "5 minutes",
+        "10_min": "10 minutes",
+        "30_min": "30 minutes",
+        "manual": "Manual only"
+      }
+    },
+    "display_mode_sheet": {
+      "title": "Changing Display Mode",
+      "switch_now": "Switch Now",
+      "cancel_change": "Cancel change",
+      "popup": "Popup",
+      "sidepanel": "Side Panel",
+      "countdown": "Switching to {{mode}} in {{seconds}} seconds..."
+    },
+    "account_card": {
+      "active": "Active",
+      "rename": "Rename",
+      "view_private_key": "View Private Key",
+      "remove": "Remove"
+    }
+  },
+  "security": {
+    "view_private_key": {
+      "title_warning": "Security Warning",
+      "title_password": "Confirm Password",
+      "title_display": "Private Key",
+      "desc_warning": "You are about to view your private key. Make sure you are alone and no one is watching.",
+      "desc_password": "Enter your password to view the private key.",
+      "desc_display": "Never share this key with anyone. Anyone who has it can control your funds.",
+      "warning_box": "Warning: Your private key grants full access to your funds. Ensure no one is looking at your screen.",
+      "i_am_alone": "I am alone, continue",
+      "enter_password": "Enter your password",
+      "password_label": "Password",
+      "decrypting": "Decrypting...",
+      "key_copied": "Private key copied to clipboard",
+      "key_unavailable": "Private key is not available.",
+      "verifying": "Verifying...",
+      "view_btn": "View Private Key",
+      "password_required": "Password is required",
+      "incorrect_password": "Incorrect password"
+    }
+  },
+  "welcome": {
+    "title": "Clorio",
+    "subtitle_1": "YOUR MINA",
+    "subtitle_2": "YOUR CONTROL",
+    "start_button": "Let's start",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
+  },
+  "wallet_unlock": {
+    "title": "Welcome Back",
+    "desc": "Enter your password to unlock your wallet",
+    "password_label": "Password",
+    "password_placeholder": "Enter password",
+    "unlock_button": "Unlock",
+    "unlocking": "Unlocking...",
+    "forgot_password": "Forgot password? Reset wallet",
+    "error_no_wallet_title": "No Wallet Found",
+    "error_no_wallet_desc": "Please create or import a wallet first.",
+    "error_incorrect_password_title": "Incorrect Password",
+    "error_incorrect_password_desc": "Please try again."
+  },
+  "onboarding": {
+    "create": {
+      "make_sure_alone_title": "MAKE SURE YOU'RE ALONE",
+      "make_sure_alone_desc": "Confirm that your screen is not being recorded and is visible only to you.",
+      "start_button": "Let's start",
+      "phrase_title": "Secret Recovery Phrase",
+      "phrase_desc": "This phrase is the ONLY way to recover your wallet. Do not share it with anyone.",
+      "saved_label": "I have saved my secret recovery phrase",
+      "error_password": "Password not set. Please restart onboarding.",
+      "next_button": "Next",
+      "back_button": "Back"
+    },
+    "import": {
+      "title": "Import Wallet",
+      "desc": "Import your wallet using your Secret Recovery Phrase or Private Key.",
+      "tab_mnemonic": "Mnemonic",
+      "tab_private_key": "Private Key",
+      "input_label_mnemonic": "Secret Recovery Phrase",
+      "input_placeholder_mnemonic": "Enter your 12-word seed phrase",
+      "input_label_private_key": "Private Key",
+      "input_placeholder_private_key": "Enter your private key (Base58)",
+      "private_key_hint": "Your private key is a long string starting with 'EK'.",
+      "button_import": "Import",
+      "button_importing": "Importing...",
+      "error_invalid_mnemonic": "Invalid Seed Phrase",
+      "error_invalid_mnemonic_desc": "Please check your seed phrase and try again.",
+      "error_private_key_required": "Private key is required.",
+      "error_invalid_private_key": "Invalid Private Key",
+      "error_invalid_private_key_desc": "Please check your private key and try again.",
+      "success_title": "Wallet Imported",
+      "success_desc": "Your wallet has been successfully imported.",
+      "debug_title": "Wallet Imported (Debug)",
+      "debug_desc": "Verify your keys below. This dialog is for debugging purposes.",
+      "go_dashboard": "Go to Dashboard"
+    },
+    "verify": {
+      "title_page": "Verify Seed Phrase",
+      "desc_page": "Enter the requested words from your seed phrase to verify you saved it.",
+      "label_word": "Word #{{index}}",
+      "placeholder_word": "Enter word #{{index}}",
+      "verify_button": "Verify & Create",
+      "creating": "Creating...",
+      "error_verify_failed": "Verification Failed",
+      "error_verify_failed_desc": "Word #{{index}} is incorrect. Please check your seed phrase.",
+      "success_title": "Wallet Created",
+      "success_desc": "Your wallet has been successfully created.",
+      "error_create_failed": "Failed to create wallet.",
+      "error_session_expired": "Session Expired",
+      "error_session_expired_desc": "Please restart the wallet creation process."
+    },
+    "method_sheet": {
+      "title": "Wallet Setup",
+      "desc": "Choose how you want to set up your wallet.",
+      "create_new": "Create New Wallet",
+      "import_phrase": "I have a Secret Recovery Phrase"
+    },
+    "password_sheet": {
+      "title": "Security first",
+      "desc": "Let's create a password. It will encrypt and keep safe your wallet. Keep it safe, you won't be able to recover it.",
+      "password_label": "Password",
+      "confirm_password_label": "Confirm Password",
+      "password_mismatch": "Passwords do not match",
+      "strength_label": "Strength:",
+      "strength_weak": "Weak",
+      "strength_kinda_weak": "Kinda weak",
+      "strength_strong": "Strong",
+      "strength_very_strong": "Very strong",
+      "terms_label": "I accept Terms of Condition"
+    },
+    "wallet_keys_sheet": {
+      "show_key_button": "Show private key",
+      "title": "Wallet Keys",
+      "desc": "These are your derived Mina Protocol keys. Save them securely. NEVER share your private key.",
+      "deriving": "Deriving keys...",
+      "public_key_label": "Public Key (Address)",
+      "private_key_label": "Private Key",
+      "failed_derive": "Failed to derive keys. Please try again.",
+      "failed_toast_title": "Key Derivation Failed",
+      "failed_toast_desc": "Could not derive keys from mnemonic.",
+      "copied_title": "Copied",
+      "copied_desc": "{{label}} copied to clipboard"
+    }
+  }
+}

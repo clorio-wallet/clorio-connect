@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { validateMnemonic } from '@scure/bip39';
-import { wordlist } from '@scure/bip39/wordlists/english';
-import { useSessionStore } from '@/stores/session-store';
-import { CryptoService } from '@/lib/crypto';
-import { storage } from '@/lib/storage';
-import { useToast } from '@/hooks/use-toast';
-import { useGetIdFromPublicKeyLazyQuery } from '@/graphql/generated';
-import { useWalletStore } from '@/stores/wallet-store';
-import { SeedPhraseInput } from '@/components/wallet/seed-phrase-input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  AppMessage,
-  ValidatePrivateKeyResponse,
-  DeriveKeysResponse,
-} from '@/messages/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SeedPhraseInput } from '@/components/wallet/seed-phrase-input';
+import { useNavigate } from 'react-router-dom';
+import { useSessionStore } from '@/stores/session-store';
+import { useToast } from '@/hooks/use-toast';
+import { AppMessage, ValidatePrivateKeyResponse } from '@/messages/types';
+import { useWalletStore } from '@/stores/wallet-store';
+import { CryptoService } from '@/lib/crypto';
+import { storage } from '@/lib/storage';
 import {
   Dialog,
   DialogContent,
@@ -26,78 +19,92 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { useGetIdFromPublicKeyLazyQuery } from '@/graphql/generated';
+import { useTranslation } from 'react-i18next';
 
 export const ImportWalletPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { tempPassword, setHasVault, setIsAuthenticated } = useSessionStore();
   const { setWallet } = useWalletStore();
-  const [getId] = useGetIdFromPublicKeyLazyQuery();
-  const [mnemonic, setMnemonic] = useState<string[]>([]);
-  const [isImporting, setIsImporting] = useState(false);
   const [activeTab, setActiveTab] = useState<'mnemonic' | 'privateKey'>(
     'mnemonic',
   );
+  const [mnemonic, setMnemonic] = useState<string[]>([]);
   const [privateKey, setPrivateKey] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [debugKeys, setDebugKeys] = useState<{
     publicKey: string;
     privateKey: string;
   } | null>(null);
 
+  const [getId] = useGetIdFromPublicKeyLazyQuery();
+
   const handleFinish = async () => {
     if (!tempPassword) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Password not set. Please restart onboarding.',
+        description: t('onboarding.create.error_password'),
       });
       navigate('/');
       return;
     }
 
+    if (activeTab === 'mnemonic') {
+      if (mnemonic.some((w) => !w)) {
+        toast({
+          variant: 'destructive',
+          title: t('onboarding.import.error_invalid_mnemonic'),
+          description: t('onboarding.import.error_invalid_mnemonic_desc'),
+        });
+        return;
+      }
+    } else {
+      if (!privateKey.trim()) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: t('onboarding.import.error_private_key_required'),
+        });
+        return;
+      }
+    }
+
     setIsImporting(true);
+
     try {
       let secretToEncrypt = '';
-      const secretType = activeTab;
-      let derivedKeys: { publicKey: string; privateKey: string } | null = null;
+      let secretType: 'mnemonic' | 'privateKey' = 'mnemonic';
+      let derivedKeys = { publicKey: '', privateKey: '' };
 
       if (activeTab === 'mnemonic') {
-        const mnemonicString = mnemonic
-          .map((w) => w.trim().toLowerCase())
-          .join(' ');
-        if (!validateMnemonic(mnemonicString, wordlist)) {
-          toast({
-            variant: 'destructive',
-            title: 'Invalid Seed Phrase',
-            description: 'Please check your seed phrase and try again.',
-          });
-          setIsImporting(false);
-          return;
-        }
+        secretType = 'mnemonic';
+        const mnemonicString = mnemonic.join(' ');
         secretToEncrypt = mnemonicString;
 
-        // Derive keys for debug
+        // Derive keys
         const message: AppMessage = {
           type: 'DERIVE_KEYS_FROM_MNEMONIC',
           payload: { mnemonic: mnemonicString },
         };
         const response = (await chrome.runtime.sendMessage(message)) as
-          | DeriveKeysResponse
+          | { publicKey: string; privateKey: string }
           | { error: string };
+
         if ('error' in response) {
           throw new Error(response.error);
         }
-        derivedKeys = {
-          publicKey: response.publicKey,
-          privateKey: response.privateKey,
-        };
+        derivedKeys = response;
       } else {
-        if (!privateKey.trim()) {
+        secretType = 'privateKey';
+        if (!privateKey.startsWith('EK')) {
           toast({
             variant: 'destructive',
-            title: 'Error',
-            description: 'Private key is required.',
+            title: t('onboarding.import.error_invalid_private_key'),
+            description: t('onboarding.import.error_invalid_private_key_desc'),
           });
           setIsImporting(false);
           return;
@@ -114,8 +121,8 @@ export const ImportWalletPage: React.FC = () => {
         if (!response.isValid) {
           toast({
             variant: 'destructive',
-            title: 'Invalid Private Key',
-            description: 'Please check your private key and try again.',
+            title: t('onboarding.import.error_invalid_private_key'),
+            description: t('onboarding.import.error_invalid_private_key_desc'),
           });
           setIsImporting(false);
           return;
@@ -167,8 +174,8 @@ export const ImportWalletPage: React.FC = () => {
       setShowDebug(true);
 
       toast({
-        title: 'Wallet Imported',
-        description: 'Your wallet has been successfully imported.',
+        title: t('onboarding.import.success_title'),
+        description: t('onboarding.import.success_desc'),
       });
     } catch (error) {
       console.error('Failed to import wallet:', error);
@@ -190,9 +197,9 @@ export const ImportWalletPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-none p-4 space-y-2">
-        <h1 className="text-xl font-bold">Import Wallet</h1>
+        <h1 className="text-xl font-bold">{t('onboarding.import.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Import your wallet using your Secret Recovery Phrase or Private Key.
+          {t('onboarding.import.desc')}
         </p>
       </div>
 
@@ -203,30 +210,30 @@ export const ImportWalletPage: React.FC = () => {
       >
         <div className="px-4 shrink-0">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="mnemonic">Mnemonic</TabsTrigger>
-            <TabsTrigger value="privateKey">Private Key</TabsTrigger>
+            <TabsTrigger value="mnemonic">{t('onboarding.import.tab_mnemonic')}</TabsTrigger>
+            <TabsTrigger value="privateKey">{t('onboarding.import.tab_private_key')}</TabsTrigger>
           </TabsList>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
           <TabsContent value="mnemonic" className="mt-0 space-y-4 h-full">
             <div className="space-y-2">
-              <Label>Secret Recovery Phrase</Label>
+              <Label>{t('onboarding.import.input_label_mnemonic')}</Label>
               <SeedPhraseInput length={12} onChange={setMnemonic} />
             </div>
           </TabsContent>
           <TabsContent value="privateKey" className="mt-0 space-y-4 h-full">
             <div className="space-y-2">
-              <Label htmlFor="private-key">Private Key</Label>
+              <Label htmlFor="private-key">{t('onboarding.import.input_label_private_key')}</Label>
               <Input
                 id="private-key"
-                placeholder="Enter your private key (Base58)"
+                placeholder={t('onboarding.import.input_placeholder_private_key')}
                 value={privateKey}
                 onChange={(e) => setPrivateKey(e.target.value)}
                 type="password"
               />
               <p className="text-xs text-muted-foreground">
-                Your private key is a long string starting with 'EK'.
+                {t('onboarding.import.private_key_hint')}
               </p>
             </div>
           </TabsContent>
@@ -239,14 +246,14 @@ export const ImportWalletPage: React.FC = () => {
           className="flex-1"
           onClick={() => navigate(-1)}
         >
-          Back
+          {t('onboarding.create.back_button')}
         </Button>
         <Button
           className="flex-1"
           onClick={handleFinish}
           disabled={isImporting}
         >
-          {isImporting ? 'Importing...' : 'Import'}
+          {isImporting ? t('onboarding.import.button_importing') : t('onboarding.import.button_import')}
         </Button>
       </div>
 
@@ -256,27 +263,27 @@ export const ImportWalletPage: React.FC = () => {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Wallet Imported (Debug)</DialogTitle>
+            <DialogTitle>{t('onboarding.import.debug_title')}</DialogTitle>
             <DialogDescription>
-              Verify your keys below. This dialog is for debugging purposes.
+              {t('onboarding.import.debug_desc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Public Key</Label>
+              <Label>{t('onboarding.wallet_keys_sheet.public_key_label')}</Label>
               <div className="p-2 bg-muted rounded-md break-all font-mono text-xs">
                 {debugKeys?.publicKey}
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Private Key</Label>
+              <Label>{t('onboarding.wallet_keys_sheet.private_key_label')}</Label>
               <div className="p-2 bg-muted rounded-md break-all font-mono text-xs">
                 {debugKeys?.privateKey}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleCloseDebug}>Go to Dashboard</Button>
+            <Button onClick={handleCloseDebug}>{t('onboarding.import.go_dashboard')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

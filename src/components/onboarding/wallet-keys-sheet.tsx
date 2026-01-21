@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/bottom-sheet';
 import { Copy, Eye, EyeOff } from 'lucide-react';
 import { AppMessage, DeriveKeysResponse } from '@/messages/types';
+import { useTranslation } from 'react-i18next';
 
 interface WalletKeysSheetProps {
   mnemonic: string[];
@@ -21,6 +22,7 @@ interface WalletKeysSheetProps {
 export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
   mnemonic,
 }) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [keyPair, setKeyPair] = useState<{
     publicKey: string;
@@ -55,8 +57,8 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
       console.error('Failed to derive keys:', err);
       toast({
         variant: 'destructive',
-        title: 'Key Derivation Failed',
-        description: 'Could not derive keys from mnemonic.',
+        title: t('onboarding.wallet_keys_sheet.failed_toast_title'),
+        description: t('onboarding.wallet_keys_sheet.failed_toast_desc'),
       });
     } finally {
       setIsDeriving(false);
@@ -66,8 +68,8 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: 'Copied',
-      description: `${label} copied to clipboard`,
+      title: t('onboarding.wallet_keys_sheet.copied_title') || 'Copied',
+      description: t('onboarding.wallet_keys_sheet.copied_desc', { label }) || `${label} copied to clipboard`,
     });
   };
 
@@ -83,27 +85,26 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
           size="sm"
           className="w-full text-muted-foreground hover:text-foreground "
         >
-          Show private key
+          {t('onboarding.wallet_keys_sheet.show_key_button')}
         </Button>
       </BottomSheetTrigger>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <BottomSheetTitle>Wallet Keys</BottomSheetTitle>
+          <BottomSheetTitle>{t('onboarding.wallet_keys_sheet.title')}</BottomSheetTitle>
           <BottomSheetDescription>
-            These are your derived Mina Protocol keys. Save them securely. NEVER
-            share your private key.
+            {t('onboarding.wallet_keys_sheet.desc')}
           </BottomSheetDescription>
         </BottomSheetHeader>
         <div className="p-4 space-y-4 pb-8">
           {isDeriving ? (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
-              <p className="text-sm">Deriving keys...</p>
+              <p className="text-sm">{t('onboarding.wallet_keys_sheet.deriving')}</p>
             </div>
           ) : keyPair ? (
             <>
               <div className="space-y-2">
-                <Label>Public Key (Address)</Label>
+                <Label>{t('onboarding.wallet_keys_sheet.public_key_label')}</Label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
@@ -114,7 +115,7 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
                     size="icon"
                     variant="outline"
                     onClick={() =>
-                      copyToClipboard(keyPair.publicKey, 'Public Key')
+                      copyToClipboard(keyPair.publicKey, t('onboarding.wallet_keys_sheet.public_key_label'))
                     }
                   >
                     <Copy className="h-4 w-4" />
@@ -123,7 +124,7 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label>Private Key</Label>
+                <Label>{t('onboarding.wallet_keys_sheet.private_key_label')}</Label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
@@ -147,7 +148,7 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
                     size="icon"
                     variant="outline"
                     onClick={() =>
-                      copyToClipboard(keyPair.privateKey, 'Private Key')
+                      copyToClipboard(keyPair.privateKey, t('onboarding.wallet_keys_sheet.private_key_label'))
                     }
                   >
                     <Copy className="h-4 w-4" />
@@ -157,7 +158,7 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
             </>
           ) : (
             <div className="py-8 text-center text-muted-foreground text-sm">
-              Failed to derive keys. Please try again.
+              {t('onboarding.wallet_keys_sheet.failed_derive')}
             </div>
           )}
         </div>

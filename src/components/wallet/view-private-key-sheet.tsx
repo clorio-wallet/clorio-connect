@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Copy } from 'lucide-react';
@@ -33,6 +34,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [step, setStep] = useState<'warning' | 'password' | 'display'>('warning');
   const [password, setPassword] = useState('');
@@ -52,7 +54,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
 
   const handleVerifyPassword = async () => {
     if (!password) {
-      setError('Password is required');
+      setError(t('security.view_private_key.password_required'));
       return;
     }
 
@@ -83,7 +85,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
       setStep('display');
     } catch (error) {
       console.error('Failed to verify password:', error);
-      setError('Incorrect password');
+      setError(t('security.view_private_key.incorrect_password'));
     } finally {
       setIsLoading(false);
     }
@@ -94,17 +96,17 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
       <BottomSheetContent>
         <BottomSheetHeader>
           <BottomSheetTitle>
-            {step === 'warning' && 'Security Warning'}
-            {step === 'password' && 'Confirm Password'}
-            {step === 'display' && 'Private Key'}
+            {step === 'warning' && t('security.view_private_key.title_warning')}
+            {step === 'password' && t('security.view_private_key.title_password')}
+            {step === 'display' && t('security.view_private_key.title_display')}
           </BottomSheetTitle>
           <BottomSheetDescription>
             {step === 'warning' &&
-              'You are about to view your private key. Make sure you are alone and no one is watching.'}
+              t('security.view_private_key.desc_warning')}
             {step === 'password' &&
-              'Enter your password to view the private key.'}
+              t('security.view_private_key.desc_password')}
             {step === 'display' &&
-              'Never share this key with anyone. Anyone who has it can control your funds.'}
+              t('security.view_private_key.desc_display')}
           </BottomSheetDescription>
         </BottomSheetHeader>
 
@@ -112,20 +114,19 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
           {step === 'warning' && (
             <div className="flex flex-col gap-4">
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500 text-sm">
-                Warning: Your private key grants full access to your funds. Ensure
-                no one is looking at your screen.
+                {t('security.view_private_key.warning_box')}
               </div>
             </div>
           )}
 
           {step === 'password' && (
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Password</Label>
+              <Label htmlFor="confirm-password">{t('security.view_private_key.password_label')}</Label>
               <PasswordInput
                 id="confirm-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={t('security.view_private_key.enter_password')}
                 error={error}
                 autoFocus
                 onKeyDown={(e) => {
@@ -138,10 +139,10 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
           {step === 'display' && (
             <div className="space-y-2">
               {isLoading ? (
-                <p className="text-sm text-muted-foreground">Decrypting...</p>
+                <p className="text-sm text-muted-foreground">{t('security.view_private_key.decrypting')}</p>
               ) : revealedKey ? (
                 <div className="space-y-2">
-                  <Label>Private Key</Label>
+                  <Label>{t('security.view_private_key.title_display')}</Label>
                   <div className="p-3 rounded-md bg-muted font-mono text-xs break-all select-all relative group">
                     {revealedKey}
                     <Button
@@ -151,8 +152,8 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
                       onClick={() => {
                         navigator.clipboard.writeText(revealedKey);
                         toast({
-                          title: 'Copied',
-                          description: 'Private key copied to clipboard',
+                          title: t('common.copied'),
+                          description: t('security.view_private_key.key_copied'),
                         });
                       }}
                     >
@@ -162,7 +163,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Private key is not available.
+                  {t('security.view_private_key.key_unavailable')}
                 </p>
               )}
             </div>
@@ -177,13 +178,13 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
                 className="flex-1"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 className="flex-1"
                 onClick={() => setStep('password')}
               >
-                I am alone, continue
+                {t('security.view_private_key.i_am_alone')}
               </Button>
             </div>
           )}
@@ -195,14 +196,14 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
                 className="flex-1"
                 onClick={() => setStep('warning')}
               >
-                Back
+                {t('common.back')}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleVerifyPassword}
                 disabled={isLoading}
               >
-                {isLoading ? 'Verifying...' : 'View Private Key'}
+                {isLoading ? t('security.view_private_key.verifying') : t('security.view_private_key.view_btn')}
               </Button>
             </div>
           )}
@@ -212,7 +213,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
               className="w-full"
               onClick={() => onOpenChange(false)}
             >
-              Close
+              {t('common.close')}
             </Button>
           )}
         </BottomSheetFooter>

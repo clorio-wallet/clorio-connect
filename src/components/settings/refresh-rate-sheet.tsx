@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settings-store';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import {
   BottomSheet,
   BottomSheetContent,
@@ -13,15 +14,6 @@ import {
   BottomSheetClose,
 } from '@/components/ui/bottom-sheet';
 
-export const REFRESH_RATE_OPTIONS = [
-  { label: '1 minute', value: 1 },
-  { label: '2 minutes', value: 2 },
-  { label: '5 minutes', value: 5 },
-  { label: '10 minutes', value: 10 },
-  { label: '30 minutes', value: 30 },
-  { label: 'Manual only', value: -1 },
-];
-
 interface RefreshRateSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -31,15 +23,25 @@ export const RefreshRateSheet: React.FC<RefreshRateSheetProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { t } = useTranslation();
   const { balancePollInterval, setBalancePollInterval } = useSettingsStore();
+
+  const REFRESH_RATE_OPTIONS = [
+    { label: t('settings.refresh_sheet.options.1_min'), value: 1 },
+    { label: t('settings.refresh_sheet.options.2_min'), value: 2 },
+    { label: t('settings.refresh_sheet.options.5_min'), value: 5 },
+    { label: t('settings.refresh_sheet.options.10_min'), value: 10 },
+    { label: t('settings.refresh_sheet.options.30_min'), value: 30 },
+    { label: t('settings.refresh_sheet.options.manual'), value: -1 },
+  ];
 
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange}>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <BottomSheetTitle>Balance Refresh Rate</BottomSheetTitle>
+          <BottomSheetTitle>{t('settings.refresh_sheet.title')}</BottomSheetTitle>
           <BottomSheetDescription>
-            Choose how often your balance should update automatically.
+            {t('settings.refresh_sheet.desc')}
           </BottomSheetDescription>
         </BottomSheetHeader>
         <div className="p-4 space-y-4">
@@ -70,7 +72,7 @@ export const RefreshRateSheet: React.FC<RefreshRateSheetProps> = ({
         </div>
         <BottomSheetFooter>
           <BottomSheetClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{t('common.close')}</Button>
           </BottomSheetClose>
         </BottomSheetFooter>
       </BottomSheetContent>

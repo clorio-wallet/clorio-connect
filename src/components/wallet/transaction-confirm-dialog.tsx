@@ -13,6 +13,7 @@ import {
 import { AddressDisplay } from "./address-display";
 import { NetworkBadge } from "./network-badge";
 import { HoldToConfirmButton } from "./hold-to-confirm-button";
+import { useTranslation } from "react-i18next";
 
 interface TransactionData {
   to: string;
@@ -40,6 +41,8 @@ export function TransactionConfirmDialog({
   origin,
   loading = false,
 }: TransactionConfirmDialogProps) {
+  const { t } = useTranslation();
+
   const total = (
     parseFloat(transaction.amount) + parseFloat(transaction.fee)
   ).toFixed(8);
@@ -55,11 +58,11 @@ export function TransactionConfirmDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-warning" />
-            Confirm Transaction
+            {t("transaction_confirm.title")}
           </DialogTitle>
           {origin && (
             <DialogDescription className="flex items-center gap-2">
-              <span>Request from:</span>
+              <span>{t("transaction_confirm.request_from")}</span>
               <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
                 {origin}
               </code>
@@ -68,9 +71,10 @@ export function TransactionConfirmDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Recipient */}
           <div className="space-y-1.5">
-            <label className="text-sm text-muted-foreground">Recipient</label>
+            <label className="text-sm text-muted-foreground">
+              {t("transaction_confirm.recipient_label")}
+            </label>
             <div className="rounded-lg bg-muted p-3">
               <AddressDisplay
                 address={transaction.to}
@@ -81,19 +85,21 @@ export function TransactionConfirmDialog({
             </div>
           </div>
 
-          {/* Amount */}
           <div className="space-y-1.5">
-            <label className="text-sm text-muted-foreground">Amount</label>
+            <label className="text-sm text-muted-foreground">
+              {t("transaction_confirm.amount_label")}
+            </label>
             <div className="text-2xl font-semibold">
               {transaction.amount}{" "}
               <span className="text-muted-foreground">{transaction.symbol}</span>
             </div>
           </div>
 
-          {/* Memo (if present) */}
           {transaction.memo && (
             <div className="space-y-1.5">
-              <label className="text-sm text-muted-foreground">Memo</label>
+              <label className="text-sm text-muted-foreground">
+                {t("transaction_confirm.memo_label")}
+              </label>
               <div className="rounded-lg bg-muted p-3 text-sm">
                 {transaction.memo}
               </div>
@@ -102,25 +108,27 @@ export function TransactionConfirmDialog({
 
           <Separator />
 
-          {/* Fee and Total */}
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Network Fee</span>
+              <span className="text-muted-foreground">
+                {t("transaction_confirm.network_fee_label")}
+              </span>
               <span>
                 {transaction.fee} {transaction.symbol}
               </span>
             </div>
             <div className="flex justify-between font-medium">
-              <span>Total</span>
+              <span>{t("transaction_confirm.total_label")}</span>
               <span>
                 {total} {transaction.symbol}
               </span>
             </div>
           </div>
 
-          {/* Network */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Network</span>
+            <span className="text-sm text-muted-foreground">
+              {t("transaction_confirm.network_label")}
+            </span>
             <NetworkBadge network={transaction.network} />
           </div>
         </div>
@@ -131,14 +139,16 @@ export function TransactionConfirmDialog({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <HoldToConfirmButton
             onConfirm={onConfirm}
             holdDuration={2000}
             disabled={loading}
           >
-            {loading ? "Processing..." : "Hold to Confirm"}
+            {loading
+              ? t("transaction_confirm.processing")
+              : t("transaction_confirm.hold_to_confirm")}
           </HoldToConfirmButton>
         </DialogFooter>
       </DialogContent>

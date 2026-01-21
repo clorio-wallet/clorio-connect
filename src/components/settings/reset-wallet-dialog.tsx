@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ interface ResetWalletDialogProps {
 }
 
 export const ResetWalletDialog: React.FC<ResetWalletDialogProps> = ({ open, onOpenChange }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { resetWallet } = useSessionStore();
   const { toast } = useToast();
@@ -27,8 +29,8 @@ export const ResetWalletDialog: React.FC<ResetWalletDialogProps> = ({ open, onOp
   const handleResetWallet = async () => {
     await resetWallet();
     toast({
-      title: 'Wallet Reset',
-      description: 'Your wallet has been removed from this device.',
+      title: t('settings.reset_sheet.success_title'),
+      description: t('settings.reset_sheet.success_desc'),
     });
     navigate('/welcome');
   };
@@ -39,21 +41,19 @@ export const ResetWalletDialog: React.FC<ResetWalletDialogProps> = ({ open, onOp
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            Reset Wallet?
+            {t('settings.reset_sheet.title')}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This action will permanently delete your wallet from this device.
-            Make sure you have backed up your mnemonic phrase or private key.
-            This action cannot be undone.
+            {t('settings.reset_sheet.desc')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleResetWallet}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Reset Wallet
+            {t('settings.reset_sheet.confirm_button')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AccountCard } from '@/components/wallet/account-card';
 import { Button } from '@/components/ui/button';
 import { Lock, BookPlus, RefreshCcw } from 'lucide-react';
@@ -26,6 +27,7 @@ import { LoopingLottie } from '@/components/ui/looping-lottie';
 import ufoAnimation from '../animations/ufo.json';
 
 const DashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout, resetWallet } = useSessionStore();
   const { publicKey } = useWalletStore();
@@ -63,8 +65,8 @@ const DashboardPage: React.FC = () => {
   const handleLogout = () => {
     logout();
     toast({
-      title: 'Logged Out',
-      description: 'Your session has been cleared.',
+      title: t('dashboard.logout_title'),
+      description: t('dashboard.logout_desc'),
     });
     navigate('/wallet-unlock');
   };
@@ -72,8 +74,8 @@ const DashboardPage: React.FC = () => {
   const handleDeleteWallet = async () => {
     await resetWallet();
     toast({
-      title: 'Wallet Deleted',
-      description: 'Your wallet has been removed from this device.',
+      title: t('dashboard.delete_wallet_title'),
+      description: t('dashboard.delete_wallet_desc'),
     });
     navigate('/welcome');
   };
@@ -91,7 +93,7 @@ const DashboardPage: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={handleRefresh}
-            title="Refresh Balance"
+            title={t('dashboard.refresh_balance')}
             disabled={displayLoading}
           >
             <RefreshCcw
@@ -109,7 +111,7 @@ const DashboardPage: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            title="Logout"
+            title={t('dashboard.logout')}
           >
             <Lock className="h-5 w-5" />
           </Button>
@@ -120,20 +122,18 @@ const DashboardPage: React.FC = () => {
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t('dashboard.confirm_delete_title')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
-                  your wallet from this device. Make sure you have backed up
-                  your Secret Recovery Phrase or Private Key.
+                  {t('dashboard.confirm_delete_desc')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDeleteWallet}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
-                  Delete Wallet
+                  {t('dashboard.delete_wallet')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -149,7 +149,7 @@ const DashboardPage: React.FC = () => {
       <div className="space-y-4">
         <AccountCard
           account={{
-            name: 'Main Account',
+            name: t('dashboard.title'),
             address: publicKey || '',
             balance: balanceMina.toString(),
             symbol: 'MINA',
@@ -161,8 +161,8 @@ const DashboardPage: React.FC = () => {
           onViewPrivateKey={handleViewPrivateKey}
           onRename={() => {
             toast({
-              title: 'Not Implemented',
-              description: 'Rename functionality coming soon.',
+              title: t('dashboard.not_implemented'),
+              description: t('dashboard.rename_coming_soon'),
             });
           }}
         />
@@ -176,7 +176,7 @@ const DashboardPage: React.FC = () => {
             loopDelay={5000}
           />
         </div>
-        <p>No recent transactions</p>
+        <p>{t('dashboard.no_transactions')}</p>
       </div>
     </div>
   );

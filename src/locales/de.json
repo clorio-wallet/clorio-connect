@@ -1,0 +1,280 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "continue": "Weiter",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "copied": "Kopiert"
+  },
+  "send": {
+    "amount_label": "Betrag",
+    "available_label": "Verfügbar",
+    "recipient_label": "Empfänger",
+    "recipient_placeholder": "Adresse",
+    "memo_label": "Memo (Optional)",
+    "memo_placeholder": "Öffentliche Notiz...",
+    "network_fee_label": "Netzwerkgebühr",
+    "total_label": "Gesamt",
+    "error_failed": "Transaktion fehlgeschlagen",
+    "sending_button": "Senden...",
+    "send_button": "Senden"
+  },
+  "staking": {
+    "validator_label": "Validator",
+    "validator_placeholder": "Validator auswählen",
+    "amount_label": "Zu stakender Betrag",
+    "max_button": "MAX",
+    "available_label": "Verfügbar",
+    "estimated_rewards_title": "Geschätzte jährliche Rewards",
+    "estimated_rewards_desc": "Basierend auf {{apy}}% APY von {{name}}",
+    "warning_text": "Gestakte Mittel sind 21 Tage nach dem Unstaking gesperrt. Während der Unbonding-Periode erhalten Sie keine Rewards.",
+    "error_failed": "Staking fehlgeschlagen",
+    "staking_button": "Staking...",
+    "stake_button": "Staken"
+  },
+  "validators": {
+    "current_badge": "Aktuell",
+    "delegated_badge": "Delegiert",
+    "delegate_button": "Delegieren",
+    "fee_label": "Gebühr",
+    "users_label": "Nutzer",
+    "total_stake_label": "Gesamter Stake",
+    "search_placeholder": "Validator suchen...",
+    "empty_list": "Keine Validatoren gefunden"
+  },
+  "transaction_confirm": {
+    "title": "Transaktion bestätigen",
+    "request_from": "Anfrage von:",
+    "recipient_label": "Empfänger",
+    "amount_label": "Betrag",
+    "memo_label": "Memo",
+    "network_fee_label": "Netzwerkgebühr",
+    "total_label": "Gesamt",
+    "network_label": "Netzwerk",
+    "processing": "Wird verarbeitet...",
+    "hold_to_confirm": "Zum Bestätigen halten"
+  },
+  "transactions": {
+    "no_transactions": "Keine Transaktionen gefunden",
+    "received": "Empfangen",
+    "sent": "Gesendet",
+    "delegation": "Delegation",
+    "status": {
+      "pending": "Ausstehend",
+      "applied": "Angewendet",
+      "failed": "Fehlgeschlagen"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "refresh_balance": "Guthaben aktualisieren",
+    "logout": "Abmelden",
+    "logout_title": "Abgemeldet",
+    "logout_desc": "Ihre Sitzung wurde gelöscht.",
+    "delete_wallet": "Wallet löschen",
+    "delete_wallet_title": "Wallet gelöscht",
+    "delete_wallet_desc": "Ihre Wallet wurde von diesem Gerät entfernt.",
+    "confirm_delete_title": "Sind Sie absolut sicher?",
+    "confirm_delete_desc": "Diese Aktion kann nicht rückgängig gemacht werden. Dadurch wird Ihre Wallet dauerhaft von diesem Gerät gelöscht. Stellen Sie sicher, dass Sie Ihre geheime Wiederherstellungsphrase oder Ihren privaten Schlüssel gesichert haben.",
+    "no_transactions": "Keine aktuellen Transaktionen",
+    "not_implemented": "Nicht implementiert",
+    "rename_coming_soon": "Umbenennungsfunktion kommt bald."
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "current_account": "Aktuelles Konto",
+    "manage": "Verwalten",
+    "display_mode": "Anzeigemodus",
+    "network": "Netzwerk",
+    "security": "Sicherheit",
+    "balance_refresh": "Guthaben-Aktualisierung",
+    "connected_apps": "Verbundene zkApps",
+    "advanced": "Erweitert",
+    "reset_wallet": "Wallet zurücksetzen",
+    "about": "Über",
+    "faq": "FAQ",
+    "view_private_key": "Privaten Schlüssel anzeigen",
+    "language_title": "Sprache",
+    "language_desc": "Wählen Sie Ihre bevorzugte Sprache.",
+    "network_sheet": {
+      "title": "Netzwerk auswählen",
+      "desc": "Wählen Sie das Mina-Netzwerk, mit dem Sie sich verbinden möchten.",
+      "switched_toast": "Gewechselt zu {{networkName}}"
+    },
+    "security_sheet": {
+      "title": "Sicherheitseinstellungen",
+      "desc": "Verwalten Sie Ihre Wallet-Sicherheitspräferenzen.",
+      "auto_lock_timer": "Auto-Sperr-Timer",
+      "options": {
+          "window_close": "Beim Schließen des Fensters",
+          "5_min": "5 Minuten",
+          "15_min": "15 Minuten",
+          "30_min": "30 Minuten",
+          "1_hour": "1 Stunde",
+          "never": "Nie"
+      }
+    },
+    "reset_sheet": {
+      "title": "Wallet zurücksetzen?",
+      "desc": "Diese Aktion wird Ihre Wallet dauerhaft von diesem Gerät löschen. Stellen Sie sicher, dass Sie Ihre mnemonische Phrase oder Ihren privaten Schlüssel gesichert haben. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "confirm_button": "Wallet zurücksetzen",
+      "success_title": "Wallet zurückgesetzt",
+      "success_desc": "Ihre Wallet wurde von diesem Gerät entfernt."
+    },
+    "refresh_sheet": {
+      "title": "Saldo-Aktualisierungsrate",
+      "desc": "Wählen Sie, wie oft Ihr Saldo automatisch aktualisiert werden soll.",
+      "options": {
+        "1_min": "1 Minute",
+        "2_min": "2 Minuten",
+        "5_min": "5 Minuten",
+        "10_min": "10 Minuten",
+        "30_min": "30 Minuten",
+        "manual": "Nur manuell"
+      }
+    },
+    "display_mode_sheet": {
+      "title": "Anzeigemodus ändern",
+      "switch_now": "Jetzt wechseln",
+      "cancel_change": "Änderung abbrechen",
+      "popup": "Popup",
+      "sidepanel": "Seitenbereich",
+      "countdown": "Wechsel zu {{mode}} in {{seconds}} Sekunden..."
+    },
+    "account_card": {
+      "active": "Aktiv",
+      "rename": "Umbenennen",
+      "view_private_key": "Privaten Schlüssel anzeigen",
+      "remove": "Entfernen"
+    }
+  },
+  "security": {
+    "view_private_key": {
+      "title_warning": "Sicherheitswarnung",
+      "title_password": "Passwort bestätigen",
+      "title_display": "Privater Schlüssel",
+      "desc_warning": "Sie sind dabei, Ihren privaten Schlüssel anzuzeigen. Stellen Sie sicher, dass Sie alleine sind und niemand zuschaut.",
+      "desc_password": "Geben Sie Ihr Passwort ein, um den privaten Schlüssel anzuzeigen.",
+      "desc_display": "Teilen Sie diesen Schlüssel niemals mit jemandem. Jeder, der ihn hat, kann Ihre Gelder kontrollieren.",
+      "warning_box": "Warnung: Ihr privater Schlüssel gewährt vollen Zugriff auf Ihre Gelder. Stellen Sie sicher, dass niemand auf Ihren Bildschirm schaut.",
+      "i_am_alone": "Ich bin allein, weiter",
+      "enter_password": "Geben Sie Ihr Passwort ein",
+      "password_label": "Passwort",
+      "decrypting": "Entschlüsseln...",
+      "key_copied": "Privater Schlüssel in die Zwischenablage kopiert",
+      "key_unavailable": "Privater Schlüssel ist nicht verfügbar.",
+      "verifying": "Überprüfen...",
+      "view_btn": "Privaten Schlüssel anzeigen",
+      "password_required": "Passwort erforderlich",
+      "incorrect_password": "Falsches Passwort"
+    }
+  },
+  "welcome": {
+    "title": "Clorio",
+    "subtitle_1": "IHR MINA",
+    "subtitle_2": "IHRE KONTROLLE",
+    "start_button": "Lass uns anfangen",
+    "terms": "Nutzungsbedingungen",
+    "privacy": "Datenschutzrichtlinie"
+  },
+  "wallet_unlock": {
+    "title": "Willkommen zurück",
+    "desc": "Geben Sie Ihr Passwort ein, um Ihre Wallet zu entsperren",
+    "password_label": "Passwort",
+    "password_placeholder": "Passwort eingeben",
+    "unlock_button": "Entsperren",
+    "unlocking": "Entsperren...",
+    "forgot_password": "Passwort vergessen? Brieftasche zurücksetzen",
+    "error_no_wallet_title": "Keine Brieftasche gefunden",
+    "error_no_wallet_desc": "Bitte erstellen oder importieren Sie zuerst eine Brieftasche.",
+    "error_incorrect_password_title": "Falsches Passwort",
+    "error_incorrect_password_desc": "Bitte versuchen Sie es erneut."
+  },
+  "onboarding": {
+    "create": {
+      "make_sure_alone_title": "STELLEN SIE SICHER, DASS SIE ALLEIN SIND",
+      "make_sure_alone_desc": "Bestätigen Sie, dass Ihr Bildschirm nicht aufgezeichnet wird und nur für Sie sichtbar ist.",
+      "start_button": "Lasst uns anfangen",
+      "phrase_title": "Geheime Wiederherstellungsphrase",
+      "phrase_desc": "Diese Phrase ist der EINZIGE Weg, um Ihre Brieftasche wiederherzustellen. Teilen Sie sie mit niemandem.",
+      "saved_label": "Ich habe meine geheime Wiederherstellungsphrase gespeichert",
+      "error_password": "Passwort nicht festgelegt. Bitte starten Sie das Onboarding neu.",
+      "next_button": "Weiter",
+      "back_button": "Zurück"
+    },
+    "import": {
+      "title": "Brieftasche Importieren",
+      "desc": "Importieren Sie Ihre Brieftasche mit Ihrer geheimen Wiederherstellungsphrase oder Ihrem privaten Schlüssel.",
+      "tab_mnemonic": "Mnemonic",
+      "tab_private_key": "Privater Schlüssel",
+      "input_label_mnemonic": "Geheime Wiederherstellungsphrase",
+      "input_placeholder_mnemonic": "Geben Sie Ihre 12-Wörter-Seed-Phrase ein",
+      "input_label_private_key": "Privater Schlüssel",
+      "input_placeholder_private_key": "Geben Sie Ihren privaten Schlüssel ein (Base58)",
+      "private_key_hint": "Ihr privater Schlüssel ist eine lange Zeichenfolge, die mit 'EK' beginnt.",
+      "button_import": "Importieren",
+      "button_importing": "Importieren...",
+      "error_invalid_mnemonic": "Ungültige Seed-Phrase",
+      "error_invalid_mnemonic_desc": "Bitte überprüfen Sie Ihre Seed-Phrase und versuchen Sie es erneut.",
+      "error_private_key_required": "Privater Schlüssel ist erforderlich.",
+      "error_invalid_private_key": "Ungültiger Privater Schlüssel",
+      "error_invalid_private_key_desc": "Bitte überprüfen Sie Ihren privaten Schlüssel und versuchen Sie es erneut.",
+      "success_title": "Brieftasche Importiert",
+      "success_desc": "Ihre Brieftasche wurde erfolgreich importiert.",
+      "debug_title": "Brieftasche Importiert (Debug)",
+      "debug_desc": "Überprüfen Sie Ihre Schlüssel unten. Dieser Dialog dient zu Debugging-Zwecken.",
+      "go_dashboard": "Zum Dashboard gehen"
+    },
+    "verify": {
+      "title_page": "Seed-Phrase Überprüfen",
+      "desc_page": "Geben Sie die angeforderten Wörter Ihrer Seed-Phrase ein, um zu überprüfen, ob Sie sie gespeichert haben.",
+      "label_word": "Wort #{{index}}",
+      "placeholder_word": "Wort #{{index}} eingeben",
+      "verify_button": "Überprüfen & Erstellen",
+      "creating": "Erstellen...",
+      "error_verify_failed": "Verifizierung Fehlgeschlagen",
+      "error_verify_failed_desc": "Wort #{{index}} ist falsch. Bitte überprüfen Sie Ihre Seed-Phrase.",
+      "success_title": "Brieftasche Erstellt",
+      "success_desc": "Ihre Brieftasche wurde erfolgreich erstellt.",
+      "error_create_failed": "Erstellung der Brieftasche fehlgeschlagen.",
+      "error_session_expired": "Sitzung Abgelaufen",
+      "error_session_expired_desc": "Bitte starten Sie den Prozess zur Erstellung der Brieftasche neu."
+    },
+    "method_sheet": {
+      "title": "Brieftaschen-Einrichtung",
+      "desc": "Wählen Sie, wie Sie Ihre Brieftasche einrichten möchten.",
+      "create_new": "Neue Brieftasche Erstellen",
+      "import_phrase": "Ich habe eine geheime Wiederherstellungsphrase"
+    },
+    "password_sheet": {
+      "title": "Sicherheit zuerst",
+      "desc": "Lassen Sie uns ein Passwort erstellen. Es wird Ihre Brieftasche verschlüsseln und sicher halten. Bewahren Sie es sicher auf, Sie können es nicht wiederherstellen.",
+      "password_label": "Passwort",
+      "confirm_password_label": "Passwort bestätigen",
+      "password_mismatch": "Passwörter stimmen nicht überein",
+      "strength_label": "Stärke:",
+      "strength_weak": "Schwach",
+      "strength_kinda_weak": "Etwas schwach",
+      "strength_strong": "Stark",
+      "strength_very_strong": "Sehr stark",
+      "terms_label": "Ich akzeptiere die Allgemeinen Geschäftsbedingungen"
+    },
+    "wallet_keys_sheet": {
+      "show_key_button": "Privaten Schlüssel anzeigen",
+      "title": "Brieftaschen-Schlüssel",
+      "desc": "Dies sind Ihre abgeleiteten Mina-Protokoll-Schlüssel. Speichern Sie sie sicher. Teilen Sie NIEMALS Ihren privaten Schlüssel.",
+      "deriving": "Schlüssel werden abgeleitet...",
+      "public_key_label": "Öffentlicher Schlüssel (Adresse)",
+      "private_key_label": "Privater Schlüssel",
+      "failed_derive": "Ableitung der Schlüssel fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "failed_toast_title": "Schlüsselableitung Fehlgeschlagen",
+      "failed_toast_desc": "Schlüssel konnten nicht aus dem Mnemonic abgeleitet werden.",
+      "copied_title": "Kopiert",
+      "copied_desc": "{{label}} in die Zwischenablage kopiert"
+    }
+  }
+}

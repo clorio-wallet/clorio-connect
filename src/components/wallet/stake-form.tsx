@@ -16,6 +16,7 @@ import {
 } from "@/components/ui";
 import { stakeTransactionSchema, type StakeTransactionFormData } from "@/lib/validations";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { useTranslation } from "react-i18next";
 
 interface Validator {
   id: string;
@@ -42,6 +43,7 @@ export function StakeForm({
 }: StakeFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { t } = useTranslation();
 
   const {
     register,
@@ -82,7 +84,11 @@ export function StakeForm({
       setError(null);
       await onSubmit(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to stake");
+      setError(
+        err instanceof Error
+          ? err.message
+          : t("staking.error_failed")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -93,15 +99,14 @@ export function StakeForm({
       onSubmit={handleSubmit(onFormSubmit)}
       className={cn("space-y-6", className)}
     >
-      {/* Validator Selection */}
       <div className="space-y-2">
-        <Label>Validator</Label>
+        <Label>{t("staking.validator_label")}</Label>
         <Select
           onValueChange={(val) => setValue("validatorId", val)}
           defaultValue={validatorId}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select validator" />
+            <SelectValue placeholder={t("staking.validator_placeholder")} />
           </SelectTrigger>
           <SelectContent>
             {validators.map((validator) => (
@@ -121,9 +126,8 @@ export function StakeForm({
         )}
       </div>
 
-      {/* Amount Input */}
       <div className="space-y-2">
-        <Label>Amount to Stake</Label>
+        <Label>{t("staking.amount_label")}</Label>
         <div className="relative">
           <Input
             {...register("amount")}
@@ -140,27 +144,28 @@ export function StakeForm({
               className="h-6 px-2 text-xs"
               onClick={handleMaxClick}
             >
-              MAX
+              {t("staking.max_button")}
             </Button>
             <span className="font-medium text-muted-foreground">{symbol}</span>
           </div>
         </div>
         <div className="text-xs text-muted-foreground px-1">
-          Available: {formatBalance(balance)} {symbol}
+          {t("staking.available_label")}: {formatBalance(balance)} {symbol}
         </div>
         {errors.amount && (
           <p className="text-sm text-destructive">{errors.amount.message}</p>
         )}
       </div>
 
-      {/* Estimated Rewards Card */}
       <Card className="p-4 bg-primary/5 border-primary/20">
         <div className="flex items-start gap-3">
           <div className="p-2 bg-primary/10 rounded-full">
             <TrendingUp className="h-4 w-4 text-primary" />
           </div>
           <div className="flex-1 space-y-1">
-            <div className="text-sm font-medium">Estimated Yearly Rewards</div>
+            <div className="text-sm font-medium">
+              {t("staking.estimated_rewards_title")}
+            </div>
             <div className="text-2xl font-bold text-primary">
               <AnimatedNumber
                 value={estimatedRewards}
@@ -170,22 +175,21 @@ export function StakeForm({
             </div>
             {selectedValidator && (
               <div className="text-xs text-muted-foreground">
-                Based on {selectedValidator.apy}% APY from {selectedValidator.name}
+                {t("staking.estimated_rewards_desc", {
+                  apy: selectedValidator.apy,
+                  name: selectedValidator.name,
+                })}
               </div>
             )}
           </div>
         </div>
       </Card>
 
-      {/* Warning */}
       <div className="flex gap-2 p-3 text-sm bg-muted/50 rounded-md text-muted-foreground">
         <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-        <p>
-          Staked funds are locked for 21 days after unstaking. You will not earn rewards during the unbonding period.
-        </p>
+        <p>{t("staking.warning_text")}</p>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-md">
           <AlertCircle className="h-4 w-4" />
@@ -193,7 +197,6 @@ export function StakeForm({
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex gap-3 pt-2">
         {onCancel && (
           <Button
@@ -203,7 +206,7 @@ export function StakeForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
         )}
         <Button
@@ -211,7 +214,7 @@ export function StakeForm({
           className="flex-1"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Staking..." : "Stake"}
+          {isSubmitting ? t("staking.staking_button") : t("staking.stake_button")}
           {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
         </Button>
       </div>

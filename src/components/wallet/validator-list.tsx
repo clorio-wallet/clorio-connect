@@ -4,6 +4,7 @@ import { ValidatorCard } from './validator-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Validator {
   address: string;
@@ -28,6 +29,7 @@ export function ValidatorList({
   className,
 }: ValidatorListProps) {
   const [search, setSearch] = React.useState('');
+  const { t } = useTranslation();
 
   const filteredValidators = React.useMemo(() => {
     if (!search) return validators;
@@ -56,7 +58,7 @@ export function ValidatorList({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search validator..."
+            placeholder={t('validators.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -65,7 +67,7 @@ export function ValidatorList({
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <VirtualList
+          <VirtualList
           items={filteredValidators}
           className={className}
           estimateSize={() => 156} // Estimated height of ValidatorCard
@@ -79,7 +81,7 @@ export function ValidatorList({
           )}
           emptyComponent={
             <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
-              <p>No validators found</p>
+              <p>{t('validators.empty_list')}</p>
             </div>
           }
         />

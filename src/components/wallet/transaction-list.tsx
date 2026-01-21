@@ -2,6 +2,7 @@ import * as React from "react";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { TransactionCard, TransactionCardStatus, TransactionType } from "./transaction-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 interface Transaction {
   id: string;
@@ -30,6 +31,8 @@ export function TransactionList({
   onTransactionClick,
   className,
 }: TransactionListProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="space-y-3 p-4">
@@ -62,7 +65,7 @@ export function TransactionList({
       )}
       emptyComponent={
         <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
-          <p>No transactions found</p>
+          <p>{t('transactions.no_transactions')}</p>
         </div>
       }
     />

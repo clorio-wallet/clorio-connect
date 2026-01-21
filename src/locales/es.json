@@ -1,0 +1,280 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "continue": "Continuar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "copied": "Copiado"
+  },
+  "send": {
+    "amount_label": "Cantidad",
+    "available_label": "Disponible",
+    "recipient_label": "Destinatario",
+    "recipient_placeholder": "Dirección",
+    "memo_label": "Memo (Opcional)",
+    "memo_placeholder": "Nota pública...",
+    "network_fee_label": "Tarifa de red",
+    "total_label": "Total",
+    "error_failed": "Error al enviar la transacción",
+    "sending_button": "Enviando...",
+    "send_button": "Enviar"
+  },
+  "staking": {
+    "validator_label": "Validador",
+    "validator_placeholder": "Seleccionar validador",
+    "amount_label": "Cantidad a delegar",
+    "max_button": "MÁX",
+    "available_label": "Disponible",
+    "estimated_rewards_title": "Recompensas anuales estimadas",
+    "estimated_rewards_desc": "Basado en {{apy}}% APY de {{name}}",
+    "warning_text": "Los fondos delegados se bloquean durante 21 días después de desdelegar. No ganarás recompensas durante el período de desbloqueo.",
+    "error_failed": "Error al delegar",
+    "staking_button": "Delegando...",
+    "stake_button": "Delegar"
+  },
+  "validators": {
+    "current_badge": "Actual",
+    "delegated_badge": "Delegado",
+    "delegate_button": "Delegar",
+    "fee_label": "Comisión",
+    "users_label": "Usuarios",
+    "total_stake_label": "Stake total",
+    "search_placeholder": "Buscar validador...",
+    "empty_list": "No se encontraron validadores"
+  },
+  "transaction_confirm": {
+    "title": "Confirmar transacción",
+    "request_from": "Solicitud de:",
+    "recipient_label": "Destinatario",
+    "amount_label": "Cantidad",
+    "memo_label": "Memo",
+    "network_fee_label": "Tarifa de red",
+    "total_label": "Total",
+    "network_label": "Red",
+    "processing": "Procesando...",
+    "hold_to_confirm": "Mantén para confirmar"
+  },
+  "transactions": {
+    "no_transactions": "No se encontraron transacciones",
+    "received": "Recibido",
+    "sent": "Enviado",
+    "delegation": "Delegación",
+    "status": {
+      "pending": "Pendiente",
+      "applied": "Aplicado",
+      "failed": "Fallido"
+    }
+  },
+  "dashboard": {
+    "title": "Panel de control",
+    "refresh_balance": "Actualizar saldo",
+    "logout": "Cerrar sesión",
+    "logout_title": "Sesión cerrada",
+    "logout_desc": "Tu sesión ha sido borrada.",
+    "delete_wallet": "Eliminar billetera",
+    "delete_wallet_title": "Billetera eliminada",
+    "delete_wallet_desc": "Tu billetera ha sido eliminada de este dispositivo.",
+    "confirm_delete_title": "¿Estás absolutamente seguro?",
+    "confirm_delete_desc": "Esta acción no se puede deshacer. Esto eliminará permanentemente tu billetera de este dispositivo. Asegúrate de haber respaldado tu Frase de Recuperación Secreta o Clave Privada.",
+    "no_transactions": "No hay transacciones recientes",
+    "not_implemented": "No implementado",
+    "rename_coming_soon": "La función de renombrar estará disponible pronto."
+  },
+  "settings": {
+    "title": "Configuración",
+    "current_account": "Cuenta actual",
+    "manage": "Gestionar",
+    "display_mode": "Modo de visualización",
+    "network": "Red",
+    "security": "Seguridad",
+    "balance_refresh": "Actualización de saldo",
+    "connected_apps": "zkApps conectadas",
+    "advanced": "Avanzado",
+    "reset_wallet": "Restablecer billetera",
+    "about": "Acerca de",
+    "faq": "Preguntas frecuentes",
+    "view_private_key": "Ver clave privada",
+    "language_title": "Idioma",
+    "language_desc": "Elige tu idioma preferido.",
+    "network_sheet": {
+      "title": "Seleccionar red",
+      "desc": "Elige la red Mina a la que quieres conectarte.",
+      "switched_toast": "Cambiado a {{networkName}}"
+    },
+    "security_sheet": {
+      "title": "Configuración de seguridad",
+      "desc": "Gestiona tus preferencias de seguridad de la billetera.",
+      "auto_lock_timer": "Temporizador de bloqueo automático",
+      "options": {
+          "window_close": "Al cerrar ventana",
+          "5_min": "5 minutos",
+          "15_min": "15 minutos",
+          "30_min": "30 minutos",
+          "1_hour": "1 hora",
+          "never": "Nunca"
+      }
+    },
+    "reset_sheet": {
+      "title": "¿Restablecer billetera?",
+      "desc": "Esta acción eliminará permanentemente tu billetera de este dispositivo. Asegúrate de haber respaldado tu frase mnemotécnica o clave privada. Esta acción no se puede deshacer.",
+      "confirm_button": "Restablecer billetera",
+      "success_title": "Billetera restablecida",
+      "success_desc": "Tu billetera ha sido eliminada de este dispositivo."
+    },
+    "refresh_sheet": {
+      "title": "Frecuencia de actualización de saldo",
+      "desc": "Elige con qué frecuencia debe actualizarse tu saldo automáticamente.",
+      "options": {
+        "1_min": "1 minuto",
+        "2_min": "2 minutos",
+        "5_min": "5 minutos",
+        "10_min": "10 minutos",
+        "30_min": "30 minutos",
+        "manual": "Solo manual"
+      }
+    },
+    "display_mode_sheet": {
+      "title": "Cambiando modo de visualización",
+      "switch_now": "Cambiar ahora",
+      "cancel_change": "Cancelar cambio",
+      "popup": "Ventana emergente",
+      "sidepanel": "Panel lateral",
+      "countdown": "Cambiando a {{mode}} en {{seconds}} segundos..."
+    },
+    "account_card": {
+      "active": "Activo",
+      "rename": "Renombrar",
+      "view_private_key": "Ver clave privada",
+      "remove": "Eliminar"
+    }
+  },
+  "security": {
+    "view_private_key": {
+      "title_warning": "Advertencia de seguridad",
+      "title_password": "Confirmar contraseña",
+      "title_display": "Clave privada",
+      "desc_warning": "Estás a punto de ver tu clave privada. Asegúrate de estar solo y de que nadie esté mirando.",
+      "desc_password": "Ingresa tu contraseña para ver la clave privada.",
+      "desc_display": "Nunca compartas esta clave con nadie. Cualquiera que la tenga puede controlar tus fondos.",
+      "warning_box": "Advertencia: Tu clave privada otorga acceso total a tus fondos. Asegúrate de que nadie esté mirando tu pantalla.",
+      "i_am_alone": "Estoy solo, continuar",
+      "enter_password": "Ingresa tu contraseña",
+      "password_label": "Contraseña",
+      "decrypting": "Desencriptando...",
+      "key_copied": "Clave privada copiada al portapapeles",
+      "key_unavailable": "La clave privada no está disponible.",
+      "verifying": "Verificando...",
+      "view_btn": "Ver clave privada",
+      "password_required": "Se requiere contraseña",
+      "incorrect_password": "Contraseña incorrecta"
+    }
+  },
+  "welcome": {
+    "title": "Clorio",
+    "subtitle_1": "TU MINA",
+    "subtitle_2": "TU CONTROL",
+    "start_button": "Empecemos",
+    "terms": "Términos de servicio",
+    "privacy": "Política de privacidad"
+  },
+  "wallet_unlock": {
+    "title": "Bienvenido de nuevo",
+    "desc": "Ingresa tu contraseña para desbloquear tu billetera",
+    "password_label": "Contraseña",
+    "password_placeholder": "Ingresa contraseña",
+    "unlock_button": "Desbloquear",
+    "unlocking": "Desbloqueando...",
+    "forgot_password": "¿Olvidaste la contraseña? Restablecer billetera",
+    "error_no_wallet_title": "No se encontró billetera",
+    "error_no_wallet_desc": "Por favor crea o importa una billetera primero.",
+    "error_incorrect_password_title": "Contraseña incorrecta",
+    "error_incorrect_password_desc": "Por favor intenta de nuevo."
+  },
+  "onboarding": {
+    "create": {
+      "make_sure_alone_title": "ASEGÚRATE DE ESTAR SOLO",
+      "make_sure_alone_desc": "Confirma que tu pantalla no está siendo grabada y es visible solo para ti.",
+      "start_button": "Empecemos",
+      "phrase_title": "Frase de Recuperación Secreta",
+      "phrase_desc": "Esta frase es la ÚNICA forma de recuperar tu billetera. No la compartas con nadie.",
+      "saved_label": "He guardado mi frase de recuperación secreta",
+      "error_password": "Contraseña no establecida. Por favor reinicia la incorporación.",
+      "next_button": "Siguiente",
+      "back_button": "Atrás"
+    },
+    "import": {
+      "title": "Importar Billetera",
+      "desc": "Importa tu billetera usando tu Frase de Recuperación Secreta o Clave Privada.",
+      "tab_mnemonic": "Mnemotécnica",
+      "tab_private_key": "Clave Privada",
+      "input_label_mnemonic": "Frase de Recuperación Secreta",
+      "input_placeholder_mnemonic": "Ingresa tu frase semilla de 12 palabras",
+      "input_label_private_key": "Clave Privada",
+      "input_placeholder_private_key": "Ingresa tu clave privada (Base58)",
+      "private_key_hint": "Tu clave privada es una cadena larga que comienza con 'EK'.",
+      "button_import": "Importar",
+      "button_importing": "Importando...",
+      "error_invalid_mnemonic": "Frase Semilla Inválida",
+      "error_invalid_mnemonic_desc": "Por favor revisa tu frase semilla e intenta de nuevo.",
+      "error_private_key_required": "Se requiere clave privada.",
+      "error_invalid_private_key": "Clave Privada Inválida",
+      "error_invalid_private_key_desc": "Por favor revisa tu clave privada e intenta de nuevo.",
+      "success_title": "Billetera Importada",
+      "success_desc": "Tu billetera ha sido importada exitosamente.",
+      "debug_title": "Billetera Importada (Debug)",
+      "debug_desc": "Verifica tus claves abajo. Este diálogo es para propósitos de depuración.",
+      "go_dashboard": "Ir al Panel de Control"
+    },
+    "verify": {
+      "title_page": "Verificar Frase Semilla",
+      "desc_page": "Ingresa las palabras solicitadas de tu frase semilla para verificar que la guardaste.",
+      "label_word": "Palabra #{{index}}",
+      "placeholder_word": "Ingresa palabra #{{index}}",
+      "verify_button": "Verificar y Crear",
+      "creating": "Creando...",
+      "error_verify_failed": "Verificación Fallida",
+      "error_verify_failed_desc": "La palabra #{{index}} es incorrecta. Por favor revisa tu frase semilla.",
+      "success_title": "Billetera Creada",
+      "success_desc": "Tu billetera ha sido creada exitosamente.",
+      "error_create_failed": "Falló al crear la billetera.",
+      "error_session_expired": "Sesión Expirada",
+      "error_session_expired_desc": "Por favor reinicia el proceso de creación de billetera."
+    },
+    "method_sheet": {
+      "title": "Configuración de Billetera",
+      "desc": "Elige cómo quieres configurar tu billetera.",
+      "create_new": "Crear Nueva Billetera",
+      "import_phrase": "Tengo una Frase de Recuperación Secreta"
+    },
+    "password_sheet": {
+      "title": "Seguridad primero",
+      "desc": "Vamos a crear una contraseña. Encriptará y mantendrá segura tu billetera. Mantenla segura, no podrás recuperarla.",
+      "password_label": "Contraseña",
+      "confirm_password_label": "Confirmar Contraseña",
+      "password_mismatch": "Las contraseñas no coinciden",
+      "strength_label": "Fortaleza:",
+      "strength_weak": "Débil",
+      "strength_kinda_weak": "Algo débil",
+      "strength_strong": "Fuerte",
+      "strength_very_strong": "Muy fuerte",
+      "terms_label": "Acepto los Términos y Condiciones"
+    },
+    "wallet_keys_sheet": {
+      "show_key_button": "Mostrar clave privada",
+      "title": "Claves de la Billetera",
+      "desc": "Estas son tus claves derivadas de Mina Protocol. Guárdalas de forma segura. NUNCA compartas tu clave privada.",
+      "deriving": "Derivando claves...",
+      "public_key_label": "Clave Pública (Dirección)",
+      "private_key_label": "Clave Privada",
+      "failed_derive": "Falló al derivar claves. Por favor intenta de nuevo.",
+      "failed_toast_title": "Derivación de Clave Fallida",
+      "failed_toast_desc": "No se pudieron derivar claves de la mnemotécnica.",
+      "copied_title": "Copiado",
+      "copied_desc": "{{label}} copiado al portapapeles"
+    }
+  }
+}

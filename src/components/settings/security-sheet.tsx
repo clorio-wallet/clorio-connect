@@ -5,6 +5,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { sessionStorage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import {
   BottomSheet,
   BottomSheetContent,
@@ -15,36 +16,37 @@ import {
   BottomSheetClose,
 } from '@/components/ui/bottom-sheet';
 
-export const AUTO_LOCK_OPTIONS = [
-  { label: 'On window close', value: 0 },
-  { label: '5 minutes', value: 5 },
-  { label: '15 minutes', value: 15 },
-  { label: '30 minutes', value: 30 },
-  { label: '1 hour', value: 60 },
-  { label: 'Never', value: -1 },
-];
-
 interface SecuritySheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export const SecuritySheet: React.FC<SecuritySheetProps> = ({ open, onOpenChange }) => {
+  const { t } = useTranslation();
   const { autoLockTimeout, setAutoLockTimeout } = useSettingsStore();
   const { tempPassword, isAuthenticated } = useSessionStore();
+
+  const AUTO_LOCK_OPTIONS = [
+    { label: t('settings.security_sheet.options.window_close'), value: 0 },
+    { label: t('settings.security_sheet.options.5_min'), value: 5 },
+    { label: t('settings.security_sheet.options.15_min'), value: 15 },
+    { label: t('settings.security_sheet.options.30_min'), value: 30 },
+    { label: t('settings.security_sheet.options.1_hour'), value: 60 },
+    { label: t('settings.security_sheet.options.never'), value: -1 },
+  ];
 
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange}>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <BottomSheetTitle>Security Settings</BottomSheetTitle>
+          <BottomSheetTitle>{t('settings.security_sheet.title')}</BottomSheetTitle>
           <BottomSheetDescription>
-            Manage your wallet security preferences.
+            {t('settings.security_sheet.desc')}
           </BottomSheetDescription>
         </BottomSheetHeader>
         <div className="p-4 space-y-4">
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Auto-lock Timer</h3>
+            <h3 className="text-sm font-medium">{t('settings.security_sheet.auto_lock_timer')}</h3>
             <div className="grid gap-2">
               {AUTO_LOCK_OPTIONS.map((option) => (
                 <div
@@ -83,7 +85,7 @@ export const SecuritySheet: React.FC<SecuritySheetProps> = ({ open, onOpenChange
         </div>
         <BottomSheetFooter>
           <BottomSheetClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{t('common.close')}</Button>
           </BottomSheetClose>
         </BottomSheetFooter>
       </BottomSheetContent>

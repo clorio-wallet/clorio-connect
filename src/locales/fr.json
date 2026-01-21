@@ -1,0 +1,280 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "back": "Retour",
+    "continue": "Continuer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "copied": "Copié"
+  },
+  "send": {
+    "amount_label": "Montant",
+    "available_label": "Disponible",
+    "recipient_label": "Destinataire",
+    "recipient_placeholder": "Adresse",
+    "memo_label": "Mémo (Facultatif)",
+    "memo_placeholder": "Note publique...",
+    "network_fee_label": "Frais de réseau",
+    "total_label": "Total",
+    "error_failed": "Échec de l'envoi de la transaction",
+    "sending_button": "Envoi...",
+    "send_button": "Envoyer"
+  },
+  "staking": {
+    "validator_label": "Validateur",
+    "validator_placeholder": "Sélectionner un validateur",
+    "amount_label": "Montant à déléguer",
+    "max_button": "MAX",
+    "available_label": "Disponible",
+    "estimated_rewards_title": "Récompenses annuelles estimées",
+    "estimated_rewards_desc": "Basé sur {{apy}}% APY de {{name}}",
+    "warning_text": "Les fonds délégués sont bloqués pendant 21 jours après le retrait. Vous ne gagnerez pas de récompenses pendant la période de déblocage.",
+    "error_failed": "Échec de la délégation",
+    "staking_button": "Délégation...",
+    "stake_button": "Déléguer"
+  },
+  "validators": {
+    "current_badge": "Actuel",
+    "delegated_badge": "Délégué",
+    "delegate_button": "Déléguer",
+    "fee_label": "Frais",
+    "users_label": "Utilisateurs",
+    "total_stake_label": "Stake total",
+    "search_placeholder": "Rechercher un validateur...",
+    "empty_list": "Aucun validateur trouvé"
+  },
+  "transaction_confirm": {
+    "title": "Confirmer la transaction",
+    "request_from": "Demande de :",
+    "recipient_label": "Destinataire",
+    "amount_label": "Montant",
+    "memo_label": "Mémo",
+    "network_fee_label": "Frais de réseau",
+    "total_label": "Total",
+    "network_label": "Réseau",
+    "processing": "Traitement...",
+    "hold_to_confirm": "Maintenir pour confirmer"
+  },
+  "transactions": {
+    "no_transactions": "Aucune transaction trouvée",
+    "received": "Reçu",
+    "sent": "Envoyé",
+    "delegation": "Délégation",
+    "status": {
+      "pending": "En attente",
+      "applied": "Appliqué",
+      "failed": "Échoué"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "refresh_balance": "Actualiser le solde",
+    "logout": "Déconnexion",
+    "logout_title": "Déconnecté",
+    "logout_desc": "Votre session a été effacée.",
+    "delete_wallet": "Supprimer le portefeuille",
+    "delete_wallet_title": "Portefeuille supprimé",
+    "delete_wallet_desc": "Votre portefeuille a été supprimé de cet appareil.",
+    "confirm_delete_title": "Êtes-vous absolument sûr ?",
+    "confirm_delete_desc": "Cette action est irréversible. Cela supprimera définitivement votre portefeuille de cet appareil. Assurez-vous d'avoir sauvegardé votre phrase de récupération secrète ou votre clé privée.",
+    "no_transactions": "Aucune transaction récente",
+    "not_implemented": "Non implémenté",
+    "rename_coming_soon": "La fonctionnalité de renommage sera bientôt disponible."
+  },
+  "settings": {
+    "title": "Paramètres",
+    "current_account": "Compte actuel",
+    "manage": "Gérer",
+    "display_mode": "Mode d'affichage",
+    "network": "Réseau",
+    "security": "Sécurité",
+    "balance_refresh": "Actualisation du solde",
+    "connected_apps": "zkApps connectées",
+    "advanced": "Avancé",
+    "reset_wallet": "Réinitialiser le portefeuille",
+    "about": "À propos",
+    "faq": "FAQ",
+    "view_private_key": "Voir la clé privée",
+    "language_title": "Langue",
+    "language_desc": "Choisissez votre langue préférée.",
+    "network_sheet": {
+      "title": "Sélectionner le réseau",
+      "desc": "Choisissez le réseau Mina auquel vous connecter.",
+      "switched_toast": "Passé à {{networkName}}"
+    },
+    "security_sheet": {
+      "title": "Paramètres de sécurité",
+      "desc": "Gérez vos préférences de sécurité de portefeuille.",
+      "auto_lock_timer": "Minuteur de verrouillage auto",
+      "options": {
+          "window_close": "À la fermeture de la fenêtre",
+          "5_min": "5 minutes",
+          "15_min": "15 minutes",
+          "30_min": "30 minutes",
+          "1_hour": "1 heure",
+          "never": "Jamais"
+      }
+    },
+    "reset_sheet": {
+      "title": "Réinitialiser le portefeuille ?",
+      "desc": "Cette action supprimera définitivement votre portefeuille de cet appareil. Assurez-vous d'avoir sauvegardé votre phrase mnémonique ou clé privée. Cette action est irréversible.",
+      "confirm_button": "Réinitialiser le portefeuille",
+      "success_title": "Portefeuille réinitialisé",
+      "success_desc": "Votre portefeuille a été supprimé de cet appareil."
+    },
+    "refresh_sheet": {
+      "title": "Fréquence d'actualisation du solde",
+      "desc": "Choisissez la fréquence de mise à jour automatique de votre solde.",
+      "options": {
+        "1_min": "1 minute",
+        "2_min": "2 minutes",
+        "5_min": "5 minutes",
+        "10_min": "10 minutes",
+        "30_min": "30 minutes",
+        "manual": "Manuel uniquement"
+      }
+    },
+    "display_mode_sheet": {
+      "title": "Changement du mode d'affichage",
+      "switch_now": "Changer maintenant",
+      "cancel_change": "Annuler le changement",
+      "popup": "Popup",
+      "sidepanel": "Panneau latéral",
+      "countdown": "Passage à {{mode}} dans {{seconds}} secondes..."
+    },
+    "account_card": {
+      "active": "Actif",
+      "rename": "Renommer",
+      "view_private_key": "Voir la clé privée",
+      "remove": "Supprimer"
+    }
+  },
+  "security": {
+    "view_private_key": {
+      "title_warning": "Avertissement de sécurité",
+      "title_password": "Confirmer le mot de passe",
+      "title_display": "Clé privée",
+      "desc_warning": "Vous êtes sur le point de voir votre clé privée. Assurez-vous d'être seul et que personne ne regarde.",
+      "desc_password": "Entrez votre mot de passe pour voir la clé privée.",
+      "desc_display": "Ne partagez jamais cette clé avec qui que ce soit. Quiconque la possède peut contrôler vos fonds.",
+      "warning_box": "Avertissement : Votre clé privée donne un accès total à vos fonds. Assurez-vous que personne ne regarde votre écran.",
+      "i_am_alone": "Je suis seul, continuer",
+      "enter_password": "Entrez votre mot de passe",
+      "password_label": "Mot de passe",
+      "decrypting": "Déchiffrement...",
+      "key_copied": "Clé privée copiée dans le presse-papiers",
+      "key_unavailable": "La clé privée n'est pas disponible.",
+      "verifying": "Vérification...",
+      "view_btn": "Voir la clé privée",
+      "password_required": "Mot de passe requis",
+      "incorrect_password": "Mot de passe incorrect"
+    }
+  },
+  "welcome": {
+    "title": "Clorio",
+    "subtitle_1": "VOTRE MINA",
+    "subtitle_2": "VOTRE CONTRÔLE",
+    "start_button": "Commençons",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité"
+  },
+  "wallet_unlock": {
+    "title": "Bon retour",
+    "desc": "Entrez votre mot de passe pour déverrouiller votre portefeuille",
+    "password_label": "Mot de passe",
+    "password_placeholder": "Entrez le mot de passe",
+    "unlock_button": "Déverrouiller",
+    "unlocking": "Déverrouillage...",
+    "forgot_password": "Mot de passe oublié ? Réinitialiser le portefeuille",
+    "error_no_wallet_title": "Aucun portefeuille trouvé",
+    "error_no_wallet_desc": "Veuillez d'abord créer ou importer un portefeuille.",
+    "error_incorrect_password_title": "Mot de passe incorrect",
+    "error_incorrect_password_desc": "Veuillez réessayer."
+  },
+  "onboarding": {
+    "create": {
+      "make_sure_alone_title": "ASSUREZ-VOUS D'ÊTRE SEUL",
+      "make_sure_alone_desc": "Confirmez que votre écran n'est pas enregistré et n'est visible que par vous.",
+      "start_button": "Commençons",
+      "phrase_title": "Phrase de Récupération Secrète",
+      "phrase_desc": "Cette phrase est le SEUL moyen de récupérer votre portefeuille. Ne la partagez avec personne.",
+      "saved_label": "J'ai sauvegardé ma phrase de récupération secrète",
+      "error_password": "Mot de passe non défini. Veuillez redémarrer l'intégration.",
+      "next_button": "Suivant",
+      "back_button": "Retour"
+    },
+    "import": {
+      "title": "Importer Portefeuille",
+      "desc": "Importez votre portefeuille en utilisant votre Phrase de Récupération Secrète ou Clé Privée.",
+      "tab_mnemonic": "Mnémonique",
+      "tab_private_key": "Clé Privée",
+      "input_label_mnemonic": "Phrase de Récupération Secrète",
+      "input_placeholder_mnemonic": "Entrez votre phrase de départ de 12 mots",
+      "input_label_private_key": "Clé Privée",
+      "input_placeholder_private_key": "Entrez votre clé privée (Base58)",
+      "private_key_hint": "Votre clé privée est une longue chaîne commençant par 'EK'.",
+      "button_import": "Importer",
+      "button_importing": "Importation...",
+      "error_invalid_mnemonic": "Phrase de Départ Invalide",
+      "error_invalid_mnemonic_desc": "Veuillez vérifier votre phrase de départ et réessayer.",
+      "error_private_key_required": "La clé privée est requise.",
+      "error_invalid_private_key": "Clé Privée Invalide",
+      "error_invalid_private_key_desc": "Veuillez vérifier votre clé privée et réessayer.",
+      "success_title": "Portefeuille Importé",
+      "success_desc": "Votre portefeuille a été importé avec succès.",
+      "debug_title": "Portefeuille Importé (Debug)",
+      "debug_desc": "Vérifiez vos clés ci-dessous. Cette boîte de dialogue est à des fins de débogage.",
+      "go_dashboard": "Aller au Tableau de Bord"
+    },
+    "verify": {
+      "title_page": "Vérifier la Phrase de Départ",
+      "desc_page": "Entrez les mots demandés de votre phrase de départ pour vérifier que vous l'avez sauvegardée.",
+      "label_word": "Mot #{{index}}",
+      "placeholder_word": "Entrez le mot #{{index}}",
+      "verify_button": "Vérifier et Créer",
+      "creating": "Création...",
+      "error_verify_failed": "Échec de la Vérification",
+      "error_verify_failed_desc": "Le mot #{{index}} est incorrect. Veuillez vérifier votre phrase de départ.",
+      "success_title": "Portefeuille Créé",
+      "success_desc": "Votre portefeuille a été créé avec succès.",
+      "error_create_failed": "Échec de la création du portefeuille.",
+      "error_session_expired": "Session Expirée",
+      "error_session_expired_desc": "Veuillez redémarrer le processus de création de portefeuille."
+    },
+    "method_sheet": {
+      "title": "Configuration du Portefeuille",
+      "desc": "Choisissez comment vous souhaitez configurer votre portefeuille.",
+      "create_new": "Créer un Nouveau Portefeuille",
+      "import_phrase": "J'ai une Phrase de Récupération Secrète"
+    },
+    "password_sheet": {
+      "title": "La sécurité d'abord",
+      "desc": "Créons un mot de passe. Il cryptera et gardera votre portefeuille en sécurité. Gardez-le en sécurité, vous ne pourrez pas le récupérer.",
+      "password_label": "Mot de passe",
+      "confirm_password_label": "Confirmer le mot de passe",
+      "password_mismatch": "Les mots de passe ne correspondent pas",
+      "strength_label": "Force :",
+      "strength_weak": "Faible",
+      "strength_kinda_weak": "Un peu faible",
+      "strength_strong": "Fort",
+      "strength_very_strong": "Très fort",
+      "terms_label": "J'accepte les Termes et Conditions"
+    },
+    "wallet_keys_sheet": {
+      "show_key_button": "Afficher la clé privée",
+      "title": "Clés du Portefeuille",
+      "desc": "Ce sont vos clés dérivées du Protocole Mina. Sauvegardez-les en toute sécurité. Ne partagez JAMAIS votre clé privée.",
+      "deriving": "Dérivation des clés...",
+      "public_key_label": "Clé Publique (Adresse)",
+      "private_key_label": "Clé Privée",
+      "failed_derive": "Échec de la dérivation des clés. Veuillez réessayer.",
+      "failed_toast_title": "Échec de la Dérivation des Clés",
+      "failed_toast_desc": "Impossible de dériver les clés du mnémonique.",
+      "copied_title": "Copié",
+      "copied_desc": "{{label}} copié dans le presse-papiers"
+    }
+  }
+}
