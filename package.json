@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:firefox": "BROWSER=firefox vite --host",
     "build": "vite build",
+    "build:firefox": "BROWSER=firefox vite build && node -e \"const fs=require('fs');const p='./dist/manifest.json';const m=JSON.parse(fs.readFileSync(p,'utf8'));if(m.background){delete m.background.service_worker;delete m.background.scripts;m.background.page='background.html';if(m.background.type)delete m.background.type;}fs.writeFileSync(p,JSON.stringify(m,null,2));fs.writeFileSync('./dist/background.html','<script type=\\\"module\\\" src=\\\"service-worker-loader.js\\\"></script>');\"",
     "preview": "vite preview",
     "codegen": "graphql-codegen"
   },
