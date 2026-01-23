@@ -28,8 +28,9 @@ import { Home, Settings, HeartHandshake } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { WelcomePage } from '@/pages/Welcome';
 import DashboardPage from '@/pages/Dashboard';
-import SendPage from '@/pages/Send';
-import SettingsPage from '@/pages/Settings';
+import SendPage from '@/pages/send';
+import SettingsPage from '@/pages/settings';
+import { BackgroundMesh } from '@/components/ui/background-mesh';
 
 // Configuration: List of routes (pathname) that should NOT have transition animations
 const NO_ANIMATION_ROUTES: string[] = [];
@@ -81,6 +82,8 @@ const Layout = () => {
           : 'w-full',
       )}
     >
+      <BackgroundMesh />
+
       <main className="flex-1 overflow-auto relative px-4 pb-24">
         <AnimatePresence mode="wait">
           <motion.div
