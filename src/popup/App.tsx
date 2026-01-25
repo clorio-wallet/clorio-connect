@@ -18,6 +18,7 @@ import { VerifyMnemonicPage } from '@/pages/onboarding/verify-mnemonic';
 import { Toaster } from '@/components/ui/toaster';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { ApolloProvider } from '@apollo/client/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { client, initCache } from '@/lib/graphql/client';
 import { useNetworkStore } from '@/stores/network-store';
 import { useSessionStore } from '@/stores/session-store';
@@ -31,6 +32,8 @@ import DashboardPage from '@/pages/Dashboard';
 import SendPage from '@/pages/send';
 import SettingsPage from '@/pages/settings';
 import { BackgroundMesh } from '@/components/ui/background-mesh';
+
+const queryClient = new QueryClient();
 
 // Configuration: List of routes (pathname) that should NOT have transition animations
 const NO_ANIMATION_ROUTES: string[] = [];
@@ -147,43 +150,45 @@ const App: React.FC = () => {
 
   return (
     <ApolloProvider client={client}>
-      <HashRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Navigate to="/welcome" replace />} />
-            <Route path="/welcome" element={<WelcomePage />} />
-            <Route path="/wallet-unlock" element={<WalletUnlockPage />} />
-            <Route path="/onboarding/create" element={<CreateWalletPage />} />
-            <Route path="/onboarding/verify" element={<VerifyMnemonicPage />} />
-            <Route path="/onboarding/import" element={<ImportWalletPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/send"
-              element={
-                <ProtectedRoute>
-                  <SendPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <SettingsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/playground" element={<PlaygroundPage />} />
-          </Route>
-        </Routes>
-      </HashRouter>
+      <QueryClientProvider client={queryClient}>
+        <HashRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Navigate to="/welcome" replace />} />
+              <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="/wallet-unlock" element={<WalletUnlockPage />} />
+              <Route path="/onboarding/create" element={<CreateWalletPage />} />
+              <Route path="/onboarding/verify" element={<VerifyMnemonicPage />} />
+              <Route path="/onboarding/import" element={<ImportWalletPage />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/send"
+                element={
+                  <ProtectedRoute>
+                    <SendPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/playground" element={<PlaygroundPage />} />
+            </Route>
+          </Routes>
+        </HashRouter>
+      </QueryClientProvider>
     </ApolloProvider>
   );
 };

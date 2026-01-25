@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { SendForm } from '@/components/wallet';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
-import { useAccountByKeyQuery } from '@/graphql/generated';
+import { useGetAccount } from '@/api/mina/mina';
 import { useMinimumLoading } from '@/hooks/use-minimum-loading';
 import { useToast } from '@/hooks/use-toast';
 import type { SendTransactionFormData } from '@/lib/validations';
@@ -27,16 +27,19 @@ const SendPage: React.FC = () => {
   const pollIntervalMs =
     balancePollInterval > 0 ? balancePollInterval * 60 * 1000 : 0;
 
-  const { data, loading } = useAccountByKeyQuery({
-    variables: { publicKey: publicKey || '' },
-    skip: !publicKey,
-    pollInterval: pollIntervalMs,
-    fetchPolicy: 'cache-and-network',
-  });
+  const { data: accountData, isLoading: isAccountLoading } = useGetAccount(
+    publicKey || '',
+    {
+      query: {
+        enabled: !!publicKey,
+        refetchInterval: pollIntervalMs > 0 ? pollIntervalMs : false,
+      }
+    }
+  );
 
-  const displayLoading = useMinimumLoading(loading, 500);
+  const displayLoading = useMinimumLoading(isAccountLoading, 500);
 
-  const balanceRaw = data?.accountByKey?.balance?.total || 0;
+  const balanceRaw = accountData?.balance || 0;
   const balanceMina = Number(balanceRaw) / 1e9;
 
   const handleSubmit = async (formData: SendTransactionFormData) => {

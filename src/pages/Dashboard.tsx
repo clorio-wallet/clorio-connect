@@ -8,8 +8,16 @@ import { useSessionStore } from '@/stores/session-store';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { DEFAULT_NETWORKS } from '@/lib/networks';
-import { useAccountByKeyQuery } from '@/graphql/generated';
+import { useGetAccount, useGetMinaInfo } from '@/api/mina/mina';
+import { useGetTicker } from '@/api/ticker/ticker';
+import { useGetHealth } from '@/api/health/health';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,20 +54,47 @@ const DashboardPage: React.FC = () => {
     }
   }, [publicKey, navigate]);
 
-  const { data, loading, refetch } = useAccountByKeyQuery({
-    variables: { publicKey: publicKey || '' },
-    skip: !publicKey,
-    pollInterval: pollIntervalMs,
-    fetchPolicy: 'cache-and-network',
+  // REST API hooks
+  const { data: accountData, isLoading: isAccountLoading, refetch: refetchAccount } = useGetAccount(
+    publicKey || '',
+    {
+      query: {
+        enabled: !!publicKey,
+        refetchInterval: pollIntervalMs > 0 ? pollIntervalMs : false,
+      }
+    }
+  );
+
+  const { data: tickerData } = useGetTicker({
+    query: {
+      refetchInterval: 60000, // Update ticker every minute
+    }
   });
 
-  const displayLoading = useMinimumLoading(loading, 1000);
+  const { data: minaInfo } = useGetMinaInfo({
+    query: {
+      refetchInterval: 60000,
+    }
+  });
 
-  const balanceRaw = data?.accountByKey?.balance?.total || 0;
+  const { data: healthData } = useGetHealth({
+    query: {
+      refetchInterval: 300000,
+    }
+  });
+
+  const displayLoading = useMinimumLoading(isAccountLoading, 1000);
+
+  const balanceRaw = accountData?.balance || 0;
   const balanceMina = Number(balanceRaw) / 1e9;
+  const tickerPrice = Number(tickerData?.mina?.USDMINA || 0);
+  const fiatValue = (balanceMina * tickerPrice).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   const handleRefresh = () => {
-    refetch();
+    refetchAccount();
   };
 
   const handleLogout = () => {
@@ -87,7 +122,23 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6 py-2">
       <header className="flex justify-between items-center">
-        <NetworkBadge network={network.name} />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div >
+                <NetworkBadge network={network.name} />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="text-xs space-y-1">
+                <p>Status: <span className={healthData?.status === 'ok' ? 'text-green-500' : 'text-red-500'}>{healthData?.status || 'Checking...'}</span></p>
+                <p>Block Height: {minaInfo?.height || '-'}</p>
+                <p>Epoch: {minaInfo?.epoch || '-'}</p>
+                <p>Slot: {minaInfo?.slot || '-'}</p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <div className="flex gap-2">
           <Button
             variant="ghost"
@@ -149,22 +200,27 @@ const DashboardPage: React.FC = () => {
       <div className="space-y-4">
         <AccountCard
           account={{
-            name: t('dashboard.title'),
+            name: 'Mina Wallet', // TODO: Add custom names
             address: publicKey || '',
-            balance: balanceMina.toString(),
+            balance: balanceMina.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
             symbol: 'MINA',
+            fiatValue: tickerPrice > 0 ? `$${fiatValue}` : undefined,
           }}
-          isActive={true}
           isLoading={displayLoading}
-          explorerUrl={network.explorerUrl}
-          onDelete={() => setIsDeleteDialogOpen(true)}
-          onViewPrivateKey={handleViewPrivateKey}
+          explorerUrl={`${network.explorerUrl}/account/${publicKey}`}
+          onSelect={() => {}}
           onRename={() => {
+            // TODO: Implement rename
             toast({
-              title: t('dashboard.not_implemented'),
-              description: t('dashboard.rename_coming_soon'),
+              title: 'Not Implemented',
+              description: 'Renaming accounts will be available soon.',
             });
           }}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+          onViewPrivateKey={handleViewPrivateKey}
         />
         <Button
           className="w-full"
