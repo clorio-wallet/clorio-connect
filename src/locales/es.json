@@ -84,7 +84,9 @@
     "no_transactions": "No hay transacciones recientes",
     "not_implemented": "No implementado",
     "rename_coming_soon": "La función de renombrar estará disponible pronto.",
-    "send_tx_coming_soon": "Funcionalidad de envío de transacción pronto disponible."
+    "send_tx_coming_soon": "Funcionalidad de envío de transacción pronto disponible.",
+    "transactions_title": "Transacciones",
+    "history_title": "Historial"
   },
   "settings": {
     "title": "Configuración",

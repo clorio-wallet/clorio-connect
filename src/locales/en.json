@@ -84,7 +84,18 @@
     "no_transactions": "No recent transactions",
     "not_implemented": "Not Implemented",
     "rename_coming_soon": "Rename functionality coming soon.",
-    "send_tx_coming_soon": "Send transaction functionality coming soon."
+    "send_tx_coming_soon": "Send transaction functionality coming soon.",
+    "transactions_title": "Transactions",
+    "history_title": "History",
+    "send": "Send",
+    "receive": "Receive"
+  },
+  "receive": {
+    "title": "Receive Funds",
+    "desc": "Scan this QR code or copy the address below to receive funds.",
+    "your_address": "Your Address",
+    "copy_address": "Copy Address",
+    "address_copied": "Address copied to clipboard"
   },
   "settings": {
     "title": "Settings",

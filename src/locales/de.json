@@ -84,7 +84,9 @@
     "no_transactions": "Keine aktuellen Transaktionen",
     "not_implemented": "Nicht implementiert",
     "rename_coming_soon": "Umbenennungsfunktion kommt bald.",
-    "send_tx_coming_soon": "Funktion zum Senden von Transaktionen kommt bald."
+    "send_tx_coming_soon": "Funktion zum Senden von Transaktionen kommt bald.",
+    "transactions_title": "Transaktionen",
+    "history_title": "Transaktionsverlauf"
   },
   "settings": {
     "title": "Einstellungen",

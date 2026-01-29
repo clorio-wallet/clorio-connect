@@ -84,7 +84,9 @@
     "no_transactions": "Aucune transaction récente",
     "not_implemented": "Non implémenté",
     "rename_coming_soon": "La fonctionnalité de renommage sera bientôt disponible.",
-    "send_tx_coming_soon": "Fonctionnalité d'envoi de transaction bientôt disponible."
+    "send_tx_coming_soon": "Fonctionnalité d'envoi de transaction bientôt disponible.",
+    "transactions_title": "Transactions",
+    "history_title": "Historique"
   },
   "settings": {
     "title": "Paramètres",
