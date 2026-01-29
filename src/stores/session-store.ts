@@ -31,7 +31,15 @@ export const useSessionStore = create<SessionState>((set) => ({
   setTempMnemonic: (tempMnemonic) => set({ tempMnemonic }),
   
   isAuthenticated: false,
-  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  setIsAuthenticated: (isAuthenticated) => {
+    set({ isAuthenticated });
+    if (chrome?.runtime?.sendMessage) {
+      chrome.runtime.sendMessage({
+        type: 'UPDATE_LOCK_STATUS',
+        payload: { isLocked: !isAuthenticated }
+      }).catch(() => {});
+    }
+  },
   
   hasVault: false,
   setHasVault: (hasVault) => set({ hasVault }),
@@ -44,6 +52,12 @@ export const useSessionStore = create<SessionState>((set) => ({
       tempMnemonic: null, 
       isAuthenticated: false 
     });
+    if (chrome?.runtime?.sendMessage) {
+      chrome.runtime.sendMessage({
+        type: 'UPDATE_LOCK_STATUS',
+        payload: { isLocked: true }
+      }).catch(() => {});
+    }
   },
 
   resetWallet: async () => {
@@ -56,6 +70,12 @@ export const useSessionStore = create<SessionState>((set) => ({
       tempMnemonic: null,
       isAuthenticated: false
     });
+    if (chrome?.runtime?.sendMessage) {
+      chrome.runtime.sendMessage({
+        type: 'UPDATE_LOCK_STATUS',
+        payload: { isLocked: true }
+      }).catch(() => {});
+    }
   },
 
   restoreSession: async () => {
@@ -64,13 +84,28 @@ export const useSessionStore = create<SessionState>((set) => ({
       const { useSettingsStore } = await import('@/stores/settings-store');
       
       const session = await sessionStorage.get<{ password: string, timestamp: number }>('clorio_session');
-      if (!session) return false;
+      if (!session) {
+        // Ensure icon shows locked if no session
+        if (chrome?.runtime?.sendMessage) {
+          chrome.runtime.sendMessage({
+            type: 'UPDATE_LOCK_STATUS',
+            payload: { isLocked: true }
+          }).catch(() => {});
+        }
+        return false;
+      }
 
       const { autoLockTimeout } = useSettingsStore.getState();
       
       // If "On window close" (0), we shouldn't restore
       if (autoLockTimeout === 0) {
         await sessionStorage.remove('clorio_session');
+        if (chrome?.runtime?.sendMessage) {
+          chrome.runtime.sendMessage({
+            type: 'UPDATE_LOCK_STATUS',
+            payload: { isLocked: true }
+          }).catch(() => {});
+        }
         return false;
       }
 
@@ -79,6 +114,12 @@ export const useSessionStore = create<SessionState>((set) => ({
         const elapsedMinutes = (Date.now() - session.timestamp) / 1000 / 60;
         if (elapsedMinutes > autoLockTimeout) {
           await sessionStorage.remove('clorio_session');
+          if (chrome?.runtime?.sendMessage) {
+            chrome.runtime.sendMessage({
+              type: 'UPDATE_LOCK_STATUS',
+              payload: { isLocked: true }
+            }).catch(() => {});
+          }
           return false;
         }
       }
@@ -91,6 +132,13 @@ export const useSessionStore = create<SessionState>((set) => ({
         tempPassword: session.password,
         hasVault: true
       });
+
+      if (chrome?.runtime?.sendMessage) {
+        chrome.runtime.sendMessage({
+          type: 'UPDATE_LOCK_STATUS',
+          payload: { isLocked: false }
+        }).catch(() => {});
+      }
       return true;
     } catch (error) {
       console.error('Failed to restore session:', error);

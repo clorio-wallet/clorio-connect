@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BackgroundMesh } from '@/components/ui/background-mesh';
 import { WelcomePage } from '@/pages/Welcome';
 import WalletUnlockPage from '@/pages/wallet-unlock';
+import DevToolsLoader from '@/components/dev-tools-loader';
 
 // Lazy load pages
 const PlaygroundPage = lazy(() => import('./Playground'));
@@ -159,6 +160,7 @@ const Layout = () => {
       )}
 
       <Toaster />
+      <DevToolsLoader />
     </div>
   );
 };
