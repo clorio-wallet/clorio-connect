@@ -295,12 +295,7 @@ export type AccountByKeyQueryVariables = Exact<{
 
 export type AccountByKeyQuery = { __typename?: 'Query', accountByKey?: { __typename?: 'Account', balance?: { __typename?: 'Balance', total?: string | null, liquid?: string | null, locked?: string | null, liquidUnconfirmed?: string | null, unconfirmedTotal?: string | null } | null } | null };
 
-export type GetIdFromPublicKeyQueryVariables = Exact<{
-  publicKey: Scalars['String']['input'];
-}>;
 
-
-export type GetIdFromPublicKeyQuery = { __typename?: 'Query', idByPublicKey?: { __typename?: 'IdByPublicKey', id?: string | null } | null };
 
 
 export const AccountByKeyDocument = gql`
@@ -342,56 +337,13 @@ export function useAccountByKeyLazyQuery(baseOptions?: ApolloReactHooks.LazyQuer
           return ApolloReactHooks.useLazyQuery<AccountByKeyQuery, AccountByKeyQueryVariables>(AccountByKeyDocument, options);
         }
 // @ts-ignore
-export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<AccountByKeyQuery, AccountByKeyQueryVariables>;
-export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<AccountByKeyQuery | undefined, AccountByKeyQueryVariables>;
-export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<AccountByKeyQuery, AccountByKeyQueryVariables>(AccountByKeyDocument, options);
-        }
+// export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<AccountByKeyQuery, AccountByKeyQueryVariables>;
+// export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<AccountByKeyQuery | undefined, AccountByKeyQueryVariables>;
+// export function useAccountByKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<AccountByKeyQuery, AccountByKeyQueryVariables>) {
+//           const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+//           return ApolloReactHooks.useSuspenseQuery<AccountByKeyQuery, AccountByKeyQueryVariables>(AccountByKeyDocument, options);
+//         }
 export type AccountByKeyQueryHookResult = ReturnType<typeof useAccountByKeyQuery>;
 export type AccountByKeyLazyQueryHookResult = ReturnType<typeof useAccountByKeyLazyQuery>;
-export type AccountByKeySuspenseQueryHookResult = ReturnType<typeof useAccountByKeySuspenseQuery>;
+// export type AccountByKeySuspenseQueryHookResult = ReturnType<typeof useAccountByKeySuspenseQuery>;
 export type AccountByKeyQueryResult = ApolloReactCommon.QueryResult<AccountByKeyQuery, AccountByKeyQueryVariables>;
-export const GetIdFromPublicKeyDocument = gql`
-    query GetIDFromPublicKey($publicKey: String!) {
-  idByPublicKey(publicKey: $publicKey) {
-    id
-  }
-}
-    `;
-
-/**
- * __useGetIdFromPublicKeyQuery__
- *
- * To run a query within a React component, call `useGetIdFromPublicKeyQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetIdFromPublicKeyQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetIdFromPublicKeyQuery({
- *   variables: {
- *      publicKey: // value for 'publicKey'
- *   },
- * });
- */
-export function useGetIdFromPublicKeyQuery(baseOptions: ApolloReactHooks.QueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables> & ({ variables: GetIdFromPublicKeyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return ApolloReactHooks.useQuery<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>(GetIdFromPublicKeyDocument, options);
-      }
-export function useGetIdFromPublicKeyLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useLazyQuery<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>(GetIdFromPublicKeyDocument, options);
-        }
-// @ts-ignore
-export function useGetIdFromPublicKeySuspenseQuery(baseOptions?: ApolloReactHooks.SuspenseQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>;
-export function useGetIdFromPublicKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>): ApolloReactHooks.UseSuspenseQueryResult<GetIdFromPublicKeyQuery | undefined, GetIdFromPublicKeyQueryVariables>;
-export function useGetIdFromPublicKeySuspenseQuery(baseOptions?: ApolloReactHooks.SkipToken | ApolloReactHooks.SuspenseQueryHookOptions<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>) {
-          const options = baseOptions === ApolloReactHooks.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return ApolloReactHooks.useSuspenseQuery<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>(GetIdFromPublicKeyDocument, options);
-        }
-export type GetIdFromPublicKeyQueryHookResult = ReturnType<typeof useGetIdFromPublicKeyQuery>;
-export type GetIdFromPublicKeyLazyQueryHookResult = ReturnType<typeof useGetIdFromPublicKeyLazyQuery>;
-export type GetIdFromPublicKeySuspenseQueryHookResult = ReturnType<typeof useGetIdFromPublicKeySuspenseQuery>;
-export type GetIdFromPublicKeyQueryResult = ApolloReactCommon.QueryResult<GetIdFromPublicKeyQuery, GetIdFromPublicKeyQueryVariables>;

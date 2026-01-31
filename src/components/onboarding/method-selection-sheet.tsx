@@ -27,7 +27,7 @@ export const MethodSelectionSheet: React.FC<MethodSelectionSheetProps> = ({
     <BottomSheet open={open} onOpenChange={onOpenChange}>
       <BottomSheetContent className="h-auto">
         <BottomSheetHeader className="text-left px-6 pt-6">
-          <BottomSheetTitle className="text-3xl font-display font-normal">
+          <BottomSheetTitle className="text-3xl font-alt font-normal">
             {t('onboarding.method_sheet.title')}
           </BottomSheetTitle>
           <BottomSheetDescription className="text-base mt-2 text-muted-foreground">

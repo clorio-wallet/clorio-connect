@@ -27,12 +27,8 @@ import { ModeSwitchCountdown } from '@/components/settings/mode-switch-countdown
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsItem } from '@/components/settings/settings-item';
 import { NetworkSheet } from '@/components/settings/network-sheet';
-import {
-  SecuritySheet,
-} from '@/components/settings/security-sheet';
-import {
-  RefreshRateSheet,
-} from '@/components/settings/refresh-rate-sheet';
+import { SecuritySheet } from '@/components/settings/security-sheet';
+import { RefreshRateSheet } from '@/components/settings/refresh-rate-sheet';
 import { ResetWalletDialog } from '@/components/settings/reset-wallet-dialog';
 import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
 import { LanguageSheet } from '@/components/settings/language-sheet';
@@ -57,26 +53,40 @@ const SettingsPage: React.FC = () => {
   const currentNetwork = networks[networkId] || DEFAULT_NETWORKS.mainnet;
 
   const getAutoLockLabel = (value: number) => {
-    switch(value) {
-      case 0: return t('settings.security_sheet.options.window_close');
-      case 5: return t('settings.security_sheet.options.5_min');
-      case 15: return t('settings.security_sheet.options.15_min');
-      case 30: return t('settings.security_sheet.options.30_min');
-      case 60: return t('settings.security_sheet.options.1_hour');
-      case -1: return t('settings.security_sheet.options.never');
-      default: return `${value} min`;
+    switch (value) {
+      case 0:
+        return t('settings.security_sheet.options.window_close');
+      case 5:
+        return t('settings.security_sheet.options.5_min');
+      case 15:
+        return t('settings.security_sheet.options.15_min');
+      case 30:
+        return t('settings.security_sheet.options.30_min');
+      case 60:
+        return t('settings.security_sheet.options.1_hour');
+      case -1:
+        return t('settings.security_sheet.options.never');
+      default:
+        return `${value} min`;
     }
   };
 
   const getRefreshRateLabel = (value: number) => {
-    switch(value) {
-      case 1: return t('settings.refresh_sheet.options.1_min');
-      case 2: return t('settings.refresh_sheet.options.2_min');
-      case 5: return t('settings.refresh_sheet.options.5_min');
-      case 10: return t('settings.refresh_sheet.options.10_min');
-      case 30: return t('settings.refresh_sheet.options.30_min');
-      case -1: return t('settings.refresh_sheet.options.manual');
-      default: return `${value} min`;
+    switch (value) {
+      case 1:
+        return t('settings.refresh_sheet.options.1_min');
+      case 2:
+        return t('settings.refresh_sheet.options.2_min');
+      case 5:
+        return t('settings.refresh_sheet.options.5_min');
+      case 10:
+        return t('settings.refresh_sheet.options.10_min');
+      case 30:
+        return t('settings.refresh_sheet.options.30_min');
+      case -1:
+        return t('settings.refresh_sheet.options.manual');
+      default:
+        return `${value} min`;
     }
   };
 
@@ -119,7 +129,9 @@ const SettingsPage: React.FC = () => {
           >
             {t('settings.display_mode_sheet.switch_now')}
           </Button>
-          <ToastAction altText={t('settings.display_mode_sheet.cancel_change')}>{t('settings.display_mode_sheet.cancel_change')}</ToastAction>
+          <ToastAction altText={t('settings.display_mode_sheet.cancel_change')}>
+            {t('settings.display_mode_sheet.cancel_change')}
+          </ToastAction>
         </div>
       ),
       duration: 6000,
@@ -165,7 +177,11 @@ const SettingsPage: React.FC = () => {
           <SettingsItem
             icon={Layout}
             label={t('settings.display_mode')}
-            value={uiMode === 'sidepanel' ? t('settings.display_mode_sheet.sidepanel') : t('settings.display_mode_sheet.popup')}
+            value={
+              uiMode === 'sidepanel'
+                ? t('settings.display_mode_sheet.sidepanel')
+                : t('settings.display_mode_sheet.popup')
+            }
             onClick={() =>
               handleModeChange(uiMode === 'sidepanel' ? 'popup' : 'sidepanel')
             }
@@ -193,23 +209,14 @@ const SettingsPage: React.FC = () => {
             value={currentRefreshRateLabel}
             onClick={() => setIsRefreshRateOpen(true)}
           />
-          <SettingsItem
+          {/* <SettingsItem
             icon={Layers}
             label={t('settings.connected_apps')}
             value={connectedAppsCount}
             onClick={() => {
               // Open connected apps
             }}
-          />
-        </SettingsSection>
-
-        <SettingsSection title={t('settings.advanced')}>
-          <SettingsItem
-            icon={Trash2}
-            label={t('settings.reset_wallet')}
-            showArrow={false}
-            onClick={() => setIsResetDialogOpen(true)}
-          />
+          /> */}
         </SettingsSection>
 
         <SettingsSection title={t('settings.about')}>
@@ -220,6 +227,16 @@ const SettingsPage: React.FC = () => {
             onClick={() => {
               window.open('https://docs.minaprotocol.com', '_blank');
             }}
+          />
+        </SettingsSection>
+
+        <SettingsSection title={t('settings.advanced')}>
+          <SettingsItem
+            variant="danger"
+            icon={() => <Trash2 className="stroke-red-500" />}
+            label={t('settings.reset_wallet')}
+            showArrow={false}
+            onClick={() => setIsResetDialogOpen(true)}
           />
         </SettingsSection>
       </div>

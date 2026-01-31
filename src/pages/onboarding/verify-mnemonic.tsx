@@ -9,7 +9,6 @@ import { useWalletStore } from '@/stores/wallet-store';
 import { CryptoService } from '@/lib/crypto';
 import { storage } from '@/lib/storage';
 import { AppMessage, DeriveKeysResponse } from '@/messages/types';
-import { useGetIdFromPublicKeyLazyQuery } from '@/graphql/generated';
 import { useTranslation } from 'react-i18next';
 
 export const VerifyMnemonicPage: React.FC = () => {
@@ -29,8 +28,6 @@ export const VerifyMnemonicPage: React.FC = () => {
     [key: number]: string;
   }>({});
   const [isCreating, setIsCreating] = useState(false);
-
-  const [getId] = useGetIdFromPublicKeyLazyQuery();
 
   useEffect(() => {
     if (!tempMnemonic || tempMnemonic.length === 0) {
@@ -104,17 +101,7 @@ export const VerifyMnemonicPage: React.FC = () => {
       setHasVault(true);
       setIsAuthenticated(true);
 
-      // Get Account ID if exists
-      try {
-        const { data } = await getId({
-          variables: { publicKey },
-        });
-        const accountId = data?.idByPublicKey?.id || null;
-        setWallet({ publicKey, accountId });
-      } catch (error) {
-        console.error('Failed to fetch account ID:', error);
-        setWallet({ publicKey, accountId: null });
-      }
+      setWallet({ publicKey });
 
       toast({
         title: t('onboarding.verify.success_title'),

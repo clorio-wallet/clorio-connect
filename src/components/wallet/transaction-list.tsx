@@ -4,7 +4,7 @@ import { TransactionCard, TransactionCardStatus, TransactionType } from "./trans
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 
-interface Transaction {
+export interface Transaction {
   id: string;
   type: TransactionType;
   status: TransactionCardStatus;
@@ -18,7 +18,7 @@ interface Transaction {
   symbol?: string;
 }
 
-interface TransactionListProps {
+export interface TransactionListProps {
   transactions: Transaction[];
   isLoading?: boolean;
   onTransactionClick?: (transaction: Transaction) => void;

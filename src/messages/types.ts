@@ -1,4 +1,4 @@
-export type MessageType = 'DERIVE_KEYS_FROM_MNEMONIC' | 'VALIDATE_PRIVATE_KEY';
+export type MessageType = 'DERIVE_KEYS_FROM_MNEMONIC' | 'VALIDATE_PRIVATE_KEY' | 'UPDATE_LOCK_STATUS';
 
 export interface BaseMessage {
   type: MessageType;
@@ -18,7 +18,14 @@ export interface ValidatePrivateKeyMessage extends BaseMessage {
   };
 }
 
-export type AppMessage = DeriveKeysMessage | ValidatePrivateKeyMessage;
+export interface UpdateLockStatusMessage extends BaseMessage {
+  type: 'UPDATE_LOCK_STATUS';
+  payload: {
+    isLocked: boolean;
+  };
+}
+
+export type AppMessage = DeriveKeysMessage | ValidatePrivateKeyMessage | UpdateLockStatusMessage;
 
 export interface DeriveKeysResponse {
   publicKey: string;

@@ -77,7 +77,7 @@ export const CreateWalletPage: React.FC = () => {
       <div className={cn('flex-1', !isRevealed && 'blur-sm')}>
         <SeedPhraseDisplay mnemonic={mnemonic} />
 
-        <div className="flex flex-col gap-4 mt-6">
+        <div className="flex flex-col gap-4 mt-2">
           <WalletKeysSheet mnemonic={mnemonic} />
 
           <div className="flex items-center space-x-2">
@@ -94,7 +94,7 @@ export const CreateWalletPage: React.FC = () => {
         </div>
       </div>
 
-      <div className={cn('pt-4 flex gap-2', !isRevealed && 'blur-sm')}>
+      <div className={cn('pt-2 flex gap-2', !isRevealed && 'blur-sm')}>
         <Button
           variant="outline"
           className="flex-1"

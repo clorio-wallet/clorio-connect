@@ -54,7 +54,7 @@ export const NetworkSheet: React.FC<NetworkSheetProps> = ({ open, onOpenChange }
             >
               <div className="flex flex-col">
                 <span className="font-medium">{net.name}</span>
-                <span className="text-xs text-muted-foreground">{net.url}</span>
+                <span className="text-xs ">{net.url}</span>
               </div>
               {networkId === net.label && (
                 <Check className="h-4 w-4 text-primary" />

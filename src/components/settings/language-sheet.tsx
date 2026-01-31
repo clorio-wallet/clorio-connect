@@ -74,7 +74,7 @@ export const LanguageSheet: React.FC<LanguageSheetProps> = ({ open, onOpenChange
               >
               <div className="flex flex-col">
                 <span className="font-medium">{lang.nativeName}</span>
-                <span className="text-xs text-muted-foreground">{lang.label}</span>
+                <span className="text-xs ">{lang.label}</span>
               </div>
               {currentLangCode === lang.code && (
                 <Check className="h-4 w-4 text-primary" />
