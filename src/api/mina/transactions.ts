@@ -38,7 +38,19 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
     enabled: !!address && (options?.enabled ?? true),
     refetchInterval: options?.refetchInterval,
     select: (data) => {
-      return data.transactions.map((tx): Transaction => {
+      const sortedTransactions = [...data.transactions].sort((a, b) => {
+        // Sort by blockHeight descending if available
+        if (a.blockHeight && b.blockHeight) {
+          return b.blockHeight - a.blockHeight;
+        }
+        // Fallback to dateTime if available
+        if (a.dateTime && b.dateTime) {
+          return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime();
+        }
+        return 0;
+      });
+
+      return sortedTransactions.map((tx): Transaction => {
         const isIncoming = tx.receiver === address;
         let type: TransactionType = 'payment';
         // Infer type if not explicitly provided
@@ -53,8 +65,8 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
           id: tx.hash,
           type,
           status,
-          amount: Number(tx.amount) / 1e9,
-          fee: Number(tx.fee) / 1e9,
+          amount: Number(tx.amount),
+          fee: Number(tx.fee),
           hash: tx.hash,
           // Use blockHeight as proxy for timestamp if dateTime missing, or empty string
           timestamp: tx.dateTime ? new Date(tx.dateTime).toLocaleString() : `Block: ${tx.blockHeight}`,
