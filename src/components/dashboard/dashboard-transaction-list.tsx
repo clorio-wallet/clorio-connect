@@ -12,13 +12,17 @@ interface DashboardTransactionListProps {
   displayLoading: boolean;
 }
 
-export const DashboardTransactionList: React.FC<DashboardTransactionListProps> = ({
-  publicKey,
-  displayLoading,
-}) => {
+export const DashboardTransactionList: React.FC<
+  DashboardTransactionListProps
+> = ({ publicKey, displayLoading }) => {
   const { t } = useTranslation();
-  const { data: transactions, isLoading, refetch } = useGetTransactions(publicKey, {
+  const {
+    data: transactions,
+    isLoading,
+    refetch,
+  } = useGetTransactions(publicKey, {
     refetchInterval: 30000,
+    enabled: !!publicKey, // Ensure we don't call with empty key
   });
 
   const handleRefresh = () => {
@@ -57,7 +61,7 @@ export const DashboardTransactionList: React.FC<DashboardTransactionListProps> =
           />
         </Button>
       </div>
-      
+
       <TransactionList
         transactions={transactions || []}
         isLoading={isLoading}

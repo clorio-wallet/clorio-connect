@@ -6,20 +6,26 @@ import { TransactionCardStatus, TransactionType } from '@/components/wallet/tran
 interface APITransaction {
   hash: string;
   type: string;
-  amount: number;
-  fee: number;
-  sender: string;
+  amount: string; // Changed to string based on API response
+  fee: string; // Changed to string based on API response
+  source: string; // API uses 'source' instead of 'sender'
   receiver: string;
   timestamp: string;
   status: string;
   memo?: string;
   nonce: number;
-  kind: string;
-  dateTime: string;
+  kind?: string; // Optional or inferred
+  dateTime?: string; // May not be present in new structure
+  blockHeight?: number;
+}
+
+interface APIResponse {
+  total: number;
+  transactions: APITransaction[];
 }
 
 export const getTransactions = async (address: string) => {
-  return customInstance<APITransaction[]>({
+  return customInstance<APIResponse>({
     url: `/v1/mina/transactions/${address}`,
     method: 'GET',
   });
@@ -32,9 +38,10 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
     enabled: !!address && (options?.enabled ?? true),
     refetchInterval: options?.refetchInterval,
     select: (data) => {
-      return data.map((tx): Transaction => {
+      return data.transactions.map((tx): Transaction => {
         const isIncoming = tx.receiver === address;
         let type: TransactionType = 'payment';
+        // Infer type if not explicitly provided
         if (tx.kind === 'stake_delegation') type = 'delegation';
         if (tx.kind === 'zkapp') type = 'zkapp';
 
@@ -46,11 +53,12 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
           id: tx.hash,
           type,
           status,
-          amount: tx.amount / 1e9, // Assuming API returns nanomina
-          fee: tx.fee / 1e9,
+          amount: Number(tx.amount) / 1e9,
+          fee: Number(tx.fee) / 1e9,
           hash: tx.hash,
-          timestamp: new Date(tx.dateTime).toLocaleString(),
-          sender: tx.sender,
+          // Use blockHeight as proxy for timestamp if dateTime missing, or empty string
+          timestamp: tx.dateTime ? new Date(tx.dateTime).toLocaleString() : `Block: ${tx.blockHeight}`,
+          sender: tx.source, // Map source to sender
           receiver: tx.receiver,
           isIncoming,
           symbol: 'MINA',
