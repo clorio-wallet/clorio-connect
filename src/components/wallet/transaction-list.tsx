@@ -23,6 +23,7 @@ export interface TransactionListProps {
   isLoading?: boolean;
   onTransactionClick?: (transaction: Transaction) => void;
   className?: string;
+  emptyComponent?: React.ReactNode;
 }
 
 export function TransactionList({
@@ -30,6 +31,7 @@ export function TransactionList({
   isLoading,
   onTransactionClick,
   className,
+  emptyComponent,
 }: TransactionListProps) {
   const { t } = useTranslation();
 
@@ -64,9 +66,11 @@ export function TransactionList({
         </div>
       )}
       emptyComponent={
+        emptyComponent || (
         <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
           <p>{t('transactions.no_transactions')}</p>
         </div>
+        )
       }
     />
   );

@@ -16,13 +16,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
-import { LoopingLottie } from '@/components/ui/looping-lottie';
-import ufoAnimation from '../animations/ufo.json';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { RefreshCcw } from 'lucide-react';
 import { WalletActions } from '@/components/wallet/wallet-actions';
 import { ReceiveSheet } from '@/components/wallet/receive-sheet';
+import { DashboardTransactionList } from '@/components/dashboard/dashboard-transaction-list';
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -95,39 +93,16 @@ const DashboardPage: React.FC = () => {
           onDelete={() => setIsDeleteDialogOpen(true)}
           onViewPrivateKey={() => setIsViewKeyDialogOpen(true)}
         />
-        {/* <WalletActions
+        <WalletActions
           onReceiveClick={() => setIsReceiveSheetOpen(true)}
           disabled={displayLoading || !publicKey}
-        /> */}
+        />
       </div>
 
-      <div className="flex flex-col items-center justify-center text-muted-foreground text-sm space-y-4">
-        <div className="flex flex-row justify-start items-start w-full">
-          <h2 className="text-2xl font-display text-white">
-            {t('dashboard.history_title')}
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => refetchAccount()}
-            title={t('dashboard.refresh_balance')}
-            disabled={displayLoading}
-          >
-            <RefreshCcw
-              className={`h-5 w-5 ${displayLoading ? 'animate-spin' : ''}`}
-            />
-          </Button>
-        </div>
-        <div className="sm:max-w-[200px] sm:max-h-[200px] max-w-[100px]">
-          <LoopingLottie
-            animationData={ufoAnimation}
-            loopLastSeconds={2}
-            loopDelay={5000}
-            maxLoops={4}
-          />
-        </div>
-        <p>{t('dashboard.no_transactions')}</p>
-      </div>
+      <DashboardTransactionList
+        publicKey={publicKey || ''}
+        displayLoading={displayLoading}
+      />
 
       <AlertDialog
         open={isDeleteDialogOpen}
