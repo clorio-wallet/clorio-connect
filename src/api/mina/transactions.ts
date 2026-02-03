@@ -6,16 +6,16 @@ import { TransactionCardStatus, TransactionType } from '@/components/wallet/tran
 interface APITransaction {
   hash: string;
   type: string;
-  amount: string; // Changed to string based on API response
-  fee: string; // Changed to string based on API response
-  source: string; // API uses 'source' instead of 'sender'
+  amount: string;
+  fee: string;
+  source: string;
   receiver: string;
   timestamp: string;
   status: string;
   memo?: string;
   nonce: number;
-  kind?: string; // Optional or inferred
-  dateTime?: string; // May not be present in new structure
+  kind?: string;
+  dateTime?: string;
   blockHeight?: number;
 }
 
@@ -39,11 +39,9 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
     refetchInterval: options?.refetchInterval,
     select: (data) => {
       const sortedTransactions = [...data.transactions].sort((a, b) => {
-        // Sort by blockHeight descending if available
         if (a.blockHeight && b.blockHeight) {
           return b.blockHeight - a.blockHeight;
         }
-        // Fallback to dateTime if available
         if (a.dateTime && b.dateTime) {
           return new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime();
         }
@@ -53,7 +51,6 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
       return sortedTransactions.map((tx): Transaction => {
         const isIncoming = tx.receiver === address;
         let type: TransactionType = 'payment';
-        // Infer type if not explicitly provided
         if (tx.kind === 'stake_delegation') type = 'delegation';
         if (tx.kind === 'zkapp') type = 'zkapp';
 
@@ -68,9 +65,8 @@ export const useGetTransactions = (address: string, options?: { enabled?: boolea
           amount: Number(tx.amount),
           fee: Number(tx.fee),
           hash: tx.hash,
-          // Use blockHeight as proxy for timestamp if dateTime missing, or empty string
           timestamp: tx.dateTime ? new Date(tx.dateTime).toLocaleString() : `Block: ${tx.blockHeight}`,
-          sender: tx.source, // Map source to sender
+          sender: tx.source,
           receiver: tx.receiver,
           isIncoming,
           symbol: 'MINA',

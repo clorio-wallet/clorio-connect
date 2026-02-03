@@ -56,7 +56,7 @@ export function TransactionList({
     <VirtualList
       items={transactions}
       className={className}
-      estimateSize={() => 76} // Estimated height of TransactionCard
+      estimateSize={() => 76}
       renderItem={(tx) => (
         <div className="px-4 py-1.5">
           <TransactionCard
