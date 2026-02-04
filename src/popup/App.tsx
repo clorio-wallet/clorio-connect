@@ -47,6 +47,7 @@ const VerifyMnemonicPage = lazy(() =>
 const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 const SendPage = lazy(() => import('@/pages/Send'));
 const SettingsPage = lazy(() => import('@/pages/Settings'));
+const StakingPage = lazy(() => import('@/pages/Staking'));
 
 const queryClient = new QueryClient();
 
@@ -95,11 +96,7 @@ const Layout = () => {
     {
       icon: HeartHandshake,
       label: 'Staking',
-      onClick: () =>
-        toast({
-          title: 'Not Implemented',
-          description: 'Staking functionality coming soon.',
-        }),
+      onClick: () => navigate('/staking'),
     },
     {
       icon: Settings,
@@ -110,6 +107,7 @@ const Layout = () => {
 
   const activeLabel = navItems.find((item) => {
     if (item.label === 'Home') return location.pathname === '/dashboard';
+    if (item.label === 'Staking') return location.pathname === '/staking';
     if (item.label === 'Settings')
       return location.pathname.startsWith('/settings');
     return false;
@@ -221,6 +219,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <SendPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/staking"
+                element={
+                  <ProtectedRoute>
+                    <StakingPage />
                   </ProtectedRoute>
                 }
               />

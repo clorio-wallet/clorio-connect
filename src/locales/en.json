@@ -25,6 +25,8 @@
     "continue_button": "Continue"
   },
   "staking": {
+    "title": "Staking",
+    "subtitle": "Select a validator to delegate your stake.",
     "validator_label": "Validator",
     "validator_placeholder": "Select validator",
     "amount_label": "Amount to Stake",
@@ -35,7 +37,10 @@
     "warning_text": "Staked funds are locked for 21 days after unstaking. You will not earn rewards during the unbonding period.",
     "error_failed": "Failed to stake",
     "staking_button": "Staking...",
-    "stake_button": "Stake"
+    "stake_button": "Stake",
+    "no_delegate": "No Delegate",
+    "your_stake": "Your stake",
+    "epoch": "Epoch"
   },
   "validators": {
     "current_badge": "Current",
