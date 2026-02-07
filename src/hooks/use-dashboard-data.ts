@@ -55,7 +55,7 @@ export const useDashboardData = () => {
   });
 
   const account = {
-    name: 'Mina Wallet 1',
+    name: 'Mina Wallet 1', // TODO: Add custom names
     address: publicKey || '',
     balance: balanceMina.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -63,9 +63,6 @@ export const useDashboardData = () => {
     }),
     symbol: 'MINA',
     fiatValue: tickerPrice > 0 ? fiatValue : undefined,
-    delegate: accountData?.delegate,
-    balanceRaw: balanceRaw,
-    balanceMina: balanceMina,
   };
 
   return {

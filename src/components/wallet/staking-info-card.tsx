@@ -7,7 +7,7 @@ import { formatBalance, formatAddress } from '@/lib/utils';
 interface StakingInfoCardProps {
   delegateName?: string;
   delegateAddress?: string;
-  stake: number;
+  stake: number | string;
   epoch: number;
   slot: number;
   remainingTime: {
@@ -35,13 +35,13 @@ export const StakingInfoCard: React.FC<StakingInfoCardProps> = ({
 
   const timeLeftString = React.useMemo(() => {
     if (remainingTime.days > 0) {
-      return `${remainingTime.days}d ${remainingTime.hours}h left`;
+      return t('time.days_hours_left', { days: remainingTime.days, hours: remainingTime.hours });
     }
     if (remainingTime.hours > 0) {
-      return `${remainingTime.hours}h ${remainingTime.minutes}m left`;
+      return t('time.hours_minutes_left', { hours: remainingTime.hours, minutes: remainingTime.minutes });
     }
-    return `${remainingTime.minutes}m left`;
-  }, [remainingTime]);
+    return t('time.minutes_left', { minutes: remainingTime.minutes });
+  }, [remainingTime, t]);
 
   if (isLoading) {
     return (
@@ -66,7 +66,7 @@ export const StakingInfoCard: React.FC<StakingInfoCardProps> = ({
             {delegateName ||
               (delegateAddress
                 ? formatAddress(delegateAddress)
-                : t('staking.no_delegate', 'No Delegate'))}
+                : t('staking.no_delegate'))}
           </h3>
           <p className="text-sm text-muted-foreground">
             {t('staking.your_stake')}:{' '}
