@@ -22,8 +22,9 @@ export const DashboardTransactionList: React.FC<
     refetch,
   } = useGetTransactions(publicKey, {
     refetchInterval: 30000,
-    enabled: !!publicKey,
+    enabled: !!publicKey, // Ensure we don't call with empty key
   });
+    console.log("🚀 ~ DashboardTransactionList ~ transactions:", transactions)
 
   const handleRefresh = () => {
     refetch();
@@ -65,9 +66,10 @@ export const DashboardTransactionList: React.FC<
       <TransactionList
         transactions={transactions || []}
         isLoading={isLoading}
-        className="h-[400px]"
         emptyComponent={EmptyState}
         onTransactionClick={(tx) => {
+          // TODO: Open transaction details
+          console.log('Transaction clicked:', tx);
         }}
       />
     </div>

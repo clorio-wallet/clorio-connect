@@ -47,18 +47,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <TooltipContent>
             <div className="text-xs space-y-1">
               <p>
-                Status:{' '}
+                {t('dashboard.status')}:{' '}
                 <span
                   className={
                     healthStatus === 'ok' ? 'text-green-500' : 'text-red-500'
                   }
                 >
-                  {healthStatus || 'Checking...'}
+                  {healthStatus || t('dashboard.checking')}
                 </span>
               </p>
-              <p>Block Height: {blockHeight || '-'}</p>
-              <p>Epoch: {epoch || '-'}</p>
-              <p>Slot: {slot || '-'}</p>
+              <p>{t('dashboard.block_height')}: {blockHeight || '-'}</p>
+              <p>{t('dashboard.epoch')}: {epoch || '-'}</p>
+              <p>{t('dashboard.slot')}: {slot || '-'}</p>
             </div>
           </TooltipContent>
         </Tooltip>
