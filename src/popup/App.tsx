@@ -20,7 +20,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Dock from '@/components/ui/dock';
-import { Home, Settings, HeartHandshake } from 'lucide-react';
+import { Home, Settings, HeartHandshake, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BackgroundMesh } from '@/components/ui/background-mesh';
 import { WelcomePage } from '@/pages/Welcome';
@@ -45,9 +45,10 @@ const VerifyMnemonicPage = lazy(() =>
   })),
 );
 const DashboardPage = lazy(() => import('@/pages/Dashboard'));
+const TransactionsPage = lazy(() => import('@/pages/Transactions'));
+const StakingPage = lazy(() => import('@/pages/Staking'));
 const SendPage = lazy(() => import('@/pages/Send'));
 const SettingsPage = lazy(() => import('@/pages/Settings'));
-const StakingPage = lazy(() => import('@/pages/Staking'));
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,11 @@ const Layout = () => {
       onClick: () => navigate('/staking'),
     },
     {
+      icon: History,
+      label: 'History',
+      onClick: () => navigate('/transactions'),
+    },
+    {
       icon: Settings,
       label: 'Settings',
       onClick: () => navigate('/settings'),
@@ -108,6 +114,7 @@ const Layout = () => {
   const activeLabel = navItems.find((item) => {
     if (item.label === 'Home') return location.pathname === '/dashboard';
     if (item.label === 'Staking') return location.pathname === '/staking';
+    if (item.label === 'History') return location.pathname === '/transactions';
     if (item.label === 'Settings')
       return location.pathname.startsWith('/settings');
     return false;
@@ -158,7 +165,6 @@ const Layout = () => {
       )}
 
       <Toaster />
-      <DevToolsLoader />
     </div>
   );
 };
@@ -194,6 +200,7 @@ const App: React.FC = () => {
   return (
     <ApolloProvider client={client}>
       <QueryClientProvider client={queryClient}>
+        <DevToolsLoader />
         <HashRouter>
           <Routes>
             <Route element={<Layout />}>
@@ -211,6 +218,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/transactions"
+                element={
+                  <ProtectedRoute>
+                    <TransactionsPage />
                   </ProtectedRoute>
                 }
               />

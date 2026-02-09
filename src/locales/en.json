@@ -4,11 +4,21 @@
     "close": "Close",
     "back": "Back",
     "continue": "Continue",
+    "reload": "Reload",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
     "warning": "Warning",
-    "copied": "Copied"
+    "copied": "Copied",
+    "time": {
+      "days_hours_left": "{{days}}d {{hours}}h left",
+      "hours_minutes_left": "{{hours}}h {{minutes}}m left",
+      "minutes_left": "{{minutes}}m left"
+    }
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again."
   },
   "send": {
     "amount_label": "Amount",
@@ -26,7 +36,6 @@
   },
   "staking": {
     "title": "Staking",
-    "subtitle": "Select a validator to delegate your stake.",
     "validator_label": "Validator",
     "validator_placeholder": "Select validator",
     "amount_label": "Amount to Stake",
@@ -39,7 +48,7 @@
     "staking_button": "Staking...",
     "stake_button": "Stake",
     "no_delegate": "No Delegate",
-    "your_stake": "Your stake",
+    "your_stake": "Your Stake",
     "epoch": "Epoch"
   },
   "validators": {
@@ -47,7 +56,6 @@
     "delegated_badge": "Delegated",
     "delegate_button": "Delegate",
     "fee_label": "Fee",
-    "users_label": "Users",
     "total_stake_label": "Total Stake",
     "search_placeholder": "Search validator...",
     "empty_list": "No validators found"
@@ -92,15 +100,11 @@
     "send_tx_coming_soon": "Send transaction functionality coming soon.",
     "transactions_title": "Transactions",
     "history_title": "History",
-    "send": "Send",
-    "receive": "Receive"
-  },
-  "receive": {
-    "title": "Receive Funds",
-    "desc": "Scan this QR code or copy the address below to receive funds.",
-    "your_address": "Your Address",
-    "copy_address": "Copy Address",
-    "address_copied": "Address copied to clipboard"
+    "status": "Status",
+    "block_height": "Block Height",
+    "epoch": "Epoch",
+    "slot": "Slot",
+    "checking": "Checking..."
   },
   "settings": {
     "title": "Settings",
