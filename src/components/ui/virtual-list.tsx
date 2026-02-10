@@ -49,25 +49,19 @@ export function VirtualList<T>({
           position: "relative",
         }}
       >
-        <AnimatePresence>
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-            <motion.div
-              key={virtualRow.key}
-              data-index={virtualRow.index}
-              ref={rowVirtualizer.measureElement}
-              variants={listItemVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className={cn("absolute top-0 left-0 w-full", itemClassName)}
-              style={{
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              {renderItem(items[virtualRow.index], virtualRow.index)}
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+          <div
+            key={virtualRow.key}
+            data-index={virtualRow.index}
+            ref={rowVirtualizer.measureElement}
+            className={cn("absolute top-0 left-0 w-full", itemClassName)}
+            style={{
+              transform: `translateY(${virtualRow.start}px)`,
+            }}
+          >
+            {renderItem(items[virtualRow.index], virtualRow.index)}
+          </div>
+        ))}
       </div>
     </div>
   );
