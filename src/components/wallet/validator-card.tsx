@@ -8,39 +8,53 @@ import { useTranslation } from "react-i18next";
 
 interface ValidatorCardProps {
   name?: string;
-  address: string;
+  publicKey: string;
   stake: number;
   fee: number;
-  delegators?: number;
   isDelegated?: boolean;
   onDelegate?: () => void;
+  imgurl?: string;
 }
 
 export function ValidatorCard({
   name,
-  address,
+  publicKey,
   stake,
   fee,
-  delegators,
   isDelegated,
   onDelegate,
+  imgurl,
 }: ValidatorCardProps) {
   const { t } = useTranslation();
 
   return (
     <Card className={cn(
-      "p-4 transition-all hover:shadow-md",
+      "p-4 transition-all hover:shadow-md relative overflow-hidden",
       isDelegated && "border-primary bg-primary/5"
     )}>
-      <div className="flex items-start justify-between gap-4">
+      {imgurl && (
+        <div 
+          className="absolute inset-0 z-0 opacity-[0.2] pointer-events-none bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: `url(${imgurl})`,
+            maskImage: 'linear-gradient(to right, black, transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, black, transparent)'
+          }}
+        />
+      )}
+      <div className="flex items-start justify-between gap-4 relative z-10">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-            <ShieldCheck className="h-5 w-5" />
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary overflow-hidden shrink-0">
+             {imgurl ? (
+                <img src={imgurl} alt={name || publicKey} className="h-full w-full object-cover" />
+             ) : (
+                <ShieldCheck className="h-5 w-5" />
+             )}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-sm">
-                {name || formatAddress(address)}
+                {name || formatAddress(publicKey)}
               </h3>
               {isDelegated && (
                 <Badge variant="default" className="text-[10px] h-5">
@@ -49,7 +63,7 @@ export function ValidatorCard({
               )}
             </div>
             <p className="text-xs text-muted-foreground break-all line-clamp-1">
-              {address}
+              {publicKey}
             </p>
           </div>
         </div>
@@ -64,18 +78,12 @@ export function ValidatorCard({
         </Button>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 py-3 bg-muted/50 rounded-lg">
+      <div className="mt-4 grid grid-cols-2 gap-2 py-3 bg-muted/50 rounded-lg relative z-10">
         <div className="text-center space-y-1 border-r border-border last:border-0">
           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
             <Percent className="h-3 w-3" /> {t("validators.fee_label")}
           </div>
           <div className="font-medium text-sm">{fee}%</div>
-        </div>
-        <div className="text-center space-y-1 border-r border-border last:border-0">
-          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-            <Users className="h-3 w-3" /> {t("validators.users_label")}
-          </div>
-          <div className="font-medium text-sm">{delegators || "-"}</div>
         </div>
         <div className="text-center space-y-1">
           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">

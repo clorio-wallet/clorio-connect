@@ -42,10 +42,6 @@ module.exports = {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
-        'brand-accent': {
-          DEFAULT: 'hsl(var(--brand-accent))',
-          foreground: 'hsl(var(--brand-accent-foreground))',
-        },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',

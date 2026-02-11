@@ -1,22 +1,10 @@
 import * as React from "react";
+import { motion } from "framer-motion";
 import { VirtualList } from "@/components/ui/virtual-list";
-import { TransactionCard, TransactionCardStatus, TransactionType } from "./transaction-card";
+import { TransactionCard } from "./transaction-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
-
-export interface Transaction {
-  id: string;
-  type: TransactionType;
-  status: TransactionCardStatus;
-  amount: number;
-  fee: number;
-  hash: string;
-  timestamp: string;
-  sender: string;
-  receiver: string;
-  isIncoming: boolean;
-  symbol?: string;
-}
+import { Transaction } from "@/api/mina/transactions";
 
 export interface TransactionListProps {
   transactions: Transaction[];
@@ -53,25 +41,29 @@ export function TransactionList({
   }
 
   return (
-    <VirtualList
-      items={transactions}
-      className={className}
-      estimateSize={() => 76}
-      renderItem={(tx) => (
-        <div className="px-4 py-1.5">
-          <TransactionCard
-            {...tx}
-            onClick={() => onTransactionClick?.(tx)}
-          />
-        </div>
-      )}
-      emptyComponent={
+    <div className={className}>
+      {transactions.length === 0 ? (
         emptyComponent || (
-        <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
-          <p>{t('transactions.no_transactions')}</p>
-        </div>
+          <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
+            <p>{t('transactions.no_transactions')}</p>
+          </div>
         )
-      }
-    />
+      ) : (
+        transactions.map((tx, index) => (
+          <motion.div
+            key={tx.id || tx.hash}
+            className="px-4 py-1.5"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+          >
+            <TransactionCard
+              {...tx}
+              onClick={() => onTransactionClick?.(tx)}
+            />
+          </motion.div>
+        ))
+      )}
+    </div>
   );
 }
