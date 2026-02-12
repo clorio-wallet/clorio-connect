@@ -36,6 +36,3 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 docs
 .trae
 .vite
-
-# Dev Tools
-src/dev-tools

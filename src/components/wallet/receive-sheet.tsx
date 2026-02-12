@@ -1,5 +1,5 @@
 import React from 'react';
-import { CustomQRCode } from '@/components/ui/custom-qr-code';
+import QRCode from 'react-qr-code';
 import { useTranslation } from 'react-i18next';
 import {
   BottomSheet,
@@ -48,10 +48,12 @@ export const ReceiveSheet: React.FC<ReceiveSheetProps> = ({
         </BottomSheetHeader>
 
         <div className="flex flex-col items-center justify-center p-6 space-y-6">
-          <div className="flex justify-center w-full">
-            <CustomQRCode
+          <div className="p-4 bg-white rounded-xl shadow-sm">
+            <QRCode
               value={address}
-              size={240}
+              size={200}
+              style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+              viewBox={`0 0 256 256`}
             />
           </div>
 

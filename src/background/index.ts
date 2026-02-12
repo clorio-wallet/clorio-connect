@@ -15,20 +15,8 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener((
   message: AppMessage,
   sender,
-  sendResponse: (response: DeriveKeysResponse | ValidatePrivateKeyResponse | { error: string } | { success: boolean }) => void
+  sendResponse: (response: DeriveKeysResponse | ValidatePrivateKeyResponse | { error: string }) => void
 ) => {
-  if (message.type === 'UPDATE_LOCK_STATUS') {
-    const { isLocked } = message.payload;
-    if (isLocked) {
-      chrome.action.setBadgeText({ text: '🔒' });
-      chrome.action.setBadgeBackgroundColor({ color: '#333333' });
-    } else {
-      chrome.action.setBadgeText({ text: '' });
-    }
-    sendResponse({ success: true });
-    return;
-  }
-
   if (message.type === 'DERIVE_KEYS_FROM_MNEMONIC') {
     (async () => {
       try {

@@ -19,6 +19,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { useGetIdFromPublicKeyLazyQuery } from '@/graphql/generated';
 import { useTranslation } from 'react-i18next';
 
 export const ImportWalletPage: React.FC = () => {
@@ -38,6 +39,8 @@ export const ImportWalletPage: React.FC = () => {
     publicKey: string;
     privateKey: string;
   } | null>(null);
+
+  const [getId] = useGetIdFromPublicKeyLazyQuery();
 
   const handleFinish = async () => {
     if (!tempPassword) {
@@ -150,9 +153,22 @@ export const ImportWalletPage: React.FC = () => {
       setHasVault(true);
       setIsAuthenticated(true);
 
-      setWallet({
-        publicKey: derivedKeys.publicKey,
-      });
+      try {
+        const { data } = await getId({
+          variables: { publicKey: derivedKeys.publicKey },
+        });
+        const accountId = data?.idByPublicKey?.id || null;
+        setWallet({
+          publicKey: derivedKeys.publicKey,
+          accountId,
+        });
+      } catch (error) {
+        console.error('Failed to fetch account ID:', error);
+        setWallet({
+          publicKey: derivedKeys.publicKey,
+          accountId: null,
+        });
+      }
 
       setDebugKeys(derivedKeys);
       setShowDebug(true);
