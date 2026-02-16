@@ -2,8 +2,14 @@ import * as React from 'react';
 import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatBalance, cn } from '@/lib/utils';
+import { formatBalance, cn, formatTimestamp } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export type TransactionCardStatus = 'pending' | 'applied' | 'failed';
 export type TransactionType = 'payment' | 'delegation' | 'zkapp';
@@ -32,6 +38,11 @@ export function TransactionCard({
   onClick,
 }: TransactionCardProps) {
   const { t } = useTranslation();
+  const numericTimestamp = Number(timestamp);
+  const fullDateTime =
+    numericTimestamp > 0
+      ? new Date(numericTimestamp * 1000).toLocaleString()
+      : '';
 
   return (
     <Card
@@ -59,7 +70,20 @@ export function TransactionCard({
               {isIncoming ? t('transactions.received') : t('transactions.sent')}{' '}
               {type === 'delegation' ? t('transactions.delegation') : ''}
             </div>
-            <div className="text-xs text-muted-foreground">{timestamp}</div>
+            <TooltipProvider delayDuration={500}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-xs text-muted-foreground">
+                    {formatTimestamp(numericTimestamp)}
+                  </div>
+                </TooltipTrigger>
+                {fullDateTime && (
+                  <TooltipContent>
+                    <span className="text-xs">{fullDateTime}</span>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
