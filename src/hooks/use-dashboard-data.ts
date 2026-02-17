@@ -18,6 +18,7 @@ export const useDashboardData = () => {
   const {
     data: accountData,
     isLoading: isAccountLoading,
+    isFetching: isAccountFetching,
     refetch: refetchAccount,
   } = useGetAccount(publicKey || '', {
     query: {
@@ -44,7 +45,10 @@ export const useDashboardData = () => {
     },
   });
 
-  const displayLoading = useMinimumLoading(isAccountLoading, 1000);
+  const displayLoading = useMinimumLoading(
+    isAccountLoading || isAccountFetching,
+    1000,
+  );
 
   const balanceRaw = accountData?.balance || 0;
   const balanceMina = Number(balanceRaw) / 1e9;

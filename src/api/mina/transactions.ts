@@ -17,6 +17,8 @@ export interface Transaction {
   isIncoming: boolean;
   symbol?: string;
   memo?: string;
+  nonce?: number;
+  blockHeight?: number;
 }
 
 export const getTransactions = async (
@@ -48,6 +50,8 @@ export const getTransactions = async (
       (tx.receiver === address || tx.to === address),
     symbol: tx.symbol || 'MINA',
     memo: tx.memo,
+    nonce: tx.nonce,
+    blockHeight: tx.blockHeight,
   }));
 };
 
@@ -62,3 +66,46 @@ export const useGetTransactions = (
     ...options,
   });
 };
+
+export const getTransaction = async (
+  hash: string,
+  signal?: AbortSignal
+): Promise<Transaction> => {
+  const response = await customInstance<any>({
+    url: `/v1/mina/transaction/${hash}`,
+    method: 'GET',
+    signal,
+  });
+
+  const tx = response.data || response;
+
+  return {
+    id: tx.id || tx.hash,
+    type: tx.type?.toLowerCase(),
+    status: tx.status?.toLowerCase() || 'applied',
+    amount: tx.amount,
+    fee: tx.fee,
+    hash: tx.hash,
+    timestamp: tx.timestamp || tx.dateTime,
+    sender: tx.sender || tx.from,
+    receiver: tx.receiver || tx.to,
+    isIncoming: false, // This needs to be determined at the usage site or by passing the user's address
+    symbol: tx.symbol || 'MINA',
+    memo: tx.memo,
+    nonce: tx.nonce,
+    blockHeight: tx.blockHeight,
+  };
+};
+
+export const useGetTransaction = (
+  hash: string | null,
+  options?: Omit<UseQueryOptions<Transaction, Error>, 'queryKey'>
+): UseQueryResult<Transaction, Error> => {
+  return useQuery({
+    queryKey: ['transaction', hash],
+    queryFn: ({ signal }) => getTransaction(hash!, signal),
+    enabled: !!hash,
+    ...options,
+  });
+};
+

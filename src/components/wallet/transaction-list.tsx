@@ -1,29 +1,38 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { VirtualList } from "@/components/ui/virtual-list";
 import { TransactionCard } from "./transaction-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
-import { Transaction } from "@/api/mina/transactions";
+import { Transaction, useGetTransactions } from "@/api/mina/transactions";
+import { useWalletStore } from "@/stores/wallet-store";
 
 export interface TransactionListProps {
-  transactions: Transaction[];
+  transactions?: Transaction[];
   isLoading?: boolean;
   onTransactionClick?: (transaction: Transaction) => void;
   className?: string;
   emptyComponent?: React.ReactNode;
 }
 
-export function TransactionList({
-  transactions,
-  isLoading,
-  onTransactionClick,
-  className,
-  emptyComponent,
-}: TransactionListProps) {
+export function TransactionList(props: TransactionListProps) {
+  const { transactions, isLoading, onTransactionClick, className, emptyComponent } = props;
   const { t } = useTranslation();
+  const { publicKey } = useWalletStore();
 
-  if (isLoading) {
+  const hasExternalTransactions = Array.isArray(transactions);
+
+  const {
+    data: internalTransactions = [],
+    isLoading: isInternalLoading,
+  } = useGetTransactions(publicKey || "", {
+    refetchInterval: 30000,
+    enabled: !hasExternalTransactions && !!publicKey,
+  });
+
+  const items = hasExternalTransactions ? transactions || [] : internalTransactions;
+  const loading = hasExternalTransactions ? !!isLoading : isInternalLoading;
+
+  if (loading) {
     return (
       <div className="space-y-3 p-4">
         {[...Array(5)].map((_, i) => (
@@ -42,17 +51,17 @@ export function TransactionList({
 
   return (
     <div className={className}>
-      {transactions.length === 0 ? (
+      {items.length === 0 ? (
         emptyComponent || (
           <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
-            <p>{t('transactions.no_transactions')}</p>
+            <p>{t("transactions.no_transactions")}</p>
           </div>
         )
       ) : (
-        transactions.map((tx, index) => (
+        items.map((tx, index) => (
           <motion.div
             key={tx.id || tx.hash}
-            className="px-4 py-1.5"
+            className="py-1.5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}

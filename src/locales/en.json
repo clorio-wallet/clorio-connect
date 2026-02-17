@@ -83,8 +83,24 @@
       "failed": "Failed"
     }
   },
+  "transaction_details": {
+    "title_sent": "Successfully sent",
+    "title_received": "Successfully received",
+    "date": "Date",
+    "sent": "Sent",
+    "received": "Received",
+    "to": "To",
+    "from": "From",
+    "fee": "Fee",
+    "memo": "Memo",
+    "total": "Total",
+    "none": "None",
+    "view_in_explorer": "View in Explorer"
+  },
   "dashboard": {
     "title": "Dashboard",
+    "send": "Send",
+    "receive": "Receive",
     "refresh_balance": "Refresh Balance",
     "logout": "Logout",
     "logout_title": "Logged Out",
@@ -105,6 +121,13 @@
     "epoch": "Epoch",
     "slot": "Slot",
     "checking": "Checking..."
+  },
+  "receive": {
+    "title": "Receive",
+    "desc": "Scan this QR code to receive funds to your address.",
+    "your_address": "Public key",
+    "copy_address": "Copy address",
+    "address_copied": "Address copied to clipboard"
   },
   "settings": {
     "title": "Settings",

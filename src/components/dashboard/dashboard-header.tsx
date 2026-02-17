@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Lock, BookPlus, RefreshCcw } from 'lucide-react';
+import { Lock, RefreshCcw, SquareArrowOutUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkBadge } from '@/components/wallet';
 import {
@@ -10,30 +10,65 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useDashboardData } from '@/hooks/use-dashboard-data';
+import { useSessionStore } from '@/stores/session-store';
+import { useToast } from '@/hooks/use-toast';
 
-interface DashboardHeaderProps {
-  networkName: string;
-  healthStatus?: string;
-  blockHeight?: number | string;
-  epoch?: number | string;
-  slot?: number | string;
-  displayLoading: boolean;
-  onRefresh: () => void;
-  onLogout: () => void;
-}
-
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
-  networkName,
-  healthStatus,
-  blockHeight,
-  epoch,
-  slot,
-  displayLoading,
-  onRefresh,
-  onLogout,
-}) => {
+export const AppHeader: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { logout } = useSessionStore();
+  const { toast } = useToast();
+
+  const { network, healthData, minaInfo, displayLoading, refetchAccount } =
+    useDashboardData();
+
+  const handleRefresh = () => {
+    refetchAccount();
+  };
+
+  const handleOpenWindow = async () => {
+    try {
+      const url = chrome?.runtime?.getURL('src/popup/index.html');
+      if (chrome?.windows?.create && url) {
+        await chrome.windows.create({
+          url,
+          type: 'popup',
+          width: 420,
+          height: 720,
+        });
+      } else if (url) {
+        window.open(
+          url,
+          '_blank',
+          'popup=yes,width=420,height=720,noopener,noreferrer',
+        );
+      }
+    } catch (error) {
+      console.error('Failed to open popout window:', error);
+      try {
+        const fallbackUrl = chrome?.runtime?.getURL('src/popup/index.html');
+        if (fallbackUrl) {
+          window.open(
+            fallbackUrl,
+            '_blank',
+            'popup=yes,width=420,height=720,noopener,noreferrer',
+          );
+        }
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: t('dashboard.logout_title'),
+      description: t('dashboard.logout_desc'),
+    });
+    navigate('/wallet-unlock');
+  };
 
   return (
     <header className="flex justify-between items-center">
@@ -41,7 +76,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <div>
-              <NetworkBadge network={networkName} />
+              <NetworkBadge network={network.name} />
             </div>
           </TooltipTrigger>
           <TooltipContent>
@@ -50,15 +85,23 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 {t('dashboard.status')}:{' '}
                 <span
                   className={
-                    healthStatus === 'ok' ? 'text-green-500' : 'text-red-500'
+                    healthData?.status === 'ok'
+                      ? 'text-green-500'
+                      : 'text-red-500'
                   }
                 >
-                  {healthStatus || t('dashboard.checking')}
+                  {healthData?.status || t('dashboard.checking')}
                 </span>
               </p>
-              <p>{t('dashboard.block_height')}: {blockHeight || '-'}</p>
-              <p>{t('dashboard.epoch')}: {epoch || '-'}</p>
-              <p>{t('dashboard.slot')}: {slot || '-'}</p>
+              <p>
+                {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
+              </p>
+              <p>
+                {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
+              </p>
+              <p>
+                {t('dashboard.slot')}: {minaInfo?.slot ?? '-'}
+              </p>
             </div>
           </TooltipContent>
         </Tooltip>
@@ -67,7 +110,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          onClick={onRefresh}
+          onClick={handleOpenWindow}
+          title={t('dashboard.open_window', 'Apri in una nuova finestra')}
+        >
+          <SquareArrowOutUpRight className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
           title={t('dashboard.refresh_balance')}
           disabled={displayLoading}
         >
@@ -78,14 +129,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate('/playground')}
-        >
-          <BookPlus className="h-5 w-5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onLogout}
+          onClick={handleLogout}
           title={t('dashboard.logout')}
         >
           <Lock className="h-5 w-5" />

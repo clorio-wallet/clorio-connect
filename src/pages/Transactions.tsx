@@ -1,54 +1,18 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { useDashboardData } from '@/hooks/use-dashboard-data';
-import { useSessionStore } from '@/stores/session-store';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { AppHeader } from '@/components/dashboard/dashboard-header';
 import { TransactionList } from '@/components/wallet/transaction-list';
-import { useGetTransactions } from '@/api/mina/transactions';
 import { LoopingLottie } from '@/components/ui/looping-lottie';
 import ufoAnimation from '@/animations/ufo.json';
-import { Button } from '@/components/ui/button';
-import { RefreshCcw, ArrowLeft } from 'lucide-react';
+import { TransactionDetailsSheet } from '@/components/wallet/transaction-details-sheet';
 
 const TransactionsPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { logout } = useSessionStore();
-  const { toast } = useToast();
 
-  const {
-    publicKey,
-    network,
-    healthData,
-    minaInfo,
-    displayLoading,
-    refetchAccount,
-  } = useDashboardData();
-
-  const {
-    data: transactions,
-    isLoading,
-    refetch,
-  } = useGetTransactions(publicKey || '', {
-    refetchInterval: 30000,
-    enabled: !!publicKey,
-  });
-
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: t('dashboard.logout_title'),
-      description: t('dashboard.logout_desc'),
-    });
-    navigate('/wallet-unlock');
-  };
-
-  const handleRefresh = () => {
-    refetch();
-    refetchAccount();
-  };
+  const [selectedTxHash, setSelectedTxHash] = React.useState<string | null>(
+    null,
+  );
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
   const EmptyState = (
     <div className="flex flex-col items-center justify-center text-muted-foreground text-sm space-y-4 py-8">
@@ -66,44 +30,25 @@ const TransactionsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 py-2">
-      <DashboardHeader
-        networkName={network.name}
-        healthStatus={healthData?.status}
-        blockHeight={minaInfo?.height}
-        epoch={minaInfo?.epoch}
-        slot={minaInfo?.slot}
-        displayLoading={displayLoading}
-        onRefresh={handleRefresh}
-        onLogout={handleLogout}
-      />
+      <AppHeader />
 
       <div className="space-y-4">
-        <div className="flex flex-row items-center gap-2">
-          <div className="flex flex-row justify-between items-center w-full">
-            <h2 className="text-2xl font-display text-white">
-              {t('dashboard.history_title', 'History')}
-            </h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={isLoading || displayLoading}
-            >
-              <RefreshCcw
-                className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
-              />
-            </Button>
-          </div>
-        </div>
+        <h2 className="text-2xl font-display text-white">
+          {t('dashboard.history_title', 'History')}
+        </h2>
 
         <TransactionList
-          transactions={transactions || []}
-          isLoading={isLoading}
           emptyComponent={EmptyState}
-          onTransactionClick={(tx) => {
-            // TODO: Open transaction details
-            console.log('Transaction clicked:', tx);
+          onTransactionClick={(tx: any) => {
+            setSelectedTxHash(tx.hash);
+            setIsSheetOpen(true);
           }}
+        />
+
+        <TransactionDetailsSheet
+          hash={selectedTxHash}
+          open={isSheetOpen}
+          onOpenChange={setIsSheetOpen}
         />
       </div>
     </div>

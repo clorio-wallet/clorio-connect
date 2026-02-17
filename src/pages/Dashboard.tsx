@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccountCard } from '@/components/wallet/account-card';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
-import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { AppHeader } from '@/components/dashboard/dashboard-header';
 import { WalletActions } from '@/components/wallet/wallet-actions';
 import { ReceiveSheet } from '@/components/wallet/receive-sheet';
 import { DashboardTransactionList } from '@/components/dashboard/dashboard-transaction-list';
@@ -25,36 +24,19 @@ import { DashboardTransactionList } from '@/components/dashboard/dashboard-trans
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { logout, resetWallet } = useSessionStore();
+  const { resetWallet } = useSessionStore();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewKeyDialogOpen, setIsViewKeyDialogOpen] = useState(false);
   const [isReceiveSheetOpen, setIsReceiveSheetOpen] = useState(false);
 
-  const {
-    publicKey,
-    network,
-    account,
-    displayLoading,
-    healthData,
-    minaInfo,
-    refetchAccount,
-  } = useDashboardData();
+  const { publicKey, network, account, displayLoading } = useDashboardData();
 
   useEffect(() => {
     if (!publicKey) {
       navigate('/welcome');
     }
   }, [publicKey, navigate]);
-
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: t('dashboard.logout_title'),
-      description: t('dashboard.logout_desc'),
-    });
-    navigate('/wallet-unlock');
-  };
 
   const handleDeleteWallet = async () => {
     await resetWallet();
@@ -67,16 +49,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6 py-2">
-      <DashboardHeader
-        networkName={network.name}
-        healthStatus={healthData?.status}
-        blockHeight={minaInfo?.height}
-        epoch={minaInfo?.epoch}
-        slot={minaInfo?.slot}
-        displayLoading={displayLoading}
-        onRefresh={refetchAccount}
-        onLogout={handleLogout}
-      />
+      <AppHeader />
 
       <div className="space-y-4">
         <AccountCard

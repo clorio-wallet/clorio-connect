@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Globe,
   ShieldCheck,
-  Layers,
   BookOpen,
   ExternalLink,
   Layout,
@@ -32,18 +31,89 @@ import { RefreshRateSheet } from '@/components/settings/refresh-rate-sheet';
 import { ResetWalletDialog } from '@/components/settings/reset-wallet-dialog';
 import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
 import { LanguageSheet } from '@/components/settings/language-sheet';
+import { AppHeader } from '@/components/dashboard/dashboard-header';
 
-const SettingsPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+type DisplayMode = 'popup' | 'sidepanel';
+
+const isPlaygroundEnabled =
+  import.meta.env.DEV === true ||
+  import.meta.env.VITE_DEV === 'true';
+
+const getLanguageLabel = (language: string): string => {
+  const languageMap: Record<string, string> = {
+    es: 'Español',
+    fr: 'Français',
+    de: 'Deutsch',
+    en: 'English',
+  };
+  const lang = language.split('-')[0];
+  return languageMap[lang] || 'English';
+};
+
+const getAutoLockLabel = (value: number, t: (key: string) => string): string => {
+  const labels: Record<number, string> = {
+    0: t('settings.security_sheet.options.window_close'),
+    5: t('settings.security_sheet.options.5_min'),
+    15: t('settings.security_sheet.options.15_min'),
+    30: t('settings.security_sheet.options.30_min'),
+    60: t('settings.security_sheet.options.1_hour'),
+    [-1]: t('settings.security_sheet.options.never'),
+  };
+  return labels[value] ?? `${value} min`;
+};
+
+const getRefreshRateLabel = (value: number, t: (key: string) => string): string => {
+  const labels: Record<number, string> = {
+    1: t('settings.refresh_sheet.options.1_min'),
+    2: t('settings.refresh_sheet.options.2_min'),
+    5: t('settings.refresh_sheet.options.5_min'),
+    10: t('settings.refresh_sheet.options.10_min'),
+    30: t('settings.refresh_sheet.options.30_min'),
+    [-1]: t('settings.refresh_sheet.options.manual'),
+  };
+  return labels[value] ?? `${value} min`;
+};
+
+const CurrentAccountSection: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { publicKey } = useWalletStore();
+  const formattedAddress = publicKey ? formatAddress(publicKey) : 'No Wallet';
+
+  return (
+    <SettingsSection title={t('settings.current_account')}>
+      <div className="p-4 space-y-4">
+        <div
+          className="bg-background/50 border rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => navigate('/dashboard')}
+        >
+          <div>
+            <div className="font-semibold">Personal Wallet 2</div>
+            <div className="text-xs text-muted-foreground font-mono">
+              {formattedAddress}
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <Button
+          className="w-full"
+          variant="secondary"
+          onClick={() => navigate('/dashboard')}
+        >
+          {t('settings.manage')}
+        </Button>
+      </div>
+    </SettingsSection>
+  );
+};
+
+const GeneralSettingsSection: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { networkId, autoLockTimeout, balancePollInterval } =
     useSettingsStore();
   const { networks } = useNetworkStore();
   const { uiMode, updateMode } = useSidePanelMode();
   const { toast } = useToast();
-
-  const [isResetDialogOpen, setIsResetDialogOpen] = React.useState(false);
   const [isNetworkOpen, setIsNetworkOpen] = React.useState(false);
   const [isSecurityOpen, setIsSecurityOpen] = React.useState(false);
   const [isRefreshRateOpen, setIsRefreshRateOpen] = React.useState(false);
@@ -52,61 +122,7 @@ const SettingsPage: React.FC = () => {
 
   const currentNetwork = networks[networkId] || DEFAULT_NETWORKS.mainnet;
 
-  const getAutoLockLabel = (value: number) => {
-    switch (value) {
-      case 0:
-        return t('settings.security_sheet.options.window_close');
-      case 5:
-        return t('settings.security_sheet.options.5_min');
-      case 15:
-        return t('settings.security_sheet.options.15_min');
-      case 30:
-        return t('settings.security_sheet.options.30_min');
-      case 60:
-        return t('settings.security_sheet.options.1_hour');
-      case -1:
-        return t('settings.security_sheet.options.never');
-      default:
-        return `${value} min`;
-    }
-  };
-
-  const getRefreshRateLabel = (value: number) => {
-    switch (value) {
-      case 1:
-        return t('settings.refresh_sheet.options.1_min');
-      case 2:
-        return t('settings.refresh_sheet.options.2_min');
-      case 5:
-        return t('settings.refresh_sheet.options.5_min');
-      case 10:
-        return t('settings.refresh_sheet.options.10_min');
-      case 30:
-        return t('settings.refresh_sheet.options.30_min');
-      case -1:
-        return t('settings.refresh_sheet.options.manual');
-      default:
-        return `${value} min`;
-    }
-  };
-
-  const currentAutoLockLabel = getAutoLockLabel(autoLockTimeout);
-  const currentRefreshRateLabel = getRefreshRateLabel(balancePollInterval);
-
-  // Placeholder for account name - in a real app this might come from a store
-  const accountName = 'Personal Wallet 2';
-
-  // Placeholder for connected apps count
-  const connectedAppsCount = 3;
-
-  const currentLanguageLabel = (() => {
-    if (i18n.language.startsWith('es')) return 'Español';
-    if (i18n.language.startsWith('fr')) return 'Français';
-    if (i18n.language.startsWith('de')) return 'Deutsch';
-    return 'English';
-  })();
-
-  const handleModeChange = (newMode: 'popup' | 'sidepanel') => {
+  const handleModeChange = (newMode: DisplayMode) => {
     toast({
       className: 'flex-col items-start space-x-0 gap-2',
       title: t('settings.display_mode_sheet.title'),
@@ -139,128 +155,119 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-6 pb-4 py-2">
-      <div className="space-y-6 flex-1">
-        <SettingsSection title={t('settings.current_account')}>
-          <div className="p-4 space-y-4">
-            <div
-              className="bg-background/50 border rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-accent/50 transition-colors"
-              onClick={() => navigate('/dashboard')}
-            >
-              <div>
-                <div className="font-semibold">{accountName}</div>
-                <div className="text-xs text-muted-foreground font-mono">
-                  {publicKey ? formatAddress(publicKey) : 'No Wallet'}
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <Button
-              className="w-full"
-              variant="secondary"
-              onClick={() => {
-                // Manage logic
-              }}
-            >
-              {t('settings.manage')}
-            </Button>
-          </div>
-        </SettingsSection>
-
-        <SettingsSection title={t('settings.title')}>
-          <SettingsItem
-            icon={Languages}
-            label={t('settings.language_title', 'Language')}
-            value={currentLanguageLabel}
-            onClick={() => setIsLanguageOpen(true)}
-          />
-          <SettingsItem
-            icon={Layout}
-            label={t('settings.display_mode')}
-            value={
-              uiMode === 'sidepanel'
-                ? t('settings.display_mode_sheet.sidepanel')
-                : t('settings.display_mode_sheet.popup')
-            }
-            onClick={() =>
-              handleModeChange(uiMode === 'sidepanel' ? 'popup' : 'sidepanel')
-            }
-          />
-          <SettingsItem
-            icon={Globe}
-            label={t('settings.network')}
-            value={currentNetwork.name}
-            onClick={() => setIsNetworkOpen(true)}
-          />
-          <SettingsItem
-            icon={ShieldCheck}
-            label={t('settings.security')}
-            value={currentAutoLockLabel}
-            onClick={() => setIsSecurityOpen(true)}
-          />
-          <SettingsItem
-            icon={Key}
-            label={t('settings.view_private_key')}
-            onClick={() => setIsViewKeyOpen(true)}
-          />
-          <SettingsItem
-            icon={RefreshCw}
-            label={t('settings.balance_refresh')}
-            value={currentRefreshRateLabel}
-            onClick={() => setIsRefreshRateOpen(true)}
-          />
-          {/* <SettingsItem
-            icon={Layers}
-            label={t('settings.connected_apps')}
-            value={connectedAppsCount}
-            onClick={() => {
-              // Open connected apps
-            }}
-          /> */}
-        </SettingsSection>
-
-        <SettingsSection title={t('settings.about')}>
-          <SettingsItem
-            icon={BookOpen}
-            label={t('settings.faq')}
-            rightIcon={ExternalLink}
-            onClick={() => {
-              window.open('https://docs.minaprotocol.com', '_blank');
-            }}
-          />
-        </SettingsSection>
-
-        <SettingsSection title={t('settings.advanced')}>
-          <SettingsItem
-            variant="danger"
-            icon={() => <Trash2 className="stroke-red-500" />}
-            label={t('settings.reset_wallet')}
-            showArrow={false}
-            onClick={() => setIsResetDialogOpen(true)}
-          />
-        </SettingsSection>
-      </div>
-
-      <ResetWalletDialog
-        open={isResetDialogOpen}
-        onOpenChange={setIsResetDialogOpen}
+    <SettingsSection title={t('settings.title')}>
+      <SettingsItem
+        icon={Languages}
+        label={t('settings.language_title', 'Language')}
+        value={getLanguageLabel(i18n.language)}
+        onClick={() => setIsLanguageOpen(true)}
       />
-
+      <SettingsItem
+        icon={Layout}
+        label={t('settings.display_mode')}
+        value={
+          uiMode === 'sidepanel'
+            ? t('settings.display_mode_sheet.sidepanel')
+            : t('settings.display_mode_sheet.popup')
+        }
+        onClick={() =>
+          handleModeChange(uiMode === 'sidepanel' ? 'popup' : 'sidepanel')
+        }
+      />
+      <SettingsItem
+        icon={Globe}
+        label={t('settings.network')}
+        value={currentNetwork.name}
+        onClick={() => setIsNetworkOpen(true)}
+      />
+      <SettingsItem
+        icon={ShieldCheck}
+        label={t('settings.security')}
+        value={getAutoLockLabel(autoLockTimeout, t)}
+        onClick={() => setIsSecurityOpen(true)}
+      />
+      <SettingsItem
+        icon={Key}
+        label={t('settings.view_private_key')}
+        onClick={() => setIsViewKeyOpen(true)}
+      />
+      <SettingsItem
+        icon={RefreshCw}
+        label={t('settings.balance_refresh')}
+        value={getRefreshRateLabel(balancePollInterval, t)}
+        onClick={() => setIsRefreshRateOpen(true)}
+      />
       <NetworkSheet open={isNetworkOpen} onOpenChange={setIsNetworkOpen} />
-
       <SecuritySheet open={isSecurityOpen} onOpenChange={setIsSecurityOpen} />
-
       <RefreshRateSheet
         open={isRefreshRateOpen}
         onOpenChange={setIsRefreshRateOpen}
       />
-
       <ViewPrivateKeySheet
         open={isViewKeyOpen}
         onOpenChange={setIsViewKeyOpen}
       />
-
       <LanguageSheet open={isLanguageOpen} onOpenChange={setIsLanguageOpen} />
+    </SettingsSection>
+  );
+};
+
+const AboutSection: React.FC = () => {
+  const { t } = useTranslation();
+
+  return (
+    <SettingsSection title={t('settings.about')}>
+      <SettingsItem
+        icon={BookOpen}
+        label={t('settings.faq')}
+        rightIcon={ExternalLink}
+        onClick={() => {
+          window.open('https://docs.minaprotocol.com', '_blank');
+        }}
+      />
+    </SettingsSection>
+  );
+};
+
+const AdvancedSettingsSection: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [isResetDialogOpen, setIsResetDialogOpen] = React.useState(false);
+
+  return (
+    <SettingsSection title={t('settings.advanced')}>
+      {isPlaygroundEnabled && (
+        <SettingsItem
+          icon={Layout}
+          label="Playground"
+          onClick={() => navigate('/playground')}
+        />
+      )}
+      <SettingsItem
+        variant="danger"
+        icon={() => <Trash2 className="stroke-red-500" />}
+        label={t('settings.reset_wallet')}
+        showArrow={false}
+        onClick={() => setIsResetDialogOpen(true)}
+      />
+      <ResetWalletDialog
+        open={isResetDialogOpen}
+        onOpenChange={setIsResetDialogOpen}
+      />
+    </SettingsSection>
+  );
+};
+
+const SettingsPage: React.FC = () => {
+  return (
+    <div className="h-full flex flex-col space-y-6 pb-4 py-2">
+      <AppHeader />
+      <div className="space-y-6 flex-1">
+        <CurrentAccountSection />
+        <GeneralSettingsSection />
+        <AboutSection />
+        <AdvancedSettingsSection />
+      </div>
     </div>
   );
 };

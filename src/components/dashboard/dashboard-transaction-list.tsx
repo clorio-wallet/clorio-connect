@@ -6,6 +6,7 @@ import { LoopingLottie } from '@/components/ui/looping-lottie';
 import ufoAnimation from '@/animations/ufo.json';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
+import { TransactionDetailsSheet } from '@/components/wallet/transaction-details-sheet';
 
 interface DashboardTransactionListProps {
   publicKey: string;
@@ -19,12 +20,18 @@ export const DashboardTransactionList: React.FC<
   const {
     data: transactions,
     isLoading,
+    isFetching,
     refetch,
   } = useGetTransactions(publicKey, {
     refetchInterval: 30000,
     enabled: !!publicKey, // Ensure we don't call with empty key
   });
-    console.log("🚀 ~ DashboardTransactionList ~ transactions:", transactions)
+  const [selectedTxHash, setSelectedTxHash] = React.useState<string | null>(
+    null,
+  );
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+
+  const recentTransactions = transactions?.slice(0, 10) || [];
 
   const handleRefresh = () => {
     refetch();
@@ -55,22 +62,28 @@ export const DashboardTransactionList: React.FC<
           size="icon"
           onClick={handleRefresh}
           title={t('dashboard.refresh_balance')}
-          disabled={isLoading || displayLoading}
+          disabled={isFetching || displayLoading}
         >
           <RefreshCcw
-            className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
+            className={`h-5 w-5 ${isFetching ? 'animate-spin' : ''}`}
           />
         </Button>
       </div>
 
       <TransactionList
-        transactions={transactions || []}
+        transactions={recentTransactions}
         isLoading={isLoading}
         emptyComponent={EmptyState}
         onTransactionClick={(tx) => {
-          // TODO: Open transaction details
-          console.log('Transaction clicked:', tx);
+          setSelectedTxHash(tx.hash);
+          setIsSheetOpen(true);
         }}
+      />
+
+      <TransactionDetailsSheet
+        hash={selectedTxHash}
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
       />
     </div>
   );
