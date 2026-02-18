@@ -59,11 +59,11 @@ export const WalletActions: React.FC<WalletActionsProps> = ({
           <Button
             variant="outline"
             size="icon"
-            className="h-14 w-14 rounded-full border-none bg-white text-black hover:bg-white/90 shadow-md"
+            className="h-14 w-14 rounded-full border-none bg-white text-black hover:bg-black/90 hover:text-white shadow-md"
             onClick={() => navigate('/send')}
             disabled={disabled}
           >
-            <Send className="h-6 w-6 ml-0.5 mt-0.5" fill="currentColor" />
+            <Send className="h-6 w-6 -ml-0.5 mt-0.5" fill="currentColor" />
           </Button>
         </motion.div>
         <span className="text-sm font-medium text-white/90">{t('dashboard.send')}</span>
@@ -84,7 +84,7 @@ export const WalletActions: React.FC<WalletActionsProps> = ({
           <Button
             variant="outline"
             size="icon"
-            className="h-14 w-14 rounded-full border-none bg-white text-black hover:bg-white/90 shadow-md"
+            className="h-14 w-14 rounded-full border-none bg-white text-black hover:bg-black/90 hover:text-white shadow-md"
             onClick={onReceiveClick}
             disabled={disabled}
           >

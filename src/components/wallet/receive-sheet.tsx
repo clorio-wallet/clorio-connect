@@ -1,5 +1,4 @@
 import React from 'react';
-import QRCode from 'react-qr-code';
 import { useTranslation } from 'react-i18next';
 import {
   BottomSheet,
@@ -13,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { AddressDisplay } from '@/components/wallet/address-display';
 import { useToast } from '@/hooks/use-toast';
 import { Copy } from 'lucide-react';
+import { CustomQRCode } from '@/components/ui/custom-qr-code';
 
 interface ReceiveSheetProps {
   open: boolean;
@@ -48,12 +48,13 @@ export const ReceiveSheet: React.FC<ReceiveSheetProps> = ({
         </BottomSheetHeader>
 
         <div className="flex flex-col items-center justify-center p-6 space-y-6">
-          <div className="p-4 bg-white rounded-xl shadow-sm">
-            <QRCode
+          <div className="rounded-xl p-1">
+            <CustomQRCode
               value={address}
-              size={200}
-              style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-              viewBox={`0 0 256 256`}
+              size={220}
+              className="border border-white/50 shadow-sm"
+              color="#FFFFFF"
+              backgroundColor="#0B0B0E"
             />
           </div>
 
