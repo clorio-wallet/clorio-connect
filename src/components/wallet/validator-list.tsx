@@ -5,10 +5,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface Validator {
-  address: string;
+  address?: string;
+  publicKey: string;
   name?: string;
   stake: number;
   fee: number;
@@ -38,8 +39,8 @@ export function ValidatorList({
     const lowerSearch = search.toLowerCase().trim();
     return validators.filter(
       (v) =>
-        (v.name && v.name.toLowerCase().includes(lowerSearch)) ||
-        v.address.toLowerCase().includes(lowerSearch),
+        (v.name?.toLowerCase()?.includes(lowerSearch)) ||
+        (v.address?.toLowerCase()?.includes(lowerSearch)),
     );
   }, [validators, search]);
 
@@ -54,41 +55,55 @@ export function ValidatorList({
     );
   }
 
+  const emptyState = (
+    <div className="flex flex-col items-center justify-center h-48 text-center px-6 py-8 text-muted-foreground gap-2">
+      <div className="h-10 w-10 rounded-full border border-dashed border-border flex items-center justify-center">
+        <Search className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <p className="text-sm font-medium mt-2">
+        {t('validators.empty_list')}
+      </p>
+      <p className="text-xs text-muted-foreground/80">
+        {search
+          ? t('validators.empty_search_hint', 'Try a different name or address.')
+          : t(
+              'validators.empty_generic_hint',
+              'No validators available for this network right now.',
+            )}
+      </p>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 sticky top-0 z-10 ">
+    <div className={cn("flex flex-col overflow-hidden", className)}>
+      <div className="bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t('validators.search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-background/50"
           />
         </div>
       </div>
 
-      <div className={className}>
-        {filteredValidators.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
-              <p>{t('validators.empty_list')}</p>
+      <div className="flex-1 min-h-0">
+        <VirtualList
+          items={filteredValidators}
+          estimateSize={() => 140}
+          emptyComponent={emptyState}
+          renderItem={(validator) => (
+            <div className=" py-2">
+              <ValidatorCard
+                {...validator}
+                publicKey={validator.publicKey}
+                onDelegate={() => onDelegate?.(validator)}
+                isDelegated={validator.publicKey === 'B62qq6ZYPG5JsjZnGJ3pADmRn6hU6qy13EhraTSymjSgyEDwoDR9Gd6'} // Just in case, but ideally should come from props
+              />
             </div>
-        ) : (
-            filteredValidators.map((validator, index) => (
-                <motion.div
-                  key={validator.address}
-                  className="px-4 py-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <ValidatorCard
-                    {...validator}
-                    onDelegate={() => onDelegate?.(validator)}
-                  />
-                </motion.div>
-            ))
-        )}
+          )}
+        />
       </div>
     </div>
   );

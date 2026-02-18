@@ -8,7 +8,12 @@
     "error": "Error",
     "success": "Éxito",
     "warning": "Advertencia",
-    "copied": "Copiado"
+    "copied": "Copiado",
+    "time": {
+      "days_hours_left": "Quedan {{days}}d {{hours}}h",
+      "hours_minutes_left": "Quedan {{hours}}h {{minutes}}m",
+      "minutes_left": "Quedan {{minutes}}m"
+    }
   },
   "send": {
     "amount_label": "Cantidad",
@@ -72,6 +77,8 @@
   },
   "dashboard": {
     "title": "Panel de control",
+    "send": "Enviar",
+    "receive": "Recibir",
     "refresh_balance": "Actualizar saldo",
     "logout": "Cerrar sesión",
     "logout_title": "Sesión cerrada",
@@ -87,6 +94,13 @@
     "send_tx_coming_soon": "Funcionalidad de envío de transacción pronto disponible.",
     "transactions_title": "Transacciones",
     "history_title": "Historial"
+  },
+  "receive": {
+    "title": "Recibir",
+    "desc": "Escanea este código QR para recibir fondos en tu dirección.",
+    "your_address": "Clave pública",
+    "copy_address": "Copiar dirección",
+    "address_copied": "Dirección copiada al portapapeles"
   },
   "settings": {
     "title": "Configuración",

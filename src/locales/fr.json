@@ -8,7 +8,12 @@
     "error": "Erreur",
     "success": "Succès",
     "warning": "Avertissement",
-    "copied": "Copié"
+    "copied": "Copié",
+    "time": {
+      "days_hours_left": "Il reste {{days}}j {{hours}}h",
+      "hours_minutes_left": "Il reste {{hours}}h {{minutes}}m",
+      "minutes_left": "Il reste {{minutes}}m"
+    }
   },
   "send": {
     "amount_label": "Montant",
@@ -72,6 +77,8 @@
   },
   "dashboard": {
     "title": "Tableau de bord",
+    "send": "Envoyer",
+    "receive": "Recevoir",
     "refresh_balance": "Actualiser le solde",
     "logout": "Déconnexion",
     "logout_title": "Déconnecté",
@@ -87,6 +94,13 @@
     "send_tx_coming_soon": "Fonctionnalité d'envoi de transaction bientôt disponible.",
     "transactions_title": "Transactions",
     "history_title": "Historique"
+  },
+  "receive": {
+    "title": "Recevoir",
+    "desc": "Scannez ce QR code pour recevoir des fonds sur votre adresse.",
+    "your_address": "Clé publique",
+    "copy_address": "Copier l'adresse",
+    "address_copied": "Adresse copiée dans le presse-papiers"
   },
   "settings": {
     "title": "Paramètres",

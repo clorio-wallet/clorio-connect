@@ -2,7 +2,7 @@ import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query
 import { customInstance } from '../axios-instance';
 
 export interface Validator {
-  address: string;
+  publicKey: string;
   name?: string;
   stake: number;
   fee: number;

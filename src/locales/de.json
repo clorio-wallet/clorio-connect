@@ -8,7 +8,12 @@
     "error": "Fehler",
     "success": "Erfolg",
     "warning": "Warnung",
-    "copied": "Kopiert"
+    "copied": "Kopiert",
+    "time": {
+      "days_hours_left": "{{days}}T {{hours}}Std verbleibend",
+      "hours_minutes_left": "{{hours}}Std {{minutes}}Min verbleibend",
+      "minutes_left": "{{minutes}}Min verbleibend"
+    }
   },
   "send": {
     "amount_label": "Betrag",
@@ -72,6 +77,8 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "send": "Senden",
+    "receive": "Empfangen",
     "refresh_balance": "Guthaben aktualisieren",
     "logout": "Abmelden",
     "logout_title": "Abgemeldet",
@@ -87,6 +94,13 @@
     "send_tx_coming_soon": "Funktion zum Senden von Transaktionen kommt bald.",
     "transactions_title": "Transaktionen",
     "history_title": "Transaktionsverlauf"
+  },
+  "receive": {
+    "title": "Empfangen",
+    "desc": "Scannen Sie diesen QR-Code, um Gelder an Ihre Adresse zu erhalten.",
+    "your_address": "Öffentlicher Schlüssel",
+    "copy_address": "Adresse kopieren",
+    "address_copied": "Adresse in die Zwischenablage kopiert"
   },
   "settings": {
     "title": "Einstellungen",
