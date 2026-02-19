@@ -51,5 +51,7 @@ export function useSidePanelMode() {
     }
   }
 
-  return { uiMode, updateMode };
+  const isPopup = uiMode === 'popup';
+
+  return { uiMode, updateMode, isPopup };
 }
