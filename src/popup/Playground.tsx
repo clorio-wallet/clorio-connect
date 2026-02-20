@@ -32,7 +32,7 @@ import {
   BottomSheetClose,
 } from '@/components/ui/bottom-sheet';
 import { useTheme, Palette } from '@/components/theme-provider';
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun, Monitor, RotateCcw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -210,6 +210,20 @@ const PlaygroundPage: React.FC = () => {
                     ),
                   )}
                 </div>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    setTheme('dark');
+                    setPalette('default');
+                  }}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reset theme & colors
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -711,10 +725,9 @@ const PlaygroundPage: React.FC = () => {
                     <Label>Validator Card</Label>
                     <ValidatorCard
                       name="MinaExplorer"
-                      address="B62qpt..."
+                      publicKey="B62qpt..."
                       stake={50000000}
                       fee={5}
-                      delegators={1200}
                       isDelegated={true}
                       onDelegate={() => console.log('Delegate clicked')}
                     />
