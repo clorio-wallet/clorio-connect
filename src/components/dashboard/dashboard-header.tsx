@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Lock, RefreshCcw, SquareArrowOutUpRight } from 'lucide-react';
+import { Lock, RefreshCcw, SquareArrowOutUpRight, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkBadge } from '@/components/wallet';
 import {
@@ -13,17 +13,27 @@ import {
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
+import { useOnlineStatus } from '@/hooks/use-online-status';
 
 export const AppHeader: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { logout } = useSessionStore();
   const { toast } = useToast();
+  const isOnline = useOnlineStatus();
 
   const { network, healthData, minaInfo, displayLoading, refetchAccount } =
     useDashboardData();
 
   const handleRefresh = () => {
+    if (!isOnline) {
+      toast({
+        title: t('common.offline', 'Offline'),
+        description: t('common.offline_desc', 'You are currently offline. Please check your internet connection.'),
+        variant: 'destructive',
+      });
+      return;
+    }
     refetchAccount();
   };
 
@@ -81,27 +91,52 @@ export const AppHeader: React.FC = () => {
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-xs space-y-1">
-              <p>
-                {t('dashboard.status')}:{' '}
-                <span
-                  className={
-                    healthData?.status === 'ok'
-                      ? 'text-green-500'
-                      : 'text-red-500'
-                  }
-                >
-                  {healthData?.status || t('dashboard.checking')}
-                </span>
-              </p>
-              <p>
-                {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
-              </p>
-              <p>
-                {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
-              </p>
-              <p>
-                {t('dashboard.slot')}: {minaInfo?.slot ?? '-'}
-              </p>
+              {!isOnline ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-destructive font-medium">
+                    <WifiOff className="h-3 w-3" />
+                    <span>{t('dashboard.offline_mode', 'Offline Mode')}</span>
+                  </div>
+                  <p className="text-muted-foreground max-w-[200px]">
+                    {t(
+                      'dashboard.offline_data_desc',
+                      'Showing data from last connection',
+                    )}
+                  </p>
+                  <div className="pt-1 border-t border-border/50 space-y-1 opacity-70">
+                    <p>
+                      {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
+                    </p>
+                    <p>
+                      {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p>
+                    {t('dashboard.status')}:{' '}
+                    <span
+                      className={
+                        healthData?.status === 'ok'
+                          ? 'text-green-500'
+                          : 'text-red-500'
+                      }
+                    >
+                      {healthData?.status || t('dashboard.checking')}
+                    </span>
+                  </p>
+                  <p>
+                    {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
+                  </p>
+                  <p>
+                    {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
+                  </p>
+                  <p>
+                    {t('dashboard.slot')}: {minaInfo?.slot ?? '-'}
+                  </p>
+                </>
+              )}
             </div>
           </TooltipContent>
         </Tooltip>
@@ -111,7 +146,7 @@ export const AppHeader: React.FC = () => {
           variant="ghost"
           size="icon"
           onClick={handleOpenWindow}
-          title={t('dashboard.open_window', 'Apri in una nuova finestra')}
+          title={t('dashboard.open_window', 'Open in new window')}
         >
           <SquareArrowOutUpRight className="h-5 w-5" />
         </Button>
