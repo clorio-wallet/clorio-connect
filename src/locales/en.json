@@ -10,6 +10,7 @@
     "success": "Success",
     "warning": "Warning",
     "copied": "Copied",
+    "advanced": "Advanced",
     "time": {
       "days_hours_left": "{{days}}d {{hours}}h left",
       "hours_minutes_left": "{{hours}}h {{minutes}}m left",
@@ -47,6 +48,7 @@
     "error_failed": "Failed to stake",
     "staking_button": "Staking...",
     "stake_button": "Stake",
+    "confirm_delegation": "Confirm delegation",
     "no_delegate": "No Delegate",
     "your_stake": "Your Stake",
     "epoch": "Epoch"
@@ -55,6 +57,13 @@
     "current_badge": "Current",
     "delegated_badge": "Delegated",
     "delegate_button": "Delegate",
+    "details": {
+      "website_button": "Website",
+      "explorer_button": "Explorer",
+      "start_button": "Start delegating",
+      "delegated_label": "Delegated",
+      "stake_title": "Stake"
+    },
     "fee_label": "Fee",
     "total_stake_label": "Total Stake",
     "search_placeholder": "Search validator...",
@@ -91,6 +100,7 @@
     "received": "Received",
     "to": "To",
     "from": "From",
+    "nonce": "Nonce",
     "fee": "Fee",
     "memo": "Memo",
     "total": "Total",
@@ -101,6 +111,7 @@
     "title": "Dashboard",
     "send": "Send",
     "receive": "Receive",
+    "open_window": "Open in new window",
     "refresh_balance": "Refresh Balance",
     "logout": "Logout",
     "logout_title": "Logged Out",

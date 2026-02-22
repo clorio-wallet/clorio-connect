@@ -50,7 +50,14 @@
     "users_label": "Utilisateurs",
     "total_stake_label": "Stake total",
     "search_placeholder": "Rechercher un validateur...",
-    "empty_list": "Aucun validateur trouvé"
+    "empty_list": "Aucun validateur trouvé",
+    "details": {
+      "website_button": "Site web",
+      "explorer_button": "Explorateur",
+      "start_button": "Commencer à déléguer",
+      "delegated_label": "Délégué",
+      "stake_title": "Stake"
+    }
   },
   "transaction_confirm": {
     "title": "Confirmer la transaction",
