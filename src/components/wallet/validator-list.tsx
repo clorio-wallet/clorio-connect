@@ -99,7 +99,7 @@ export function ValidatorList({
                 {...validator}
                 publicKey={validator.publicKey}
                 onDelegate={() => onDelegate?.(validator)}
-                isDelegated={validator.publicKey === 'B62qq6ZYPG5JsjZnGJ3pADmRn6hU6qy13EhraTSymjSgyEDwoDR9Gd6'} // Just in case, but ideally should come from props
+                isDelegated={validator.isDelegated} // should be passed in from parent
               />
             </div>
           )}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatAddress, cn } from '@/lib/utils';
@@ -76,8 +76,9 @@ export function ValidatorCard({
                 {name || formatAddress(publicKey)}
               </h3>
               {isDelegated && (
-                <Badge variant="default" className="text-[10px] h-5">
-                  {t('validators.current_badge')}
+                <Badge variant="secondary" className="flex items-center gap-1 text-[10px] h-5">
+                  <CheckCircle className="w-3 h-3" />
+                  {t('validators.delegated_badge')}
                 </Badge>
               )}
             </div>
