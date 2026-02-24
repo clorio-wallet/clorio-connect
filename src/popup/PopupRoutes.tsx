@@ -41,6 +41,7 @@ const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 const TransactionsPage = lazy(() => import('@/pages/Transactions'));
 const StakingPage = lazy(() => import('@/pages/Staking'));
 const SendPage = lazy(() => import('@/pages/Send'));
+const ConfirmDelegationPage = lazy(() => import('@/pages/ConfirmDelegation'));
 const SettingsPage = lazy(() => import('@/pages/Settings'));
 
 type RouteConfig = {
@@ -96,6 +97,12 @@ const routeConfigs: RouteConfig[] = [
     element: <SendPage />,
     protected: true,
     fallback: <SendSkeleton />,
+  },
+  {
+    path: '/confirm-delegation',
+    element: <ConfirmDelegationPage />,
+    protected: true,
+    fallback: <StakingSkeleton />,
   },
   {
     path: '/staking',

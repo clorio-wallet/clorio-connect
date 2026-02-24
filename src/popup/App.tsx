@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ApolloProvider } from '@apollo/client/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { queryClient, persistOptions } from '@/lib/query-client';
 import { client, initCache } from '@/lib/graphql/client';
 import { useNetworkStore } from '@/stores/network-store';
 import { useSessionStore } from '@/stores/session-store';
+import { CacheCleaner } from '@/components/cache-cleaner';
+import { QueryRestorationBoundary } from '@/components/query-restoration-boundary';
 import { PopupRoutes } from './PopupRoutes';
-
-const queryClient = new QueryClient();
 
 const App: React.FC = () => {
   const { fetchNetworks } = useNetworkStore();
@@ -40,9 +41,15 @@ const App: React.FC = () => {
 
   return (
     <ApolloProvider client={client}>
-      <QueryClientProvider client={queryClient}>
-        <PopupRoutes />
-      </QueryClientProvider>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={persistOptions}
+      >
+        <CacheCleaner />
+        <QueryRestorationBoundary>
+          <PopupRoutes />
+        </QueryRestorationBoundary>
+      </PersistQueryClientProvider>
     </ApolloProvider>
   );
 };
