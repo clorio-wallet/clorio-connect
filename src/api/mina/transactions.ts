@@ -1,5 +1,6 @@
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { customInstance } from '../axios-instance';
+import { useSettingsStore } from '@/stores/settings-store';
 
 export type TransactionType = 'payment' | 'delegation' | 'zkapp';
 export type TransactionStatus = 'pending' | 'applied' | 'failed';
@@ -59,10 +60,12 @@ export const useGetTransactions = (
   address: string,
   options?: Omit<UseQueryOptions<Transaction[], Error>, 'queryKey'>
 ): UseQueryResult<Transaction[], Error> => {
+  const networkId = useSettingsStore((s) => s.networkId);
   return useQuery({
-    queryKey: ['transactions', address],
+    queryKey: ['transactions', address, networkId],
     queryFn: ({ signal }) => getTransactions(address, signal),
     enabled: !!address,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
@@ -101,10 +104,12 @@ export const useGetTransaction = (
   hash: string | null,
   options?: Omit<UseQueryOptions<Transaction, Error>, 'queryKey'>
 ): UseQueryResult<Transaction, Error> => {
+  const networkId = useSettingsStore((s) => s.networkId);
   return useQuery({
-    queryKey: ['transaction', hash],
+    queryKey: ['transaction', hash, networkId],
     queryFn: ({ signal }) => getTransaction(hash!, signal),
     enabled: !!hash,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
