@@ -8,8 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   Button,
-  Separator,
-} from "@/components/ui";
+  Separator,  Input,} from "@/components/ui";
 import { AddressDisplay } from "./address-display";
 import { NetworkBadge } from "./network-badge";
 import { HoldToConfirmButton } from "./hold-to-confirm-button";
@@ -27,10 +26,11 @@ interface TransactionData {
 interface TransactionConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (password?: string) => void;
   transaction: TransactionData;
   origin?: string;
   loading?: boolean;
+  requirePassword?: boolean;
 }
 
 export function TransactionConfirmDialog({
@@ -40,12 +40,25 @@ export function TransactionConfirmDialog({
   transaction,
   origin,
   loading = false,
+  requirePassword = false,
 }: TransactionConfirmDialogProps) {
   const { t } = useTranslation();
 
   const total = (
     parseFloat(transaction.amount) + parseFloat(transaction.fee)
   ).toFixed(8);
+
+  const [password, setPassword] = React.useState('');
+  const [showPasswordStep, setShowPasswordStep] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) {
+      setShowPasswordStep(false);
+      setPassword('');
+    }
+  }, [open]);
+
+  const isConfirmDisabled = loading || (requirePassword && showPasswordStep && !password);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,24 +146,63 @@ export function TransactionConfirmDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-          >
-            {t("common.cancel")}
-          </Button>
-          <HoldToConfirmButton
-            onConfirm={onConfirm}
-            holdDuration={2000}
-            disabled={loading}
-          >
-            {loading
-              ? t("transaction_confirm.processing")
-              : t("transaction_confirm.hold_to_confirm")}
-          </HoldToConfirmButton>
-        </DialogFooter>
+        {/* footer / step control */}
+        {!showPasswordStep ? (
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
+            >
+              {t("common.cancel")}
+            </Button>
+            <HoldToConfirmButton
+              onConfirm={() => {
+                if (requirePassword) {
+                  setShowPasswordStep(true);
+                } else {
+                  onConfirm();
+                }
+              }}
+              holdDuration={2000}
+              disabled={loading}
+            >
+              {loading
+                ? t("transaction_confirm.processing")
+                : t("transaction_confirm.hold_to_confirm")}
+            </HoldToConfirmButton>
+          </DialogFooter>
+        ) : (
+          <div className="space-y-3 p-2">
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">
+                {t('security.password_label')}
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowPasswordStep(false);
+                  setPassword('');
+                }}
+                disabled={loading}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button onClick={() => onConfirm(password)} disabled={isConfirmDisabled}>
+                {loading ? t('transaction_confirm.processing') : t('common.confirm', 'Confirm')}
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
