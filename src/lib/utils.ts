@@ -63,3 +63,10 @@ export function truncateMiddle(text: string, maxLength: number): string {
   const end = text.slice(-sideLength);
   return `${start}...${end}`;
 }
+
+export function toNano(value: string | number): string {
+  const decimals = 9;
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  const nanoValue = Math.floor(num * Math.pow(10, decimals));
+  return nanoValue.toString();
+}

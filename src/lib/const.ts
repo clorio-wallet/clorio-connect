@@ -4,3 +4,8 @@ export const NO_ANIMATION_ROUTES: string[] = [
   '/welcome',
   '/wallet-unlock',
 ];
+
+export const FEATURES = {
+  SEND_TX_ENABLED: true,
+  DRY_RUN_SEND_TX: true,
+};

@@ -75,9 +75,11 @@ export function useSendTransaction() {
       payload: { payment, password },
     };
 
-    const response = (await chrome.runtime.sendMessage(
-      message,
-    )) as SignPaymentResponse | { error: string };
+    const responseRaw = await chrome.runtime.sendMessage(message);
+    if (!responseRaw || typeof responseRaw !== 'object') {
+      throw new Error('No response from signing service');
+    }
+    const response = responseRaw as SignPaymentResponse | { error: string };
 
     if ('error' in response) {
       throw new Error(response.error || 'Signing failed');

@@ -4,7 +4,7 @@ export class CryptoService {
     salt: Uint8Array,
   ): Promise<CryptoKey> {
     const enc = new TextEncoder();
-    const keyMaterial = await window.crypto.subtle.importKey(
+    const keyMaterial = await globalThis.crypto.subtle.importKey(
       'raw',
       enc.encode(password),
       { name: 'PBKDF2' },
@@ -13,7 +13,7 @@ export class CryptoService {
     );
     // TODO: Migrate to Argon2id for better resistance against GPU/ASIC attacks.
     // Currently using PBKDF2-HMAC-SHA256 with OWASP recommended iterations (600,000) for 2024.
-    return window.crypto.subtle.deriveKey(
+    return globalThis.crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
         salt: salt as BufferSource,
@@ -31,11 +31,11 @@ export class CryptoService {
     text: string,
     password: string,
   ): Promise<{ ciphertext: string; salt: string; iv: string }> {
-    const salt = window.crypto.getRandomValues(new Uint8Array(16));
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+    const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
     const key = await this.deriveKey(password, salt);
     const enc = new TextEncoder();
-    const encryptedContent = await window.crypto.subtle.encrypt(
+    const encryptedContent = await globalThis.crypto.subtle.encrypt(
       { name: 'AES-GCM', iv: iv as BufferSource },
       key,
       enc.encode(text) as BufferSource,
@@ -58,7 +58,7 @@ export class CryptoService {
     const iv = this.hexToBuffer(ivHex);
     const key = await this.deriveKey(password, salt);
     const encryptedData = this.hexToBuffer(ciphertext);
-    const decryptedContent = await window.crypto.subtle.decrypt(
+    const decryptedContent = await globalThis.crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: iv as BufferSource },
       key,
       encryptedData as BufferSource,
