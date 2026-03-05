@@ -209,6 +209,7 @@
     }
   },
   "security": {
+    "password_label": "Password",
     "view_private_key": {
       "title_warning": "Security Warning",
       "title_password": "Confirm Password",

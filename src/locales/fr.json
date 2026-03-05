@@ -178,6 +178,7 @@
     }
   },
   "security": {
+    "password_label": "Mot de passe",
     "view_private_key": {
       "title_warning": "Avertissement de sécurité",
       "title_password": "Confirmer le mot de passe",

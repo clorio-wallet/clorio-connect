@@ -1,10 +1,5 @@
 import React, { Suspense, lazy, ReactNode } from 'react';
-import {
-  HashRouter,
-  Routes,
-  Route,
-  Navigate,
-} from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import DevToolsLoader from '@/components/dev-tools-loader';
 import { WelcomePage } from '@/pages/Welcome';
@@ -41,7 +36,7 @@ const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 const TransactionsPage = lazy(() => import('@/pages/Transactions'));
 const StakingPage = lazy(() => import('@/pages/Staking'));
 const SendPage = lazy(() => import('@/pages/Send'));
-const ConfirmDelegationPage = lazy(() => import('@/pages/ConfirmDelegation'));
+
 const SettingsPage = lazy(() => import('@/pages/Settings'));
 
 type RouteConfig = {
@@ -98,12 +93,7 @@ const routeConfigs: RouteConfig[] = [
     protected: true,
     fallback: <SendSkeleton />,
   },
-  {
-    path: '/confirm-delegation',
-    element: <ConfirmDelegationPage />,
-    protected: true,
-    fallback: <StakingSkeleton />,
-  },
+
   {
     path: '/staking',
     element: <StakingPage />,

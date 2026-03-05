@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { AppHeader } from '@/components/dashboard/dashboard-header';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { ValidatorList } from '@/components/wallet/validator-list';
@@ -10,10 +9,14 @@ import { useGetValidators, Validator } from '@/api/mina/validators';
 import { StakingInfoCard } from '@/components/wallet/staking-info-card';
 import { ValidatorDetailsSheet } from '@/components/wallet/validator-details-sheet';
 import { useGetAccount } from '@/api/mina/mina';
+import { ConfirmDelegationSheet } from '@/pages/ConfirmDelegation';
+import { useDelegateTransaction } from '@/hooks/use-delegate-transaction';
+import { useToast } from '@/hooks/use-toast';
 
 const StakingPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { delegateTransaction, loading: delegating } = useDelegateTransaction();
+  const { toast } = useToast();
 
   const { publicKey, displayLoading, refetchAccount } = useDashboardData();
 
@@ -45,15 +48,32 @@ const StakingPage: React.FC = () => {
     refetchValidators();
   };
 
-  const [selectedValidator, setSelectedValidator] = React.useState<Validator | null>(null);
+  const [selectedValidator, setSelectedValidator] =
+    React.useState<Validator | null>(null);
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
 
   const handleCardClick = (validator: Validator) => {
     setSelectedValidator(validator);
   };
 
   const handleStartDelegating = () => {
-    navigate('/confirm-delegation', { state: { validator: selectedValidator } });
-    setSelectedValidator(null);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelegation = async (password: string) => {
+    if (!selectedValidator) return;
+    try {
+      await delegateTransaction(selectedValidator.publicKey, password);
+      setConfirmOpen(false);
+      setSelectedValidator(null);
+    } catch (error) {
+      console.error('Delegation failed:', error);
+      toast({
+        title: t('common.error', 'Error'),
+        description: t('validators.delegation_failed', 'Failed to delegate'),
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -93,13 +113,27 @@ const StakingPage: React.FC = () => {
       </div>
 
       <ValidatorDetailsSheet
-        open={!!selectedValidator}
+        open={!!selectedValidator && !confirmOpen}
         onOpenChange={(o) => {
           if (!o) setSelectedValidator(null);
         }}
         validator={selectedValidator}
-        isDelegated={!!selectedValidator && selectedValidator.publicKey === accountData?.delegate}
+        isDelegated={
+          !!selectedValidator &&
+          selectedValidator.publicKey === accountData?.delegate
+        }
         onDelegate={handleStartDelegating}
+      />
+
+      <ConfirmDelegationSheet
+        open={confirmOpen}
+        onOpenChange={(o) => {
+          setConfirmOpen(o);
+          if (!o) setSelectedValidator(null);
+        }}
+        validator={selectedValidator}
+        onConfirm={handleConfirmDelegation}
+        loading={delegating}
       />
     </div>
   );
