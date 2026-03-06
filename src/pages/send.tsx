@@ -9,6 +9,10 @@ import { useSettingsStore } from '@/stores/settings-store';
 import { useGetAccount } from '@/api/mina/mina';
 import { useMinimumLoading } from '@/hooks/use-minimum-loading';
 import { useToast } from '@/hooks/use-toast';
+import { useSendTransaction } from '@/hooks/use-send-transaction';
+import { useDashboardData } from '@/hooks/use-dashboard-data';
+import { useSessionStore } from '@/stores/session-store';
+import { TransactionConfirmDialog } from '@/components/wallet/transaction-confirm-dialog';
 import type { SendTransactionFormData } from '@/lib/validations';
 
 const SendPage: React.FC = () => {
@@ -17,6 +21,10 @@ const SendPage: React.FC = () => {
   const { publicKey } = useWalletStore();
   const { balancePollInterval } = useSettingsStore();
   const { toast } = useToast();
+  const { sendTransaction, loading: sending } = useSendTransaction();
+  const { hasVault } = useSessionStore();
+  const [pendingData, setPendingData] = React.useState<SendTransactionFormData | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   useEffect(() => {
     if (!publicKey) {
@@ -37,17 +45,17 @@ const SendPage: React.FC = () => {
     }
   );
 
+  const { network } = useDashboardData();
+
   const displayLoading = useMinimumLoading(isAccountLoading, 500);
 
   const balanceRaw = accountData?.balance || 0;
   const balanceMina = Number(balanceRaw) / 1e9;
 
   const handleSubmit = async (formData: SendTransactionFormData) => {
-    toast({
-      title: t('dashboard.not_implemented'),
-      description: t('dashboard.send_tx_coming_soon'),
-    });
-    console.log('Send transaction form submitted', formData);
+    // open confirm dialog with collected data
+    setPendingData(formData);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -72,7 +80,43 @@ const SendPage: React.FC = () => {
           price={1}
           onSubmit={handleSubmit}
           onCancel={() => navigate(-1)}
+          className={sending ? 'opacity-50 pointer-events-none' : ''}
         />
+
+      {pendingData && (
+        <TransactionConfirmDialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) setPendingData(null);
+          }}
+          transaction={{
+            to: pendingData.recipient,
+            amount: pendingData.amount,
+            fee: pendingData.fee,
+            symbol: 'MINA',
+            network: network.label,
+            memo: pendingData.memo,
+          }}
+          // requirePassword={hasVault}
+          loading={sending}
+          onConfirm={async (password) => {
+            if (!pendingData) return;
+            try {
+              await sendTransaction(pendingData, password || '');
+              setIsDialogOpen(false);
+              navigate('/transactions');
+            } catch (err) {
+              const message = err instanceof Error ? err.message : t('send.error_failed');
+              toast({
+                variant: 'destructive',
+                title: t('common.error'),
+                description: message,
+              });
+            }
+          }}
+        />
+      )}
       </div>
     </div>
   );

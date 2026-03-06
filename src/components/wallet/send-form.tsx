@@ -100,6 +100,7 @@ export function SendForm({
               onBlur={amountOnBlur}
               placeholder="0"
               error={!!errors.amount}
+              className='py-[20px] cursor-text'
             />
             <div className="mt-1 text-sm text-muted-foreground">
               ${formatBalance(fiatValue.toString(), 2)}

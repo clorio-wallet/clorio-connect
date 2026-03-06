@@ -6,7 +6,6 @@ import {
   BottomSheetHeader,
   BottomSheetTitle,
   BottomSheetDescription,
-  BottomSheetFooter,
 } from '@/components/ui/bottom-sheet';
 import {
   DropdownMenu,
@@ -49,7 +48,7 @@ export const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = (
   const formattedDate = useMemo(() => {
     if (!transaction?.timestamp) return '';
     return new Date(transaction.timestamp).toLocaleString();
-  }, [transaction?.timestamp]);
+  }, [transaction]);
 
   const totalAmount = useMemo(() => {
     if (!transaction) return '0';

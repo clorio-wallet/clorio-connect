@@ -624,7 +624,7 @@ const PlaygroundPage: React.FC = () => {
                 <Label>Transaction Dialog</Label>
                 <div>
                   <Button onClick={() => setShowConfirmDialog(true)}>
-                    Open Transaction Dialog
+                    Open Transaction Dialog (no password)
                   </Button>
                   <TransactionConfirmDialog
                     open={showConfirmDialog}
@@ -642,6 +642,28 @@ const PlaygroundPage: React.FC = () => {
                     }}
                     origin="https://app.uniswap.org"
                   />
+                  <div className="mt-2">
+                    <Button onClick={() => setShowConfirmDialog(true)}>
+                      Open Transaction Dialog (with password)
+                    </Button>
+                    <TransactionConfirmDialog
+                      open={showConfirmDialog}
+                      onOpenChange={setShowConfirmDialog}
+                      onConfirm={(pwd) => {
+                        alert(`Sent with password ${pwd}`);
+                        setShowConfirmDialog(false);
+                      }}
+                      transaction={{
+                        to: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+                        amount: '2.0',
+                        symbol: 'MINA',
+                        fee: '0.001',
+                        network: 'mainnet',
+                      }}
+                      origin="https://app.uniswap.org"
+                      requirePassword={true}
+                    />
+                  </div>
                 </div>
               </div>
 
