@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HardDrive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   BottomSheet,
@@ -22,6 +23,22 @@ export const MethodSelectionSheet: React.FC<MethodSelectionSheetProps> = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  // Auro pattern: open the Ledger import page in a full browser tab.
+  // WebUSB (navigator.usb.requestDevice) requires a user-visible top-level
+  // tab — it cannot be called from the extension popup or side panel.
+  // By opening the same popup.html with the #/onboarding/ledger hash route
+  // in a tab, the full React app loads with WebUSB access and can call
+  // TransportWebUSB.create() directly — no APDU proxy needed.
+  // The tab's App.tsx calls restoreSession() on mount which reads
+  // clorio_onboarding_password from chrome.storage.session — no extra
+  // password passing needed here.
+  const handleLedgerImport = useCallback(() => {
+    const popupUrl = chrome.runtime.getURL('src/popup/index.html#/onboarding/ledger');
+    chrome.tabs.create({ url: popupUrl, active: true });
+    // Close the popup/sidepanel — the user continues in the new tab.
+    window.close();
+  }, []);
 
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange}>
@@ -50,6 +67,15 @@ export const MethodSelectionSheet: React.FC<MethodSelectionSheetProps> = ({
             className="w-full text-lg h-12"
           >
             {t('onboarding.method_sheet.import_phrase')}
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleLedgerImport}
+            className="w-full text-lg h-12 gap-2"
+          >
+            <HardDrive className="h-5 w-5 shrink-0" />
+            {t('onboarding.method_sheet.import_ledger')}
           </Button>
         </div>
         <BottomSheetFooter className="pb-8" />

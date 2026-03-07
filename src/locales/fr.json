@@ -135,12 +135,12 @@
       "desc": "Gérez vos préférences de sécurité de portefeuille.",
       "auto_lock_timer": "Minuteur de verrouillage auto",
       "options": {
-          "window_close": "À la fermeture de la fenêtre",
-          "5_min": "5 minutes",
-          "15_min": "15 minutes",
-          "30_min": "30 minutes",
-          "1_hour": "1 heure",
-          "never": "Jamais"
+        "window_close": "À la fermeture de la fenêtre",
+        "5_min": "5 minutes",
+        "15_min": "15 minutes",
+        "30_min": "30 minutes",
+        "1_hour": "1 heure",
+        "never": "Jamais"
       }
     },
     "reset_sheet": {
@@ -159,7 +159,7 @@
         "5_min": "5 minutes",
         "10_min": "10 minutes",
         "30_min": "30 minutes",
-        "manual": "Manuel uniquement"
+        "manual": "Manual only"
       }
     },
     "display_mode_sheet": {
@@ -274,7 +274,8 @@
       "title": "Configuration du Portefeuille",
       "desc": "Choisissez comment vous souhaitez configurer votre portefeuille.",
       "create_new": "Créer un Nouveau Portefeuille",
-      "import_phrase": "J'ai une Phrase de Récupération Secrète"
+      "import_phrase": "J'ai une Phrase de Récupération Secrète",
+      "import_ledger": "Connecter un Ledger Hardware Wallet"
     },
     "password_sheet": {
       "title": "La sécurité d'abord",
@@ -301,6 +302,52 @@
       "failed_toast_desc": "Impossible de dériver les clés du mnémonique.",
       "copied_title": "Copié",
       "copied_desc": "{{label}} copié dans le presse-papiers"
+    }
+  },
+  "ledger": {
+    "connect_step": {
+      "step1_label": "Connectez votre Ledger via USB",
+      "step1_desc": "Assurez-vous que l'appareil est branché et déverrouillé avec votre code PIN.",
+      "step2_label": "Ouvrez l'app Mina",
+      "step2_desc": "Naviguez jusqu'à l'app Mina sur votre Ledger et appuyez sur les deux boutons pour l'ouvrir.",
+      "verify_button": "Vérifier la connexion",
+      "checking": "Vérification..."
+    },
+    "errors": {
+      "disconnected": "Ledger non détecté. Vérifiez le câble USB et réessayez.",
+      "disconnected_title": "Ledger introuvable",
+      "disconnected_desc": "Assurez-vous que votre Ledger est connecté via USB, déverrouillé avec votre PIN, puis réessayez.",
+      "app_not_open": "L'app Mina n'est pas ouverte sur le Ledger.",
+      "app_not_open_title": "App Mina non ouverte",
+      "app_not_open_desc": "Naviguez jusqu'à l'app Mina sur votre Ledger et appuyez sur les deux boutons pour l'ouvrir.",
+      "rejected_title": "Annulé sur l'appareil",
+      "rejected_desc": "Vous avez refusé l'opération sur votre Ledger. Vous pouvez réessayer.",
+      "sign_failed_title": "Échec de la signature",
+      "user_rejected": "Opération refusée sur l'appareil.",
+      "sign_failed": "La signature a échoué.",
+      "retry": "Réessayer"
+    },
+    "sign_on_device": "Signer sur Ledger",
+    "import": {
+      "title": "Importer un compte Ledger",
+      "connect_desc": "Connectez votre Ledger et ouvrez l'app Mina pour continuer.",
+      "confirm_desc": "Choisissez un nom et un index de chemin HD pour ce compte. L'appareil affichera l'adresse et demandera votre confirmation.",
+      "account_name_label": "Nom du compte",
+      "account_index_label": "Index du compte",
+      "hd_path_label": "Chemin de dérivation HD",
+      "address_label": "Adresse publique",
+      "confirm_button": "Obtenir l'adresse depuis le Ledger",
+      "waiting_device": "En attente de l'appareil...",
+      "waiting_desc": "Vérifiez l'écran de votre Ledger et appuyez sur le bouton droit pour confirmer l'adresse.",
+      "keep_tab_open": "Gardez l'onglet de connexion USB ouvert pendant la confirmation sur votre Ledger.",
+      "done_title": "Adresse confirmée",
+      "done_desc": "L'adresse a été lue depuis votre appareil. Vérifiez les détails ci-dessous avant d'enregistrer.",
+      "save_button": "Enregistrer le compte",
+      "saving": "Enregistrement...",
+      "rejected": "Opération annulée sur l'appareil.",
+      "error_read": "Impossible de lire l'adresse depuis l'appareil.",
+      "error_save": "Impossible d'enregistrer le compte.",
+      "success_desc": "Compte Ledger importé avec succès."
     }
   }
 }

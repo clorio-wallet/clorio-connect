@@ -274,7 +274,8 @@
       "title": "Brieftaschen-Einrichtung",
       "desc": "Wählen Sie, wie Sie Ihre Brieftasche einrichten möchten.",
       "create_new": "Neue Brieftasche Erstellen",
-      "import_phrase": "Ich habe eine geheime Wiederherstellungsphrase"
+      "import_phrase": "Ich habe eine geheime Wiederherstellungsphrase",
+      "import_ledger": "Ledger Hardware-Wallet verbinden"
     },
     "password_sheet": {
       "title": "Sicherheit zuerst",
@@ -301,6 +302,52 @@
       "failed_toast_desc": "Schlüssel konnten nicht aus dem Mnemonic abgeleitet werden.",
       "copied_title": "Kopiert",
       "copied_desc": "{{label}} in die Zwischenablage kopiert"
+    }
+  },
+  "ledger": {
+    "connect_step": {
+      "step1_label": "Ledger per USB verbinden",
+      "step1_desc": "Stellen Sie sicher, dass das Gerät angeschlossen und mit Ihrer PIN entsperrt ist.",
+      "step2_label": "Mina-App öffnen",
+      "step2_desc": "Navigieren Sie zur Mina-App auf Ihrem Ledger und drücken Sie beide Tasten, um sie zu öffnen.",
+      "verify_button": "Verbindung prüfen",
+      "checking": "Wird geprüft..."
+    },
+    "errors": {
+      "disconnected": "Ledger nicht erkannt. Überprüfen Sie das USB-Kabel und versuchen Sie es erneut.",
+      "disconnected_title": "Ledger nicht gefunden",
+      "disconnected_desc": "Stellen Sie sicher, dass Ihr Ledger per USB verbunden und mit Ihrer PIN entsperrt ist, und versuchen Sie es erneut.",
+      "app_not_open": "Die Mina-App ist auf dem Ledger nicht geöffnet.",
+      "app_not_open_title": "Mina-App nicht geöffnet",
+      "app_not_open_desc": "Navigieren Sie zur Mina-App auf Ihrem Ledger und drücken Sie beide Tasten, um sie zu öffnen.",
+      "rejected_title": "Auf dem Gerät abgebrochen",
+      "rejected_desc": "Sie haben den Vorgang auf Ihrem Ledger abgelehnt. Sie können es erneut versuchen.",
+      "sign_failed_title": "Signierung fehlgeschlagen",
+      "user_rejected": "Vorgang auf dem Gerät abgelehnt.",
+      "sign_failed": "Die Signierung ist fehlgeschlagen.",
+      "retry": "Erneut versuchen"
+    },
+    "sign_on_device": "Auf Ledger signieren",
+    "import": {
+      "title": "Ledger-Konto importieren",
+      "connect_desc": "Verbinden Sie Ihr Ledger-Gerät und öffnen Sie die Mina-App, um fortzufahren.",
+      "confirm_desc": "Wählen Sie einen Namen und einen HD-Pfad-Index für dieses Konto. Das Gerät zeigt die Adresse an und bittet um Ihre Bestätigung.",
+      "account_name_label": "Kontoname",
+      "account_index_label": "Kontoindex",
+      "hd_path_label": "HD-Ableitungspfad",
+      "address_label": "Öffentliche Adresse",
+      "confirm_button": "Adresse vom Ledger abrufen",
+      "waiting_device": "Warte auf Gerät...",
+      "waiting_desc": "Überprüfen Sie Ihren Ledger-Bildschirm und drücken Sie die rechte Taste, um die Adresse zu bestätigen.",
+      "keep_tab_open": "Lassen Sie den USB-Verbindungs-Tab geöffnet, während Sie auf Ihrem Ledger bestätigen.",
+      "done_title": "Adresse bestätigt",
+      "done_desc": "Die Adresse wurde von Ihrem Gerät gelesen. Überprüfen Sie die Details unten, bevor Sie speichern.",
+      "save_button": "Konto speichern",
+      "saving": "Wird gespeichert...",
+      "rejected": "Vorgang auf dem Gerät abgebrochen.",
+      "error_read": "Adresse konnte nicht vom Gerät gelesen werden.",
+      "error_save": "Konto konnte nicht gespeichert werden.",
+      "success_desc": "Ledger-Konto erfolgreich importiert."
     }
   }
 }

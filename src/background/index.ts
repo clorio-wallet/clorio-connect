@@ -1,146 +1,161 @@
 import './sidepanel';
-import Client from 'mina-signer';
-import { deriveMinaPrivateKey } from '@/lib/mina-utils';
-import {
-  AppMessage,
+
+import type { AppMessage, SetUiModeResponse } from '@/messages/types';
+import type {
   DeriveKeysResponse,
+  SignPaymentResponse,
   ValidatePrivateKeyResponse,
   SignDelegationResponse,
+  LedgerImportAccountResponse,
+  LedgerSubmitTxResponse,
 } from '@/messages/types';
-import { CryptoService } from '@/lib/crypto';
-import { storage } from '@/lib/storage';
 
-interface VaultData {
-  encryptedSeed: string;
-  salt: string;
-  iv: string;
-  version: number;
-  type?: 'mnemonic' | 'privateKey';
-}
+import { handleSetUiMode, openExtension } from './sidepanel';
 
-async function getPrivateKeyFromVault(password: string): Promise<string> {
-  const vault = await storage.get<VaultData>('clorio_vault');
+import {
+  startKeepalive,
+  stopKeepalive,
+  handleImportAccount,
+  handleSubmitPayment,
+  handleSubmitDelegation,
+} from './handlers/ledger';
 
-  if (!vault) {
-    throw new Error('No wallet vault found in storage');
+import {
+  handleDeriveKeys,
+  handleSignPayment,
+  handleValidatePrivateKey,
+  handleSignDelegation,
+} from './handlers/wallet';
+
+type AnyResponse =
+  | DeriveKeysResponse
+  | SignPaymentResponse
+  | ValidatePrivateKeyResponse
+  | SignDelegationResponse
+  | LedgerImportAccountResponse
+  | LedgerSubmitTxResponse
+  | SetUiModeResponse
+  | { ok: true }
+  | { error: string };
+
+type MessageByType<T extends AppMessage['type']> = Extract<AppMessage, { type: T }>;
+
+type HandlerEntry<T extends AppMessage['type'], R extends AnyResponse> = {
+  async: boolean;
+  handle: (
+    msg: MessageByType<T>,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (r: R) => void,
+  ) => void;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RouterMap = { [T in AppMessage['type']]?: HandlerEntry<T, any> };
+
+const handlers: RouterMap = {
+  LEDGER_KEEPALIVE_START: {
+    async: false,
+    handle: () => startKeepalive(),
+  },
+
+  LEDGER_KEEPALIVE_END: {
+    async: false,
+    handle: () => stopKeepalive(),
+  },
+
+  LEDGER_IMPORT_ACCOUNT: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: LedgerImportAccountResponse) => void) =>
+      handleImportAccount(msg.payload, sendResponse),
+  },
+
+  LEDGER_SUBMIT_PAYMENT: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: LedgerSubmitTxResponse) => void) =>
+      handleSubmitPayment(msg.payload, sendResponse),
+  },
+
+  LEDGER_SUBMIT_DELEGATION: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: LedgerSubmitTxResponse) => void) =>
+      handleSubmitDelegation(msg.payload, sendResponse),
+  },
+
+  DERIVE_KEYS_FROM_MNEMONIC: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: DeriveKeysResponse | { error: string }) => void) =>
+      handleDeriveKeys(msg.payload, sendResponse),
+  },
+
+  SIGN_PAYMENT: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: SignPaymentResponse | { error: string }) => void) =>
+      handleSignPayment(msg.payload, sendResponse),
+  },
+
+  VALIDATE_PRIVATE_KEY: {
+    async: false,
+    handle: (msg, _sender, sendResponse: (r: ValidatePrivateKeyResponse) => void) =>
+      handleValidatePrivateKey(msg.payload, sendResponse),
+  },
+
+  SIGN_DELEGATION: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: SignDelegationResponse | { error: string }) => void) =>
+      handleSignDelegation(msg.payload, sendResponse),
+  },
+
+  CLOSE_VIEW: {
+    async: false,
+    handle: () => {},
+  },
+
+  SET_UIMODE: {
+    async: true,
+    handle: (msg, sender, sendResponse: (r: SetUiModeResponse) => void) =>
+      handleSetUiMode(msg.value, sender.tab?.id, sendResponse),
+  },
+
+  OPEN_EXTENSION: {
+    async: true,
+    handle: (_msg, _sender, sendResponse: (r: { ok: true }) => void) => {
+      openExtension()
+        .then(() => sendResponse({ ok: true }))
+        .catch((e) => {
+          console.warn('[background] openExtension failed:', e);
+          sendResponse({ ok: true });
+        });
+    },
+  },
+};
+
+function route(
+  message: AppMessage,
+  sender: chrome.runtime.MessageSender,
+  sendResponse: (r: AnyResponse) => void,
+): boolean {
+  const entry = handlers[message.type];
+
+  if (!entry) {
+    console.warn('[background] Unhandled message type:', message.type);
+    return false;
   }
 
-  const decrypted = await CryptoService.decrypt(
-    vault.encryptedSeed,
-    password,
-    vault.salt,
-    vault.iv,
+  (entry as HandlerEntry<typeof message.type, AnyResponse>).handle(
+    message,
+    sender,
+    sendResponse,
   );
 
-  // If the vault stores a mnemonic, derive the private key from it
-  if (!vault.type || vault.type === 'mnemonic') {
-    return deriveMinaPrivateKey(decrypted);
-  }
-
-  // Otherwise the vault stores the private key directly
-  return decrypted;
+  return entry.async;
 }
 
-console.log('Clorio Background Service Worker Running');
-
-// Initialize client once in background
-const client = new Client({ network: 'mainnet' });
+console.log('[background] Service Worker running');
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('Clorio Extension Installed');
+  console.log('[background] Extension installed/updated');
 });
 
-chrome.runtime.onMessage.addListener(
-  (
-    message: AppMessage,
-    sender,
-    sendResponse: (
-      response:
-        | DeriveKeysResponse
-        | ValidatePrivateKeyResponse
-        | SignDelegationResponse
-        | { error: string },
-    ) => void,
-  ) => {
-    if (message.type === 'DERIVE_KEYS_FROM_MNEMONIC') {
-      (async () => {
-        try {
-          const { mnemonic } = message.payload;
-          const privateKey = await deriveMinaPrivateKey(mnemonic);
-          const publicKey = client.derivePublicKey(privateKey);
-
-          sendResponse({
-            privateKey,
-            publicKey,
-          });
-        } catch (error) {
-          console.error('Key derivation failed in background:', error);
-          sendResponse({
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
-      })();
-
-      // Return true to indicate we will send a response asynchronously
-      return true;
-    }
-
-    if (message.type === 'VALIDATE_PRIVATE_KEY') {
-      try {
-        const { privateKey } = message.payload;
-        const publicKey = client.derivePublicKey(privateKey);
-        sendResponse({ isValid: true, publicKey });
-      } catch (error) {
-        console.error('Private key validation failed:', error);
-        sendResponse({ isValid: false, error: 'Invalid private key' });
-      }
-    }
-
-    if (message.type === 'SIGN_DELEGATION') {
-      (async () => {
-        try {
-          const { delegation, password } = message.payload;
-
-          // Derive the private key from the encrypted vault
-          const privateKey = await getPrivateKeyFromVault(password);
-
-          // Build the stake delegation payload for mina-signer
-          const stakeDelegation = {
-            from: delegation.from,
-            to: delegation.to,
-            fee: delegation.fee,
-            nonce: delegation.nonce,
-            memo: delegation.memo ?? '',
-          };
-
-          console.log('[SIGN_DELEGATION] Signing stake delegation:', {
-            from: stakeDelegation.from,
-            to: stakeDelegation.to,
-            fee: stakeDelegation.fee,
-            nonce: stakeDelegation.nonce,
-            memo: stakeDelegation.memo,
-          });
-
-          const signed = client.signStakeDelegation(
-            stakeDelegation,
-            privateKey,
-          );
-
-          console.log('[SIGN_DELEGATION] Signed stake delegation:', {
-            data: signed.data,
-            signature: signed.signature,
-          });
-
-          sendResponse({ signature: signed.signature });
-        } catch (error) {
-          console.error('[SIGN_DELEGATION] Signing failed:', error);
-          sendResponse({
-            error: error instanceof Error ? error.message : 'Signing failed',
-          });
-        }
-      })();
-
-      return true;
-    }
-  },
+chrome.runtime.onMessage.addListener((message: AppMessage, sender, sendResponse) =>
+  route(message, sender, sendResponse),
 );

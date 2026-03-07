@@ -274,7 +274,8 @@
       "title": "Configuración de Billetera",
       "desc": "Elige cómo quieres configurar tu billetera.",
       "create_new": "Crear Nueva Billetera",
-      "import_phrase": "Tengo una Frase de Recuperación Secreta"
+      "import_phrase": "Tengo una Frase de Recuperación Secreta",
+      "import_ledger": "Conectar Ledger Hardware Wallet"
     },
     "password_sheet": {
       "title": "Seguridad primero",
@@ -301,6 +302,52 @@
       "failed_toast_desc": "No se pudieron derivar claves de la mnemotécnica.",
       "copied_title": "Copiado",
       "copied_desc": "{{label}} copiado al portapapeles"
+    }
+  },
+  "ledger": {
+    "connect_step": {
+      "step1_label": "Conecta tu Ledger por USB",
+      "step1_desc": "Asegúrate de que el dispositivo esté conectado y desbloqueado con tu PIN.",
+      "step2_label": "Abre la app de Mina",
+      "step2_desc": "Navega a la app de Mina en tu Ledger y pulsa ambos botones para abrirla.",
+      "verify_button": "Verificar conexión",
+      "checking": "Verificando..."
+    },
+    "errors": {
+      "disconnected": "Ledger no detectado. Comprueba el cable USB e inténtalo de nuevo.",
+      "disconnected_title": "Ledger no encontrado",
+      "disconnected_desc": "Asegúrate de que tu Ledger esté conectado por USB, desbloqueado con tu PIN, e inténtalo de nuevo.",
+      "app_not_open": "La app de Mina no está abierta en el Ledger.",
+      "app_not_open_title": "App de Mina no abierta",
+      "app_not_open_desc": "Navega a la app de Mina en tu dispositivo Ledger y pulsa ambos botones para abrirla.",
+      "rejected_title": "Cancelado en el dispositivo",
+      "rejected_desc": "Has rechazado la operación en tu Ledger. Puedes intentarlo de nuevo.",
+      "sign_failed_title": "Firma fallida",
+      "user_rejected": "Operación rechazada en el dispositivo.",
+      "sign_failed": "La firma ha fallado.",
+      "retry": "Intentar de nuevo"
+    },
+    "sign_on_device": "Firmar en Ledger",
+    "import": {
+      "title": "Importar cuenta Ledger",
+      "connect_desc": "Conecta tu dispositivo Ledger y abre la app de Mina para continuar.",
+      "confirm_desc": "Elige un nombre e índice de ruta HD para esta cuenta. El dispositivo mostrará la dirección y pedirá tu confirmación.",
+      "account_name_label": "Nombre de cuenta",
+      "account_index_label": "Índice de cuenta",
+      "hd_path_label": "Ruta de derivación HD",
+      "address_label": "Dirección pública",
+      "confirm_button": "Obtener dirección del Ledger",
+      "waiting_device": "Esperando dispositivo...",
+      "waiting_desc": "Revisa la pantalla de tu Ledger y pulsa el botón derecho para confirmar la dirección.",
+      "keep_tab_open": "Mantén abierta la pestaña de conexión USB mientras confirmas en tu Ledger.",
+      "done_title": "Dirección confirmada",
+      "done_desc": "La dirección ha sido leída de tu dispositivo. Revisa los detalles antes de guardar.",
+      "save_button": "Guardar cuenta",
+      "saving": "Guardando...",
+      "rejected": "Operación cancelada en el dispositivo.",
+      "error_read": "No se pudo leer la dirección del dispositivo.",
+      "error_save": "No se pudo guardar la cuenta.",
+      "success_desc": "Cuenta Ledger importada con éxito."
     }
   }
 }

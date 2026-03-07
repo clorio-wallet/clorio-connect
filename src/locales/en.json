@@ -305,7 +305,8 @@
       "title": "Wallet Setup",
       "desc": "Choose how you want to set up your wallet.",
       "create_new": "Create New Wallet",
-      "import_phrase": "I have a Secret Recovery Phrase"
+      "import_phrase": "I have a Secret Recovery Phrase",
+      "import_ledger": "Connect Ledger Hardware Wallet"
     },
     "password_sheet": {
       "title": "Security first",
@@ -332,6 +333,52 @@
       "failed_toast_desc": "Could not derive keys from mnemonic.",
       "copied_title": "Copied",
       "copied_desc": "{{label}} copied to clipboard"
+    }
+  },
+  "ledger": {
+    "connect_step": {
+      "step1_label": "Connect your Ledger via USB",
+      "step1_desc": "Make sure the device is plugged in and unlocked with your PIN.",
+      "step2_label": "Open the Mina app",
+      "step2_desc": "Navigate to the Mina app on your Ledger and press both buttons to open it.",
+      "verify_button": "Verify connection",
+      "checking": "Checking..."
+    },
+    "errors": {
+      "disconnected": "Ledger not detected. Check the USB cable and try again.",
+      "disconnected_title": "Ledger not found",
+      "disconnected_desc": "Make sure your Ledger is connected via USB, unlocked with your PIN, and try again.",
+      "app_not_open": "Mina app is not open on the Ledger.",
+      "app_not_open_title": "Mina app not open",
+      "app_not_open_desc": "Navigate to the Mina app on your Ledger device and press both buttons to open it.",
+      "rejected_title": "Cancelled on device",
+      "rejected_desc": "You rejected the operation on your Ledger. You can try again.",
+      "sign_failed_title": "Signing failed",
+      "user_rejected": "Operation rejected on device.",
+      "sign_failed": "Signing failed.",
+      "retry": "Try again"
+    },
+    "sign_on_device": "Sign on Ledger",
+    "import": {
+      "title": "Import Ledger Account",
+      "connect_desc": "Connect your Ledger device and open the Mina app to continue.",
+      "confirm_desc": "Choose a name and HD path index for this account. The device will display the address and ask for your confirmation.",
+      "account_name_label": "Account name",
+      "account_index_label": "Account index",
+      "hd_path_label": "HD derivation path",
+      "address_label": "Public address",
+      "confirm_button": "Get address from Ledger",
+      "waiting_device": "Waiting for device...",
+      "waiting_desc": "Check your Ledger screen and press the right button to confirm the address.",
+      "keep_tab_open": "Keep the USB connection tab open while confirming on your Ledger.",
+      "done_title": "Address confirmed",
+      "done_desc": "The address has been read from your device. Review the details below before saving.",
+      "save_button": "Save account",
+      "saving": "Saving...",
+      "rejected": "Operation cancelled on the device.",
+      "error_read": "Could not read address from device.",
+      "error_save": "Failed to save the account.",
+      "success_desc": "Ledger account imported successfully."
     }
   }
 }
