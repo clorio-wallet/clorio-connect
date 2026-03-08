@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Lock, RefreshCcw, SquareArrowOutUpRight, WifiOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkBadge } from '@/components/wallet';
+
+
 import {
   Tooltip,
   TooltipContent,
@@ -77,6 +79,7 @@ export const AppHeader: React.FC = () => {
       title: t('dashboard.logout_title'),
       description: t('dashboard.logout_desc'),
     });
+    // /wallet-unlock handles both Ledger and software wallet lock screens.
     navigate('/wallet-unlock');
   };
 

@@ -5,6 +5,7 @@ import { Home, Settings, HeartHandshake, History } from 'lucide-react';
 import Dock from '@/components/ui/dock';
 import { Toaster } from '@/components/ui/toaster';
 import { BackgroundMesh } from '@/components/ui/background-mesh';
+
 import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
 import { cn } from '@/lib/utils';
 import { NO_ANIMATION_ROUTES } from '@/lib/const';
@@ -101,6 +102,7 @@ export const PopupLayout: React.FC = () => {
       )}
 
       <Toaster />
+
     </div>
   );
 };

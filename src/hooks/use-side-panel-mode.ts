@@ -1,57 +1,33 @@
 import { useState, useEffect } from 'react';
+import type { UiMode } from '@/messages/types';
 
-export type UiMode = 'popup' | 'sidepanel';
+export type { UiMode };
+
+const STORAGE_KEY = 'uiMode';
+const DEFAULT_MODE: UiMode = 'sidepanel';
 
 export function useSidePanelMode() {
-  const [uiMode, setUiMode] = useState<UiMode>('sidepanel');
+  const [uiMode, setUiMode] = useState<UiMode>(DEFAULT_MODE);
 
   useEffect(() => {
-    if (chrome?.storage?.local) {
-      chrome.storage.local.get({ uiMode: 'sidepanel' }, (res) => {
-        setUiMode(res.uiMode as UiMode);
-      });
-    }
+    chrome.storage.local.get({ [STORAGE_KEY]: DEFAULT_MODE }, (res) => {
+      setUiMode(res[STORAGE_KEY] as UiMode);
+    });
   }, []);
 
-  async function updateMode(next: UiMode) {
+  async function updateMode(next: UiMode): Promise<void> {
     setUiMode(next);
 
-    if (chrome?.runtime?.sendMessage) {
-      await new Promise<void>((resolve) => {
-        chrome.runtime.sendMessage({ type: 'SET_UIMODE', value: next }, () =>
-          resolve(),
-        );
-      });
-    }
-
     try {
-      const currentWindow = await chrome.windows.getCurrent();
-
-      if (next === 'sidepanel') {
-        if (chrome.sidePanel && chrome.sidePanel.open && currentWindow.id) {
-          try {
-            await chrome.sidePanel.open({ windowId: currentWindow.id });
-          } catch (e) {
-            console.warn('Could not open sidepanel automatically:', e);
-          }
-          window.close();
-        }
-      } else {
-        if (chrome.action && chrome.action.openPopup) {
-          try {
-            await chrome.action.openPopup();
-          } catch (e) {
-            console.warn('Could not open popup automatically:', e);
-          }
-          window.close();
-        }
-      }
-    } catch (error) {
-      console.error('Failed to switch mode:', error);
+      await chrome.runtime.sendMessage({ type: 'SET_UIMODE', value: next });
+    } catch (err) {
+      console.error('[use-side-panel-mode] SET_UIMODE failed:', err);
     }
   }
 
-  const isPopup = uiMode === 'popup';
-
-  return { uiMode, updateMode, isPopup };
+  return {
+    uiMode,
+    updateMode,
+    isPopup: uiMode === 'popup',
+  };
 }

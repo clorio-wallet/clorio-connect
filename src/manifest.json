@@ -3,14 +3,10 @@
   "name": "Clorio Connect",
   "version": "1.0.0",
   "description": "A secure, Mina protocol browser wallet.",
-  "permissions": [
-    "storage",
-    "alarms",
-    "sidePanel"
-  ],
-  "host_permissions": [
-    "https://*/*"
-  ],
+  "permissions": ["storage", "alarms", "sidePanel", "tabs"],
+  "host_permissions": ["https://*/*"],
+
+
   "background": {
     "service_worker": "src/background/index.ts",
     "type": "module"
@@ -21,11 +17,13 @@
   "side_panel": {
     "default_path": "src/popup/index.html"
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["src/content/index.ts"],
-    "run_at": "document_start"
-  }],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_start"
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none';"
   }

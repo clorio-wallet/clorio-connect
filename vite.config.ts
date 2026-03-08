@@ -4,29 +4,20 @@ import { crx } from '@crxjs/vite-plugin';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import manifest from './src/manifest.json';
 
-const isFirefox = process.env.BROWSER === 'firefox';
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const manifestConfig = { ...manifest } as any;
 
-if (isFirefox) {
+if (process.env.BROWSER === 'firefox') {
   manifestConfig.browser_specific_settings = {
-    gecko: {
-      id: 'wallet@clorio',
-      strict_min_version: "109.0"
-    }
+    gecko: { id: 'wallet@clorio', strict_min_version: '109.0' },
   };
-
-  if (manifestConfig.side_panel) {
-    manifestConfig.sidebar_action = {
-      default_panel: manifestConfig.side_panel.default_path,
-    };
-    delete manifestConfig.side_panel;
-  }
-
-  if (manifestConfig.permissions) {
-    manifestConfig.permissions = manifestConfig.permissions.filter((p: string) => p !== 'sidePanel');
-  }
+  manifestConfig.sidebar_action = {
+    default_panel: manifest.side_panel.default_path,
+  };
+  delete manifestConfig.side_panel;
+  manifestConfig.permissions = manifest.permissions.filter(
+    (p: string) => p !== 'sidePanel',
+  );
 }
 
 export default defineConfig({
@@ -36,16 +27,12 @@ export default defineConfig({
     nodePolyfills(),
   ],
   resolve: {
-    alias: {
-      '@': '/src',
-    },
+    alias: { '@': '/src' },
   },
   server: {
     port: 5173,
     strictPort: true,
-    hmr: {
-      port: 5173,
-    },
+    hmr: { port: 5173 },
   },
   build: {
     rollupOptions: {

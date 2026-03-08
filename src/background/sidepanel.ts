@@ -1,38 +1,133 @@
-function setPanelBehaviorFromMode(mode: 'popup' | 'sidepanel') {
-  const openPanel = mode === 'sidepanel';
-  const sidePanel = chrome.sidePanel;
+/**
+ * sidepanel.ts
+ *
+ * Manages the UI display mode (sidepanel ↔ popup) for the extension.
+ */
 
-  if (sidePanel && sidePanel.setPanelBehavior) {
-    sidePanel.setPanelBehavior({ openPanelOnActionClick: openPanel });
+import type { UiMode, SetUiModeResponse } from '@/messages/types';
+
+const STORAGE_KEY = 'uiMode';
+const DEFAULT_MODE: UiMode = 'sidepanel';
+const PANEL_PATH = 'src/popup/index.html';
+
+function readStoredMode(): Promise<UiMode> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get({ [STORAGE_KEY]: DEFAULT_MODE }, (res) => {
+      resolve(res[STORAGE_KEY] as UiMode);
+    });
+  });
+}
+
+function storeMode(mode: UiMode): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [STORAGE_KEY]: mode }, resolve);
+  });
+}
+
+function applyPanelBehavior(mode: UiMode): void {
+  const openPanelOnActionClick = mode === 'sidepanel';
+
+  chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick })
+    .catch((e) => console.warn('[sidepanel] setPanelBehavior failed:', e));
+
+  chrome.sidePanel
+    .setOptions({ enabled: mode === 'sidepanel', path: PANEL_PATH })
+    .catch((e) => console.warn('[sidepanel] setOptions failed:', e));
+}
+
+async function broadcastCloseView(): Promise<void> {
+  await chrome.runtime.sendMessage({ type: 'CLOSE_VIEW' }).catch(() => {
+    // Ignore if no extension view is currently listening.
+  });
+
+  const extensionOrigin = chrome.runtime.getURL('');
+  const windows = await chrome.windows.getAll({ populate: true });
+  const popoutWindowIds = windows
+    .filter(
+      (win) =>
+        win.type === 'popup' &&
+        win.tabs?.some((tab) => tab.url?.startsWith(extensionOrigin)),
+    )
+    .map((win) => win.id!)
+    .filter((id) => id !== chrome.windows.WINDOW_ID_NONE);
+
+  await Promise.all(
+    popoutWindowIds.map((id) => chrome.windows.remove(id).catch(() => {})),
+  );
+}
+
+async function openSidePanel(): Promise<void> {
+  let targetWindowId: number | undefined;
+
+  try {
+    const focused = await chrome.windows.getLastFocused({
+      windowTypes: ['normal'],
+    });
+    targetWindowId = focused.id;
+  } catch {
+    const [first] = await chrome.windows.getAll({ windowTypes: ['normal'] });
+    targetWindowId = first?.id;
+  }
+
+  if (targetWindowId === undefined) {
+    console.warn('[sidepanel] No normal window found to open sidepanel in.');
+    return;
+  }
+
+  await chrome.sidePanel
+    .open({ windowId: targetWindowId })
+    .catch((e) => console.warn('[sidepanel] sidePanel.open() failed:', e));
+}
+
+async function switchMode(next: UiMode): Promise<void> {
+  console.log(`[sidepanel] Switching to mode: ${next}`);
+
+  await storeMode(next);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  await broadcastCloseView();
+
+  applyPanelBehavior(next);
+
+  if (next === 'sidepanel') {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await openSidePanel();
+  }
+
+  console.log(`[sidepanel] Mode switch complete: ${next}`);
+}
+
+chrome.runtime.onInstalled.addListener(async (details) => {
+  if (details.reason === 'install') {
+    await storeMode(DEFAULT_MODE);
+    applyPanelBehavior(DEFAULT_MODE);
+  } else {
+    const stored = await readStoredMode();
+    applyPanelBehavior(stored);
+  }
+});
+
+export async function openExtension(): Promise<void> {
+  const mode = await readStoredMode();
+  if (mode === 'sidepanel') {
+    applyPanelBehavior('sidepanel');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await openSidePanel();
+  } else if (chrome.action?.openPopup) {
+    await chrome.action
+      .openPopup()
+      .catch((e) => console.warn('[sidepanel] openPopup() failed:', e));
   }
 }
 
-chrome.runtime.onInstalled.addListener((details) => {
-  console.log('Extension installed');
+export function handleSetUiMode(
+  value: UiMode,
+  _senderTabId: number | undefined,
+  sendResponse: (r: SetUiModeResponse) => void,
+): void {
+  sendResponse({ ok: true });
 
-  const sidePanel = chrome.sidePanel;
-  if (sidePanel && sidePanel.setOptions) {
-    sidePanel.setOptions({ enabled: true, path: 'src/popup/index.html' });
-  }
-
-  if (details.reason === 'install') {
-    chrome.storage.local.set({ uiMode: 'sidepanel' }, () => {
-      setPanelBehaviorFromMode('sidepanel');
-    });
-  } else {
-    chrome.storage.local.get({ uiMode: 'sidepanel' }, (res) => {
-      setPanelBehaviorFromMode(res.uiMode as 'popup' | 'sidepanel');
-    });
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'SET_UIMODE') {
-    const mode = message.value === 'sidepanel' ? 'sidepanel' : 'popup';
-    chrome.storage.local.set({ uiMode: mode }, () => {
-      setPanelBehaviorFromMode(mode);
-      sendResponse({ ok: true });
-    });
-    return true;
-  }
-});
+  switchMode(value).catch((err) => {
+    console.error('[sidepanel] switchMode failed:', err);
+  });
+}

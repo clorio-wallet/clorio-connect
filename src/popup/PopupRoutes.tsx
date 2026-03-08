@@ -32,10 +32,15 @@ const VerifyMnemonicPage = lazy(() =>
     default: module.VerifyMnemonicPage,
   })),
 );
+const ImportLedgerPage = lazy(() =>
+  import('@/pages/onboarding/import-ledger').then((module) => ({
+    default: module.ImportLedgerPage,
+  })),
+);
 const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 const TransactionsPage = lazy(() => import('@/pages/Transactions'));
 const StakingPage = lazy(() => import('@/pages/Staking'));
-const SendPage = lazy(() => import('@/pages/Send'));
+const SendPage = lazy(() => import('@/pages/send'));
 
 const SettingsPage = lazy(() => import('@/pages/Settings'));
 
@@ -73,6 +78,11 @@ const routeConfigs: RouteConfig[] = [
   {
     path: '/onboarding/import',
     element: <ImportWalletPage />,
+    fallback: <OnboardingSkeleton />,
+  },
+  {
+    path: '/onboarding/ledger',
+    element: <ImportLedgerPage />,
     fallback: <OnboardingSkeleton />,
   },
   {
