@@ -70,6 +70,52 @@ export const useGetTransactions = (
   });
 };
 
+// ─── Broadcast ────────────────────────────────────────────────────────────────
+
+export interface BroadcastPaymentInput {
+  from: string;
+  to: string;
+  amount: string;
+  fee: string;
+  nonce: string;
+  memo: string;
+  validUntil?: string;
+}
+
+export interface BroadcastSignature {
+  field: string;
+  scalar: string;
+}
+
+export interface BroadcastResult {
+  hash: string;
+  id?: string;
+  fee?: string;
+  amount?: string;
+}
+
+export const broadcastPayment = (
+  input: BroadcastPaymentInput,
+  signature: BroadcastSignature,
+): Promise<BroadcastResult> =>
+  customInstance<BroadcastResult>({
+    url: '/v1/mina/transactions/payment',
+    method: 'POST',
+    data: { input, signature },
+  });
+
+export const broadcastDelegation = (
+  input: Omit<BroadcastPaymentInput, 'amount'>,
+  signature: BroadcastSignature,
+): Promise<BroadcastResult> =>
+  customInstance<BroadcastResult>({
+    url: '/v1/mina/transactions/delegation',
+    method: 'POST',
+    data: { input, signature },
+  });
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const getTransaction = async (
   hash: string,
   signal?: AbortSignal
