@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { storage, sessionStorage } from '@/lib/storage';
 import { CryptoService } from '@/lib/crypto';
 import { useSessionStore } from '@/stores/session-store';
+import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,14 @@ interface VaultData {
   salt: string;
   iv: string;
   version: number;
-  type?: 'mnemonic' | 'privateKey';
+  type?: 'mnemonic' | 'privateKey' | 'ledger';
+}
+
+interface LedgerAccountData {
+  address: string;
+  accountName: string;
+  accountIndex: number;
+  type: 'ledger';
 }
 
 const WalletUnlockPage: React.FC = () => {
@@ -35,6 +43,7 @@ const WalletUnlockPage: React.FC = () => {
   const { toast } = useToast();
   const { setIsAuthenticated, setHasVault, setTempPassword, isAuthenticated } =
     useSessionStore();
+  const { setWallet } = useWalletStore();
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,11 +75,10 @@ const WalletUnlockPage: React.FC = () => {
           title: t('wallet_unlock.error_no_wallet_title'),
           description: t('wallet_unlock.error_no_wallet_desc'),
         });
-        navigate('/welcome'); // Or wherever the start is
+        navigate('/welcome');
         return;
       }
 
-      // Attempt decryption to verify password
       await CryptoService.decrypt(
         vault.encryptedSeed,
         password,
@@ -78,12 +86,23 @@ const WalletUnlockPage: React.FC = () => {
         vault.iv,
       );
 
-      // If successful:
+      if (vault.type === 'ledger') {
+        const ledgerAccount = await storage.get<LedgerAccountData>('clorio_ledger_account');
+        if (ledgerAccount?.type === 'ledger') {
+          setWallet({
+            publicKey: ledgerAccount.address,
+            accountId: null,
+            accountType: 'ledger',
+            accountName: ledgerAccount.accountName,
+            ledgerAccountIndex: ledgerAccount.accountIndex,
+          });
+        }
+      }
+
       setIsAuthenticated(true);
       setHasVault(true);
-      setTempPassword(password); // Store password in session for subsequent operations
+      setTempPassword(password);
 
-      // Save session if persistence is enabled
       const { autoLockTimeout } = useSettingsStore.getState();
       if (autoLockTimeout !== 0) {
         await sessionStorage.set('clorio_session', {

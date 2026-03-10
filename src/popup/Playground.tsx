@@ -82,6 +82,7 @@ import { AnimatedNumber } from '@/components/ui/animated-number';
 const mockValidators = [
   {
     address: 'B62qpt...',
+    publicKey: 'B62qpt...',
     name: 'MinaExplorer',
     stake: 50000000,
     fee: 5,
@@ -90,23 +91,30 @@ const mockValidators = [
   },
   {
     address: 'B62qr...',
+    publicKey: 'B62qr...',
     name: 'Auro Wallet',
     stake: 30000000,
     fee: 5,
     delegators: 800,
+    isDelegated: false,
   },
   {
     address: 'B62qs...',
+    publicKey: 'B62qs...',
     name: 'Clorio',
     stake: 25000000,
     fee: 2,
     delegators: 500,
+    isDelegated: false,
   },
   {
     address: 'B62qt...',
+    publicKey: 'B62qt...',
+    name: 'Unknown',
     stake: 15000000,
     fee: 1,
     delegators: 100,
+    isDelegated: false,
   },
 ];
 
@@ -555,22 +563,22 @@ const PlaygroundPage: React.FC = () => {
                       loading={debugLoading}
                     />
                     <div className="flex flex-col gap-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="secondary"
                         onClick={() => setDebugBalance(prev => prev + (Math.random() * 100))}
                       >
                         Update Balance
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant={debugLoading ? "default" : "outline"}
                         onClick={() => setDebugLoading(prev => !prev)}
                       >
                         Loading: {debugLoading ? 'ON' : 'OFF'}
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => {
                           setBalanceDisplayKey(prev => prev + 1);
@@ -581,7 +589,7 @@ const PlaygroundPage: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-end gap-4">
                     <BalanceDisplay balance={123.4567} symbol="MINA" size="lg" />
                     <BalanceDisplay balance={0} symbol="MINA" loading />
@@ -629,7 +637,7 @@ const PlaygroundPage: React.FC = () => {
                   <TransactionConfirmDialog
                     open={showConfirmDialog}
                     onOpenChange={setShowConfirmDialog}
-                    onConfirm={() => {
+                    onConfirm={async () => {
                       alert('Transaction Sent!');
                       setShowConfirmDialog(false);
                     }}
@@ -649,7 +657,7 @@ const PlaygroundPage: React.FC = () => {
                     <TransactionConfirmDialog
                       open={showConfirmDialog}
                       onOpenChange={setShowConfirmDialog}
-                      onConfirm={(pwd) => {
+                      onConfirm={async (pwd) => {
                         alert(`Sent with password ${pwd}`);
                         setShowConfirmDialog(false);
                       }}
@@ -661,7 +669,6 @@ const PlaygroundPage: React.FC = () => {
                         network: 'mainnet',
                       }}
                       origin="https://app.uniswap.org"
-                      requirePassword={true}
                     />
                   </div>
                 </div>

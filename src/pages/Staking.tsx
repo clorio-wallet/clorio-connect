@@ -4,14 +4,26 @@ import { AppHeader } from '@/components/dashboard/dashboard-header';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { ValidatorList } from '@/components/wallet/validator-list';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { RefreshCcw } from 'lucide-react';
 import { useGetValidators, Validator } from '@/api/mina/validators';
 import { StakingInfoCard } from '@/components/wallet/staking-info-card';
 import { ValidatorDetailsSheet } from '@/components/wallet/validator-details-sheet';
 import { useGetAccount } from '@/api/mina/mina';
 import { ConfirmDelegationSheet } from '@/pages/ConfirmDelegation';
-import { useDelegateTransaction } from '@/hooks/use-delegate-transaction';
+import {
+  useDelegateTransaction,
+  type SignedLedgerDelegationResult,
+} from '@/hooks/use-delegate-transaction';
 import { useToast } from '@/hooks/use-toast';
+import { LedgerError } from '@/lib/ledger';
 
 const StakingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -26,7 +38,7 @@ const StakingPage: React.FC = () => {
     isFetching: isFetchingValidators,
     refetch: refetchValidators,
   } = useGetValidators({
-    staleTime: 600000, // 10 minutes
+    staleTime: 600000,
   });
 
   const { data: accountData } = useGetAccount(publicKey || '', {
@@ -51,6 +63,8 @@ const StakingPage: React.FC = () => {
   const [selectedValidator, setSelectedValidator] =
     React.useState<Validator | null>(null);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [signedResult, setSignedResult] =
+    React.useState<SignedLedgerDelegationResult | null>(null);
 
   const handleCardClick = (validator: Validator) => {
     setSelectedValidator(validator);
@@ -63,16 +77,23 @@ const StakingPage: React.FC = () => {
   const handleConfirmDelegation = async (password: string) => {
     if (!selectedValidator) return;
     try {
-      await delegateTransaction(selectedValidator.publicKey, password);
+      const result = await delegateTransaction(selectedValidator.publicKey, password);
       setConfirmOpen(false);
       setSelectedValidator(null);
+
+      if (result.kind === 'signed') {
+        setSignedResult(result);
+      }
     } catch (error) {
       console.error('Delegation failed:', error);
-      toast({
-        title: t('common.error', 'Error'),
-        description: t('validators.delegation_failed', 'Failed to delegate'),
-        variant: 'destructive',
-      });
+      if (!(error instanceof LedgerError)) {
+        toast({
+          title: t('common.error', 'Error'),
+          description: t('validators.delegation_failed', 'Failed to delegate'),
+          variant: 'destructive',
+        });
+      }
+      throw error;
     }
   };
 
@@ -135,6 +156,41 @@ const StakingPage: React.FC = () => {
         onConfirm={handleConfirmDelegation}
         loading={delegating}
       />
+
+      <Dialog
+        open={!!signedResult}
+        onOpenChange={(open) => {
+          if (!open) setSignedResult(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ledger signed delegation</DialogTitle>
+            <DialogDescription>
+              Firma reale acquisita dal dispositivo. Nessun broadcast e stato eseguito.
+            </DialogDescription>
+          </DialogHeader>
+
+          <pre className="max-h-[60vh] overflow-auto rounded-lg bg-muted p-4 text-xs leading-relaxed">
+            {signedResult
+              ? JSON.stringify(
+                  {
+                    signature: signedResult.signature,
+                    payload: signedResult.payload,
+                  },
+                  null,
+                  2,
+                )
+              : ''}
+          </pre>
+
+          <DialogFooter>
+            <Button onClick={() => setSignedResult(null)}>
+              {t('common.close', 'Close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

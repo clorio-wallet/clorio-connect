@@ -11,36 +11,6 @@ interface AmountInputProps extends Omit<
   error?: boolean;
 }
 
-function createAlignedDisplay(value: string): string[] {
-  if (!value) {
-    return ['0'];
-  }
-
-  let [integerRaw = '0', decimalRaw = ''] = value.split('.');
-  integerRaw = integerRaw.replace(/^0+(?=\d)/, '') || '0';
-  decimalRaw = decimalRaw.slice(0, 9);
-
-  const chars: string[] = [];
-  let count = 0;
-
-  for (let i = 0; i < integerRaw.length; i++) {
-    const posFromRight = integerRaw.length - i;
-    if (i > 0 && posFromRight % 3 === 0) {
-      chars.push(',');
-    }
-    chars.push(integerRaw[i]);
-  }
-
-  if (decimalRaw) {
-    chars.push('.');
-    for (const char of decimalRaw) {
-      chars.push(char);
-    }
-  }
-
-  return chars;
-}
-
 function formatAmountPartsFromString(value: string): {
   integer: string;
   decimal: string;
@@ -109,11 +79,9 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
             </span>
             {decimal && (
               <span className="relative">
-                {/* Invisible spacer in text-5xl to align the cursor */}
                 <span className="invisible text-5xl font-semibold tracking-tight">
                   .{decimal}
                 </span>
-                {/* Visible text in text-3xl overlaid */}
                 <span
                   className={cn(
                     'absolute left-0 top-1/2 -translate-y-1/2 text-3xl font-semibold tracking-tight',
