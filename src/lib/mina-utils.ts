@@ -55,11 +55,15 @@ async function toBase58Check(
   return toBase58(finalBytes);
 }
 
-export async function deriveMinaPrivateKey(mnemonic: string): Promise<string> {
+export async function deriveMinaPrivateKey(
+  mnemonic: string,
+  accountIndex: number = 0,
+): Promise<string> {
   const seed = await mnemonicToSeed(mnemonic);
 
   const master = HDKey.fromMasterSeed(seed);
-  const derived = master.derive("m/44'/12586'/0'/0/0");
+  const derivationPath = `m/44'/12586'/${accountIndex}'/0/0`;
+  const derived = master.derive(derivationPath);
 
   if (!derived.privateKey) {
     throw new Error('Could not derive private key');
