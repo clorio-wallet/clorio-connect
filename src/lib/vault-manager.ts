@@ -346,6 +346,11 @@ export class VaultManager {
    * @param name - New name
    */
   static async updateWalletName(walletId: string, name: string): Promise<void> {
+    console.log('[VaultManager] updateWalletName called with:', {
+      walletId,
+      name,
+    });
+
     // Validate name first
     const nameValidation = VaultValidator.validateWalletName(name);
     if (!nameValidation.valid) {
@@ -356,16 +361,34 @@ export class VaultManager {
 
     const vault = await this.loadVault();
     if (!vault) {
+      console.error('[VaultManager] No vault found');
       throw new Error('No vault found');
     }
 
+    console.log('[VaultManager] Vault loaded with wallets:', {
+      count: vault.wallets.length,
+      walletIds: vault.wallets.map((w) => ({ id: w.id, name: w.name })),
+      lookingFor: walletId,
+    });
+
     const wallet = vault.wallets.find((w) => w.id === walletId);
     if (!wallet) {
+      console.error('[VaultManager] Wallet not found!', {
+        searchId: walletId,
+        availableIds: vault.wallets.map((w) => w.id),
+      });
       throw new Error('Wallet not found');
     }
 
+    console.log('[VaultManager] Found wallet, updating name:', {
+      oldName: wallet.name,
+      newName: name.trim(),
+    });
+
     wallet.name = name.trim();
     await this.saveVault(vault);
+
+    console.log('[VaultManager] Wallet name updated successfully');
   }
 
   /**

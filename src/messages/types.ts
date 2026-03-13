@@ -22,6 +22,7 @@ export interface DeriveKeysMessage extends BaseMessage {
   type: 'DERIVE_KEYS_FROM_MNEMONIC';
   payload: {
     mnemonic: string;
+    accountIndex?: number;
   };
 }
 
@@ -44,6 +45,7 @@ export interface SignPaymentMessage extends BaseMessage {
       nonce: string;
     };
     password: string;
+    walletId?: string;
   };
 }
 
@@ -58,6 +60,7 @@ export interface SignDelegationMessage extends BaseMessage {
       memo?: string;
     };
     password: string;
+    walletId?: string;
   };
 }
 

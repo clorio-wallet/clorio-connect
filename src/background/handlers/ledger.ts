@@ -105,15 +105,24 @@ export async function handleSubmitPayment(
   sendResponse: (r: LedgerSubmitTxResponse) => void,
 ): Promise<void> {
   try {
-    const { signature, from, to, amount, fee, nonce, memo, validUntil } = payload;
+    const { signature, from, to, amount, fee, nonce, memo, validUntil } =
+      payload;
 
     console.log('[ledger] LEDGER_SUBMIT_PAYMENT broadcasting:', {
-      from, to, amount, fee, nonce, memo, validUntil, signature,
+      from,
+      to,
+      amount,
+      fee,
+      nonce,
+      memo,
+      validUntil,
+      signature,
     });
 
-    const result = await restPost<{ hash: string }>('/v1/mina/transactions/payment', {
+    const result = await restPost<{ hash: string }>('/v1/mina/transaction', {
       input: {
-        from, to,
+        from,
+        to,
         amount: amount.toString(),
         fee: fee.toString(),
         nonce: nonce.toString(),
@@ -151,19 +160,29 @@ export async function handleSubmitDelegation(
     const { signature, from, to, fee, nonce, memo, validUntil } = payload;
 
     console.log('[ledger] LEDGER_SUBMIT_DELEGATION broadcasting:', {
-      from, to, fee, nonce, memo, validUntil, signature,
-    });
-
-    const result = await restPost<{ hash: string }>('/v1/mina/transactions/delegation', {
-      input: {
-        from, to,
-        fee: fee.toString(),
-        nonce: nonce.toString(),
-        memo,
-        validUntil: validUntil.toString(),
-      },
+      from,
+      to,
+      fee,
+      nonce,
+      memo,
+      validUntil,
       signature,
     });
+
+    const result = await restPost<{ hash: string }>(
+      '/v1/mina/transactions/delegation',
+      {
+        input: {
+          from,
+          to,
+          fee: fee.toString(),
+          nonce: nonce.toString(),
+          memo,
+          validUntil: validUntil.toString(),
+        },
+        signature,
+      },
+    );
 
     sendResponse({ success: true, hash: result.hash });
   } catch (error) {

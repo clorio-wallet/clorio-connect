@@ -6,15 +6,17 @@
  *   - VALIDATE_PRIVATE_KEY       — checks whether a raw private key is valid
  *   - SIGN_DELEGATION            — signs a stake delegation using the vault password
  *
- * The vault is an AES-encrypted blob stored in chrome.storage.local under the
- * key `clorio_vault`.  It may contain either a mnemonic phrase or a raw
- * private key, distinguished by the `type` field.
+ * Updated for Multi-Wallet System (v2):
+ *   - Uses VaultManager for vault operations
+ *   - Supports multiple wallets under single vault
+ *   - Signs using active wallet or specified walletId
  */
 
 import Client from 'mina-signer';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
 import { CryptoService } from '@/lib/crypto';
 import { storage } from '@/lib/storage';
+import { VaultManager } from '@/lib/vault-manager';
 import type {
   DeriveKeysResponse,
   SignPaymentResponse,
@@ -26,9 +28,9 @@ import type {
 
 const client = new Client({ network: 'mainnet' });
 
-// ─── Vault ────────────────────────────────────────────────────────────────────
+// ─── Vault (Legacy v1 support) ────────────────────────────────────────────────
 
-interface VaultData {
+interface LegacyVaultData {
   encryptedSeed: string;
   salt: string;
   iv: string;
@@ -37,27 +39,69 @@ interface VaultData {
 }
 
 /**
- * Decrypts the vault with the given password and returns the private key.
- * - If the vault type is `mnemonic` (or unset), derives the private key via BIP44.
- * - If the vault type is `privateKey`, returns the decrypted value directly.
- * - Throws if the vault is missing or the password is wrong.
+ * Gets the private key from the active wallet in the vault.
+ *
+ * Supports both:
+ * - Vault v2 (multi-wallet): Uses VaultManager to get active wallet's private key
+ * - Vault v1 (legacy): Falls back to old vault format for backward compatibility
+ *
+ * @param password - User password for decryption
+ * @param walletId - Optional wallet ID (defaults to active wallet)
+ * @returns Decrypted private key
+ * @throws If vault is missing, password is wrong, or wallet not found
  */
-export async function getPrivateKeyFromVault(password: string): Promise<string> {
-  const vault = await storage.get<VaultData>('clorio_vault');
+export async function getPrivateKeyFromVault(
+  password: string,
+  walletId?: string,
+): Promise<string> {
+  // Try vault v2 first (multi-wallet)
+  const vault = await VaultManager.loadVault();
 
-  if (!vault) {
+  if (vault) {
+    // Vault v2 exists - use VaultManager
+    const targetWalletId = walletId || vault.activeWalletId;
+    const wallet = vault.wallets.find((w) => w.id === targetWalletId);
+
+    if (!wallet) {
+      throw new Error(`Wallet ${targetWalletId} not found in vault.`);
+    }
+
+    // For ledger wallets, we don't have a private key
+    if (wallet.type === 'ledger') {
+      throw new Error(
+        'Cannot get private key from Ledger wallet. Use hardware signing.',
+      );
+    }
+
+    // Decrypt the wallet's secret
+    const secret = await VaultManager.getPrivateKey(password, targetWalletId);
+
+    // If mnemonic, derive private key
+    if (wallet.type === 'mnemonic' || wallet.type === 'seed') {
+      const accountIndex = wallet.accountIndex ?? 0;
+      return deriveMinaPrivateKey(secret, accountIndex);
+    }
+
+    // Otherwise it's already a private key
+    return secret;
+  }
+
+  // Fallback to legacy vault v1 for backward compatibility
+  const legacyVault = await storage.get<LegacyVaultData>('clorio_vault');
+
+  if (!legacyVault) {
     throw new Error('No wallet vault found in storage.');
   }
 
   const decrypted = await CryptoService.decrypt(
-    vault.encryptedSeed,
+    legacyVault.encryptedSeed,
     password,
-    vault.salt,
-    vault.iv,
+    legacyVault.salt,
+    legacyVault.iv,
   );
 
-  if (!vault.type || vault.type === 'mnemonic') {
-    return deriveMinaPrivateKey(decrypted);
+  if (!legacyVault.type || legacyVault.type === 'mnemonic') {
+    return deriveMinaPrivateKey(decrypted, 0);
   }
 
   return decrypted;
@@ -68,13 +112,18 @@ export async function getPrivateKeyFromVault(password: string): Promise<string> 
 /**
  * Handle DERIVE_KEYS_FROM_MNEMONIC.
  * Derives the Mina private key from the mnemonic and returns both keys.
+ * Supports optional account index for BIP44 derivation.
  */
 export async function handleDeriveKeys(
-  payload: { mnemonic: string },
+  payload: { mnemonic: string; accountIndex?: number },
   sendResponse: (r: DeriveKeysResponse | { error: string }) => void,
 ): Promise<void> {
   try {
-    const privateKey = await deriveMinaPrivateKey(payload.mnemonic);
+    const accountIndex = payload.accountIndex ?? 0;
+    const privateKey = await deriveMinaPrivateKey(
+      payload.mnemonic,
+      accountIndex,
+    );
     const publicKey = client.derivePublicKey(privateKey);
     sendResponse({ privateKey, publicKey });
   } catch (error) {
@@ -105,6 +154,7 @@ export function handleValidatePrivateKey(
 /**
  * Handle SIGN_PAYMENT.
  * Decrypts the vault with the supplied password and signs the payment.
+ * Uses the active wallet or specified walletId.
  */
 export async function handleSignPayment(
   payload: {
@@ -117,11 +167,15 @@ export async function handleSignPayment(
       memo?: string;
     };
     password: string;
+    walletId?: string;
   },
   sendResponse: (r: SignPaymentResponse | { error: string }) => void,
 ): Promise<void> {
   try {
-    const privateKey = await getPrivateKeyFromVault(payload.password);
+    const privateKey = await getPrivateKeyFromVault(
+      payload.password,
+      payload.walletId,
+    );
 
     const payment = {
       from: payload.payment.from,
@@ -160,6 +214,7 @@ export async function handleSignPayment(
 /**
  * Handle SIGN_DELEGATION.
  * Decrypts the vault with the supplied password and signs the stake delegation.
+ * Uses the active wallet or specified walletId.
  */
 export async function handleSignDelegation(
   payload: {
@@ -171,11 +226,15 @@ export async function handleSignDelegation(
       memo?: string;
     };
     password: string;
+    walletId?: string;
   },
   sendResponse: (r: SignDelegationResponse | { error: string }) => void,
 ): Promise<void> {
   try {
-    const privateKey = await getPrivateKeyFromVault(payload.password);
+    const privateKey = await getPrivateKeyFromVault(
+      payload.password,
+      payload.walletId,
+    );
 
     const stakeDelegation = {
       from: payload.delegation.from,

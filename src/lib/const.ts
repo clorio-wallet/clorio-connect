@@ -7,5 +7,5 @@ export const NO_ANIMATION_ROUTES: string[] = [
 
 export const FEATURES = {
   SEND_TX_ENABLED: true,
-  DRY_RUN_SEND_TX: true,
+  DRY_RUN_SEND_TX: false,
 };
