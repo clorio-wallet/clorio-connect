@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatBalance, cn, formatTimestamp } from '@/lib/utils';
@@ -103,6 +103,42 @@ export function TransactionCard({
               className="text-[10px] h-5 px-1.5 font-normal"
             >
               {t(`transactions.status.${status}`)}
+            </Badge>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+export function WalletCreationFeeCard() {
+  const { t } = useTranslation();
+
+  return (
+    <Card className="p-4 border border-amber-500/15 bg-amber-500/5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full flex items-center justify-center bg-amber-500/15 text-amber-500">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <div className="font-medium text-sm text-amber-700 dark:text-amber-300">
+              {t('transactions.wallet_creation_fee_title')}
+            </div>
+            <div className="text-xs text-amber-700/80 dark:text-amber-300/80">
+              {t('transactions.wallet_creation_fee_description')}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-right space-y-1">
+          <div className="font-semibold text-amber-600">-1 MINA</div>
+          <div className="flex items-center justify-end gap-1.5">
+            <Badge
+              variant="secondary"
+              className="text-[10px] h-5 px-1.5 font-normal bg-amber-500/15 text-amber-700 hover:bg-amber-500/15 dark:text-amber-300"
+            >
+              {t('transactions.wallet_creation_fee_badge')}
             </Badge>
           </div>
         </div>

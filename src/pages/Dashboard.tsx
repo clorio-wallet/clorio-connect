@@ -1,51 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { AccountCard } from '@/components/wallet/account-card';
 import { useNavigate } from 'react-router-dom';
-import { useSessionStore } from '@/stores/session-store';
-import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { AppHeader } from '@/components/dashboard/dashboard-header';
+import { WalletSwitcher } from '@/components/wallet/wallet-switcher';
 import { WalletActions } from '@/components/wallet/wallet-actions';
 import { ReceiveSheet } from '@/components/wallet/receive-sheet';
 import { DashboardTransactionList } from '@/components/dashboard/dashboard-transaction-list';
+import { useWalletStore } from '@/stores/wallet-store';
 
 const DashboardPage: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { resetWallet } = useSessionStore();
-  const { toast } = useToast();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewKeyDialogOpen, setIsViewKeyDialogOpen] = useState(false);
   const [isReceiveSheetOpen, setIsReceiveSheetOpen] = useState(false);
+  const [isWalletSwitcherOpen, setIsWalletSwitcherOpen] = useState(false);
 
-  const { publicKey, network, account, displayLoading } = useDashboardData();
+  const { publicKey, network, account, displayLoading, refetchAccount } = useDashboardData();
+  const isLedger = useWalletStore((state) => state.accountType === 'ledger');
 
   useEffect(() => {
     if (!publicKey) {
       navigate('/welcome');
     }
   }, [publicKey, navigate]);
-
-  const handleDeleteWallet = async () => {
-    await resetWallet();
-    toast({
-      title: t('dashboard.delete_wallet_title'),
-      description: t('dashboard.delete_wallet_desc'),
-    });
-    navigate('/welcome');
-  };
 
   return (
     <div className="space-y-6 py-2">
@@ -57,14 +35,9 @@ const DashboardPage: React.FC = () => {
           isLoading={displayLoading}
           explorerUrl={`${network.explorerUrl}/account/${publicKey}`}
           onSelect={() => {}}
-          onRename={() => {
-            toast({
-              title: 'Not Implemented',
-              description: 'Renaming accounts will be available soon.',
-            });
-          }}
-          onDelete={() => setIsDeleteDialogOpen(true)}
-          onViewPrivateKey={() => setIsViewKeyDialogOpen(true)}
+          onViewPrivateKey={isLedger ? undefined : () => setIsViewKeyDialogOpen(true)}
+          onSwitchWallet={() => setIsWalletSwitcherOpen(true)}
+          onRefreshBalance={refetchAccount}
         />
         <WalletActions
           onReceiveClick={() => setIsReceiveSheetOpen(true)}
@@ -77,31 +50,6 @@ const DashboardPage: React.FC = () => {
         displayLoading={displayLoading}
       />
 
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('dashboard.confirm_delete_title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('dashboard.confirm_delete_desc')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteWallet}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t('dashboard.delete_wallet')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <ViewPrivateKeySheet
         open={isViewKeyDialogOpen}
         onOpenChange={setIsViewKeyDialogOpen}
@@ -111,6 +59,11 @@ const DashboardPage: React.FC = () => {
         open={isReceiveSheetOpen}
         onOpenChange={setIsReceiveSheetOpen}
         address={publicKey || ''}
+      />
+
+      <WalletSwitcher
+        open={isWalletSwitcherOpen}
+        onOpenChange={setIsWalletSwitcherOpen}
       />
     </div>
   );

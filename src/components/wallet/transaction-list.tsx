@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { TransactionCard } from "./transaction-card";
+import { TransactionCard, WalletCreationFeeCard } from "./transaction-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { Transaction, useGetTransactions } from "@/api/mina/transactions";
@@ -58,20 +58,34 @@ export function TransactionList(props: TransactionListProps) {
           </div>
         )
       ) : (
-        items.map((tx, index) => (
-          <motion.div
-            key={tx.id || tx.hash}
-            className="py-1.5"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-          >
-            <TransactionCard
-              {...tx}
-              onClick={() => onTransactionClick?.(tx)}
-            />
-          </motion.div>
-        ))
+        <>
+          {items.map((tx, index) => (
+            <React.Fragment key={tx.id || tx.hash}>
+              <motion.div
+                className="py-1.5"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <TransactionCard
+                  {...tx}
+                  onClick={() => onTransactionClick?.(tx)}
+                />
+              </motion.div>
+
+              {index === 0 && (
+                <motion.div
+                  className="py-1.5"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.05 }}
+                >
+                  <WalletCreationFeeCard />
+                </motion.div>
+              )}
+            </React.Fragment>
+          ))}
+        </>
       )}
     </div>
   );

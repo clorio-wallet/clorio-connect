@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Lock, RefreshCcw, SquareArrowOutUpRight, WifiOff } from 'lucide-react';
+import {
+  Lock,
+  SquareArrowOutUpRight,
+  WifiOff,
+  Wallet,
+  MoreVertical,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkBadge } from '@/components/wallet';
-
+import { WalletSwitcher } from '@/components/wallet/wallet-switcher';
+import { useWalletStore } from '@/stores/wallet-store';
 
 import {
   Tooltip,
@@ -12,10 +19,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
 import { useOnlineStatus } from '@/hooks/use-online-status';
+import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
 
 export const AppHeader: React.FC = () => {
   const { t } = useTranslation();
@@ -23,21 +37,13 @@ export const AppHeader: React.FC = () => {
   const { logout } = useSessionStore();
   const { toast } = useToast();
   const isOnline = useOnlineStatus();
+  const { accountName, wallets } = useWalletStore();
+  const { isPopup } = useSidePanelMode();
+  const [isWalletSwitcherOpen, setIsWalletSwitcherOpen] = useState(false);
 
-  const { network, healthData, minaInfo, displayLoading, refetchAccount } =
-    useDashboardData();
+  const { network, healthData, minaInfo } = useDashboardData();
 
-  const handleRefresh = () => {
-    if (!isOnline) {
-      toast({
-        title: t('common.offline', 'Offline'),
-        description: t('common.offline_desc', 'You are currently offline. Please check your internet connection.'),
-        variant: 'destructive',
-      });
-      return;
-    }
-    refetchAccount();
-  };
+  const showWalletSwitcher = wallets.length > 1;
 
   const handleOpenWindow = async () => {
     try {
@@ -84,95 +90,132 @@ export const AppHeader: React.FC = () => {
   };
 
   return (
-    <header className="flex justify-between items-center">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <NetworkBadge network={network.name} />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-xs space-y-1">
-              {!isOnline ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 text-destructive font-medium">
-                    <WifiOff className="h-3 w-3" />
-                    <span>{t('dashboard.offline_mode', 'Offline Mode')}</span>
-                  </div>
-                  <p className="text-muted-foreground max-w-[200px]">
-                    {t(
-                      'dashboard.offline_data_desc',
-                      'Showing data from last connection',
-                    )}
-                  </p>
-                  <div className="pt-1 border-t border-border/50 space-y-1 opacity-70">
-                    <p>
-                      {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
-                    </p>
-                    <p>
-                      {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
-                    </p>
-                  </div>
+    <>
+      <header className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="shrink-0">
+                  <NetworkBadge network={network.name} />
                 </div>
-              ) : (
-                <>
-                  <p>
-                    {t('dashboard.status')}:{' '}
-                    <span
-                      className={
-                        healthData?.status === 'ok'
-                          ? 'text-green-500'
-                          : 'text-red-500'
-                      }
-                    >
-                      {healthData?.status || t('dashboard.checking')}
-                    </span>
-                  </p>
-                  <p>
-                    {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
-                  </p>
-                  <p>
-                    {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
-                  </p>
-                  <p>
-                    {t('dashboard.slot')}: {minaInfo?.slot ?? '-'}
-                  </p>
-                </>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <div className="flex gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleOpenWindow}
-          title={t('dashboard.open_window', 'Open in new window')}
-        >
-          <SquareArrowOutUpRight className="h-5 w-5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleRefresh}
-          title={t('dashboard.refresh_balance')}
-          disabled={displayLoading}
-        >
-          <RefreshCcw
-            className={`h-5 w-5 ${displayLoading ? 'animate-spin' : ''}`}
-          />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          title={t('dashboard.logout')}
-        >
-          <Lock className="h-5 w-5" />
-        </Button>
-      </div>
-    </header>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1 text-xs">
+                  {!isOnline ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2 font-medium text-destructive">
+                        <WifiOff className="h-3 w-3" />
+                        <span>
+                          {t('dashboard.offline_mode', 'Offline Mode')}
+                        </span>
+                      </div>
+                      <p className="max-w-[200px] text-muted-foreground">
+                        {t(
+                          'dashboard.offline_data_desc',
+                          'Showing data from last connection',
+                        )}
+                      </p>
+                      <div className="space-y-1 border-t border-border/50 pt-1 opacity-70">
+                        <p>
+                          {t('dashboard.block_height')}:{' '}
+                          {minaInfo?.height ?? '-'}
+                        </p>
+                        <p>
+                          {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p>
+                        {t('dashboard.status')}:{' '}
+                        <span
+                          className={
+                            healthData?.status === 'ok'
+                              ? 'text-green-500'
+                              : 'text-red-500'
+                          }
+                        >
+                          {healthData?.status || t('dashboard.checking')}
+                        </span>
+                      </p>
+                      <p>
+                        {t('dashboard.block_height')}: {minaInfo?.height ?? '-'}
+                      </p>
+                      <p>
+                        {t('dashboard.epoch')}: {minaInfo?.epoch ?? '-'}
+                      </p>
+                      <p>
+                        {t('dashboard.slot')}: {minaInfo?.slot ?? '-'}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsWalletSwitcherOpen(true)}
+            className="min-w-0 max-w-fit flex-1 justify-start gap-2 overflow-hidden px-2 sm:flex-none sm:px-3 border border-transparent hover:bg-transparent hover:border-white/40 "
+          >
+            <Wallet className="h-4 w-4 shrink-0" />
+            <span className="truncate text-sm">{accountName || 'Wallet'}</span>
+          </Button>
+        </div>
+
+        {isPopup ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0"
+                title={t('common.actions', 'Actions')}
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={handleOpenWindow}>
+                <SquareArrowOutUpRight className="mr-2 h-4 w-4" />
+                {t('dashboard.open_window', 'Open in new window')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <Lock className="mr-2 h-4 w-4" />
+                {t('dashboard.logout')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex shrink-0 gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleOpenWindow}
+              title={t('dashboard.open_window', 'Open in new window')}
+            >
+              <SquareArrowOutUpRight className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              title={t('dashboard.logout')}
+            >
+              <Lock className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+      </header>
+
+      <WalletSwitcher
+        open={isWalletSwitcherOpen}
+        onOpenChange={setIsWalletSwitcherOpen}
+      />
+    </>
   );
 };

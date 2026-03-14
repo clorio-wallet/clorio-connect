@@ -35,7 +35,7 @@ export function AddressDisplay({
   const handleCopy = async () => {
     await navigator.clipboard.writeText(address);
     setCopied(true);
-    // Auto-clear per sicurezza (60s come da spec)
+    // Auto-clear for safety after 60s, per spec
     setTimeout(() => {
       setCopied(false);
       // Attempt to clear clipboard
