@@ -16,8 +16,11 @@ import { PasswordInput } from '@/components/wallet/password-input';
 import { storage } from '@/lib/storage';
 import { CryptoService } from '@/lib/crypto';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
+import { useWalletStore } from '@/stores/wallet-store';
+import { VaultManager } from '@/lib/vault-manager';
+import type { WalletEntry } from '@/lib/types/vault';
 
-interface VaultData {
+interface LegacyVaultData {
   encryptedSeed: string;
   salt: string;
   iv: string;
@@ -36,6 +39,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
 }) => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { activeWalletId, wallets } = useWalletStore();
   const [step, setStep] = useState<'warning' | 'password' | 'display'>('warning');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -62,30 +66,55 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
     setError('');
 
     try {
-      const vault = await storage.get<VaultData>('clorio_vault');
-      if (!vault) {
-        throw new Error('No wallet found');
-      }
-
-      const secret = await CryptoService.decrypt(
-        vault.encryptedSeed,
-        password,
-        vault.salt,
-        vault.iv,
-      );
+      const activeWallet = wallets.find((wallet) => wallet.id === activeWalletId);
 
       let privateKey = '';
-      if (vault.type === 'privateKey') {
-        privateKey = secret.trim();
+
+      if (activeWalletId && activeWallet) {
+        if (activeWallet.type === 'ledger') {
+          throw new Error('Ledger wallets do not expose a private key');
+        }
+
+        const secret = await VaultManager.getPrivateKey(password, activeWalletId);
+
+        if (activeWallet.type === 'privateKey') {
+          privateKey = secret.trim();
+        } else {
+          privateKey = await deriveMinaPrivateKey(
+            secret,
+            activeWallet.accountIndex ?? 0,
+          );
+        }
       } else {
-        privateKey = await deriveMinaPrivateKey(secret);
+        const legacyVault = await storage.get<LegacyVaultData>('clorio_vault');
+        if (!legacyVault) {
+          throw new Error('No wallet found');
+        }
+
+        const secret = await CryptoService.decrypt(
+          legacyVault.encryptedSeed,
+          password,
+          legacyVault.salt,
+          legacyVault.iv,
+        );
+
+        if (legacyVault.type === 'privateKey') {
+          privateKey = secret.trim();
+        } else {
+          privateKey = await deriveMinaPrivateKey(secret);
+        }
       }
 
       setRevealedKey(privateKey);
       setStep('display');
     } catch (error) {
       console.error('Failed to verify password:', error);
-      setError(t('security.view_private_key.incorrect_password'));
+      const message = error instanceof Error ? error.message : '';
+      if (message.includes('Ledger wallets do not expose a private key')) {
+        setError(t('security.view_private_key.key_unavailable'));
+      } else {
+        setError(t('security.view_private_key.incorrect_password'));
+      }
     } finally {
       setIsLoading(false);
     }

@@ -34,7 +34,9 @@ export const MethodSelectionSheet: React.FC<MethodSelectionSheetProps> = ({
   // clorio_onboarding_password from chrome.storage.session — no extra
   // password passing needed here.
   const handleLedgerImport = useCallback(() => {
-    const popupUrl = chrome.runtime.getURL('src/popup/index.html#/onboarding/ledger');
+    const popupUrl = chrome.runtime.getURL(
+      'src/popup/index.html#/onboarding/ledger',
+    );
     chrome.tabs.create({ url: popupUrl, active: true });
     // Close the popup/sidepanel — the user continues in the new tab.
     window.close();
@@ -47,9 +49,9 @@ export const MethodSelectionSheet: React.FC<MethodSelectionSheetProps> = ({
           <BottomSheetTitle className="text-3xl font-alt font-normal">
             {t('onboarding.method_sheet.title')}
           </BottomSheetTitle>
-          <BottomSheetDescription className="text-base mt-2 text-muted-foreground">
+          {/*<BottomSheetDescription className="text-base mt-2 text-muted-foreground">
             {t('onboarding.method_sheet.desc')}
-          </BottomSheetDescription>
+          </BottomSheetDescription>*/}
         </BottomSheetHeader>
 
         <div className="px-6 py-6 flex flex-col gap-4">

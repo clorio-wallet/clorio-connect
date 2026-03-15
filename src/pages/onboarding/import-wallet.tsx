@@ -9,8 +9,10 @@ import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
 import { AppMessage, ValidatePrivateKeyResponse } from '@/messages/types';
 import { useWalletStore } from '@/stores/wallet-store';
-import { CryptoService } from '@/lib/crypto';
-import { storage } from '@/lib/storage';
+import { useTranslation } from 'react-i18next';
+import { VaultManager } from '@/lib/vault-manager';
+import { BIP44Service } from '@/lib/bip44';
+import { DEFAULT_WALLET_NAME_PREFIX } from '@/lib/types/vault';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +21,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useTranslation } from 'react-i18next';
 
 export const ImportWalletPage: React.FC = () => {
   const { t } = useTranslation();
@@ -73,19 +74,19 @@ export const ImportWalletPage: React.FC = () => {
     setIsImporting(true);
 
     try {
-      let secretToEncrypt = '';
-      let secretType: 'mnemonic' | 'privateKey' = 'mnemonic';
-      let derivedKeys = { publicKey: '', privateKey: '' };
+      let secret: string;
+      let walletType: 'mnemonic' | 'privateKey';
+      let derivedPublicKey: string;
 
       if (activeTab === 'mnemonic') {
-        secretType = 'mnemonic';
+        walletType = 'mnemonic';
         const mnemonicString = mnemonic.join(' ');
-        secretToEncrypt = mnemonicString;
+        secret = mnemonicString;
 
-        // Derive keys
+        // Derive keys to get public key
         const message: AppMessage = {
           type: 'DERIVE_KEYS_FROM_MNEMONIC',
-          payload: { mnemonic: mnemonicString },
+          payload: { mnemonic: mnemonicString, accountIndex: 0 },
         };
         const response = (await chrome.runtime.sendMessage(message)) as
           | { publicKey: string; privateKey: string }
@@ -94,9 +95,10 @@ export const ImportWalletPage: React.FC = () => {
         if ('error' in response) {
           throw new Error(response.error);
         }
-        derivedKeys = response;
+        derivedPublicKey = response.publicKey;
+        setDebugKeys(response);
       } else {
-        secretType = 'privateKey';
+        walletType = 'privateKey';
         if (!privateKey.startsWith('EK')) {
           toast({
             variant: 'destructive',
@@ -124,35 +126,40 @@ export const ImportWalletPage: React.FC = () => {
           setIsImporting(false);
           return;
         }
-        secretToEncrypt = privateKey.trim();
-        derivedKeys = {
-          publicKey: response.publicKey || '',
-          privateKey: privateKey.trim(),
-        };
+        secret = privateKey.trim();
+        derivedPublicKey = response.publicKey || '';
+        setDebugKeys({
+          publicKey: derivedPublicKey,
+          privateKey: secret,
+        });
       }
 
-      // Encrypt the secret
-      const encryptedData = await CryptoService.encrypt(
-        secretToEncrypt,
-        tempPassword,
-      );
-
-      // Save vault
-      await storage.set('clorio_vault', {
-        encryptedSeed: encryptedData.ciphertext,
-        salt: encryptedData.salt,
-        iv: encryptedData.iv,
-        version: 1,
-        type: secretType,
-        createdAt: Date.now(),
+      // Create vault v2 with imported wallet
+      const vault = await VaultManager.createVault(tempPassword, {
+        name: `${DEFAULT_WALLET_NAME_PREFIX}1`,
+        secret,
+        type: walletType,
+        derivationPath:
+          walletType === 'mnemonic'
+            ? BIP44Service.getDerivationPath(0)
+            : undefined,
+        accountIndex: walletType === 'mnemonic' ? 0 : undefined,
       });
+
+      const firstWallet = vault.wallets[0];
 
       setHasVault(true);
       setIsAuthenticated(true);
 
-      setWallet({ publicKey: derivedKeys.publicKey, accountId: null });
+      // Set wallet in store with v2 format
+      setWallet({
+        publicKey: firstWallet.publicKey,
+        accountId: null,
+        walletId: firstWallet.id,
+        accountType: 'software',
+        accountName: firstWallet.name,
+      });
 
-      setDebugKeys(derivedKeys);
       setShowDebug(true);
 
       toast({
@@ -192,8 +199,12 @@ export const ImportWalletPage: React.FC = () => {
       >
         <div className="px-4 shrink-0">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="mnemonic">{t('onboarding.import.tab_mnemonic')}</TabsTrigger>
-            <TabsTrigger value="privateKey">{t('onboarding.import.tab_private_key')}</TabsTrigger>
+            <TabsTrigger value="mnemonic">
+              {t('onboarding.import.tab_mnemonic')}
+            </TabsTrigger>
+            <TabsTrigger value="privateKey">
+              {t('onboarding.import.tab_private_key')}
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -206,10 +217,14 @@ export const ImportWalletPage: React.FC = () => {
           </TabsContent>
           <TabsContent value="privateKey" className="mt-0 space-y-4 h-full">
             <div className="space-y-2">
-              <Label htmlFor="private-key">{t('onboarding.import.input_label_private_key')}</Label>
+              <Label htmlFor="private-key">
+                {t('onboarding.import.input_label_private_key')}
+              </Label>
               <Input
                 id="private-key"
-                placeholder={t('onboarding.import.input_placeholder_private_key')}
+                placeholder={t(
+                  'onboarding.import.input_placeholder_private_key',
+                )}
                 value={privateKey}
                 onChange={(e) => setPrivateKey(e.target.value)}
                 type="password"
@@ -235,7 +250,9 @@ export const ImportWalletPage: React.FC = () => {
           onClick={handleFinish}
           disabled={isImporting}
         >
-          {isImporting ? t('onboarding.import.button_importing') : t('onboarding.import.button_import')}
+          {isImporting
+            ? t('onboarding.import.button_importing')
+            : t('onboarding.import.button_import')}
         </Button>
       </div>
 
@@ -252,20 +269,26 @@ export const ImportWalletPage: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>{t('onboarding.wallet_keys_sheet.public_key_label')}</Label>
+              <Label>
+                {t('onboarding.wallet_keys_sheet.public_key_label')}
+              </Label>
               <div className="p-2 bg-muted rounded-md break-all font-mono text-xs">
                 {debugKeys?.publicKey}
               </div>
             </div>
             <div className="space-y-2">
-              <Label>{t('onboarding.wallet_keys_sheet.private_key_label')}</Label>
+              <Label>
+                {t('onboarding.wallet_keys_sheet.private_key_label')}
+              </Label>
               <div className="p-2 bg-muted rounded-md break-all font-mono text-xs">
                 {debugKeys?.privateKey}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleCloseDebug}>{t('onboarding.import.go_dashboard')}</Button>
+            <Button onClick={handleCloseDebug}>
+              {t('onboarding.import.go_dashboard')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

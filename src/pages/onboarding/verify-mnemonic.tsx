@@ -6,21 +6,18 @@ import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
 import { useWalletStore } from '@/stores/wallet-store';
-import { CryptoService } from '@/lib/crypto';
-import { storage } from '@/lib/storage';
-import { AppMessage, DeriveKeysResponse } from '@/messages/types';
+import { VaultManager } from '@/lib/vault-manager';
+import { BIP44Service } from '@/lib/bip44';
+import { DEFAULT_WALLET_NAME_PREFIX } from '@/lib/types/vault';
+
 import { useTranslation } from 'react-i18next';
 
 export const VerifyMnemonicPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const {
-    tempMnemonic,
-    tempPassword,
-    setHasVault,
-    setIsAuthenticated,
-  } = useSessionStore();
+  const { tempMnemonic, tempPassword, setHasVault, setIsAuthenticated } =
+    useSessionStore();
   const { setWallet } = useWalletStore();
 
   const [verificationIndices, setVerificationIndices] = useState<number[]>([]);
@@ -58,7 +55,9 @@ export const VerifyMnemonicPage: React.FC = () => {
         toast({
           variant: 'destructive',
           title: t('onboarding.verify.error_verify_failed'),
-          description: t('onboarding.verify.error_verify_failed_desc', { index: index + 1 }),
+          description: t('onboarding.verify.error_verify_failed_desc', {
+            index: index + 1,
+          }),
         });
         return;
       }
@@ -68,52 +67,33 @@ export const VerifyMnemonicPage: React.FC = () => {
     try {
       const mnemonicString = tempMnemonic!.join(' ');
 
-      // Derive keys first
-      const message: AppMessage = {
-        type: 'DERIVE_KEYS_FROM_MNEMONIC',
-        payload: { mnemonic: mnemonicString },
-      };
-      const response = (await chrome.runtime.sendMessage(message)) as
-        | DeriveKeysResponse
-        | { error: string };
-
-      if ('error' in response) {
-        throw new Error(response.error);
-      }
-      const { publicKey } = response;
-
-      // Encrypt mnemonic
-      const encryptedData = await CryptoService.encrypt(
-        mnemonicString,
-        tempPassword!,
-      );
-
-      // Save vault
-      await storage.set('clorio_vault', {
-        encryptedSeed: encryptedData.ciphertext,
-        salt: encryptedData.salt,
-        iv: encryptedData.iv,
-        version: 1,
+      // Create vault v2 with first wallet
+      const vault = await VaultManager.createVault(tempPassword!, {
+        name: `${DEFAULT_WALLET_NAME_PREFIX}1`,
+        secret: mnemonicString,
         type: 'mnemonic',
-        createdAt: Date.now(),
+        derivationPath: BIP44Service.getDerivationPath(0),
+        accountIndex: 0,
       });
+
+      const firstWallet = vault.wallets[0];
 
       setHasVault(true);
       setIsAuthenticated(true);
 
-      setWallet({ publicKey, accountId: null });
+      // Set wallet in store with v2 format
+      setWallet({
+        publicKey: firstWallet.publicKey,
+        accountId: null,
+        walletId: firstWallet.id,
+        accountType: 'software',
+        accountName: firstWallet.name,
+      });
 
       toast({
         title: t('onboarding.verify.success_title'),
         description: t('onboarding.verify.success_desc'),
       });
-
-      // Clear temp session data
-      // We don't want to clear session completely, just temp data?
-      // Actually session store might handle this or we just navigate
-      // clearSession() would clear tempPassword too, but we are authenticated now?
-      // The session store seems to keep tempPassword for the session?
-      // Let's assume we just navigate.
     } catch (error) {
       console.error('Failed to create wallet:', error);
       toast({
@@ -129,7 +109,9 @@ export const VerifyMnemonicPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full space-y-6 py-4">
       <div className="space-y-2">
-        <h1 className="text-xl font-bold">{t('onboarding.verify.title_page')}</h1>
+        <h1 className="text-xl font-bold">
+          {t('onboarding.verify.title_page')}
+        </h1>
         <p className="text-sm text-muted-foreground">
           {t('onboarding.verify.desc_page')}
         </p>
@@ -137,10 +119,14 @@ export const VerifyMnemonicPage: React.FC = () => {
       <div className="flex-1 space-y-4">
         {verificationIndices.map((index) => (
           <div key={index} className="space-y-2">
-            <Label htmlFor={`word-${index}`}>{t('onboarding.verify.label_word', { index: index + 1 })}</Label>
+            <Label htmlFor={`word-${index}`}>
+              {t('onboarding.verify.label_word', { index: index + 1 })}
+            </Label>
             <Input
               id={`word-${index}`}
-              placeholder={t('onboarding.verify.placeholder_word', { index: index + 1 })}
+              placeholder={t('onboarding.verify.placeholder_word', {
+                index: index + 1,
+              })}
               value={verificationValues[index] || ''}
               onChange={(e) =>
                 setVerificationValues((prev) => ({
@@ -169,7 +155,9 @@ export const VerifyMnemonicPage: React.FC = () => {
           disabled={Object.keys(verificationValues).length !== 3 || isCreating}
           onClick={handleVerifyAndFinish}
         >
-          {isCreating ? t('onboarding.verify.creating') : t('onboarding.verify.verify_button')}
+          {isCreating
+            ? t('onboarding.verify.creating')
+            : t('onboarding.verify.verify_button')}
         </Button>
       </div>
     </div>

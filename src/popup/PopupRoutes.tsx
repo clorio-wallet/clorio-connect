@@ -17,6 +17,7 @@ import {
 import { PopupLayout } from './PopupLayout';
 
 const PlaygroundPage = lazy(() => import('./Playground'));
+const VaultTestingPage = lazy(() => import('@/pages/VaultTesting'));
 const ImportWalletPage = lazy(() =>
   import('@/pages/onboarding/import-wallet').then((module) => ({
     default: module.ImportWalletPage,
@@ -119,6 +120,11 @@ const routeConfigs: RouteConfig[] = [
   {
     path: '/playground',
     element: <PlaygroundPage />,
+    fallback: <GenericSkeleton />,
+  },
+  {
+    path: '/vault-testing',
+    element: <VaultTestingPage />,
     fallback: <GenericSkeleton />,
   },
 ];

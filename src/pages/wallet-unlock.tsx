@@ -13,6 +13,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useNavigate } from 'react-router-dom';
 import { storage, sessionStorage } from '@/lib/storage';
 import { CryptoService } from '@/lib/crypto';
+import { VaultManager } from '@/lib/vault-manager';
 import { useSessionStore } from '@/stores/session-store';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
@@ -67,9 +68,41 @@ const WalletUnlockPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const vault = await storage.get<VaultData>('clorio_vault');
+      // Try to load vault v2 first (multi-wallet)
+      const vaultV2 = await VaultManager.loadVault();
 
-      if (!vault) {
+      if (vaultV2) {
+        // Vault v2 exists - verify password by trying to decrypt active wallet
+        try {
+          await VaultManager.getPrivateKey(password, vaultV2.activeWalletId);
+        } catch {
+          throw new Error('Incorrect password');
+        }
+
+        // Password correct - load all wallets into store
+        const { loadWallets } = useWalletStore.getState();
+        await loadWallets();
+
+        setIsAuthenticated(true);
+        setHasVault(true);
+        setTempPassword(password);
+
+        const { autoLockTimeout } = useSettingsStore.getState();
+        if (autoLockTimeout !== 0) {
+          await sessionStorage.set('clorio_session', {
+            password,
+            timestamp: Date.now(),
+          });
+        }
+
+        navigate('/dashboard');
+        return;
+      }
+
+      // Fallback to legacy vault v1 for backward compatibility
+      const legacyVault = await storage.get<VaultData>('clorio_vault');
+
+      if (!legacyVault) {
         toast({
           variant: 'destructive',
           title: t('wallet_unlock.error_no_wallet_title'),
@@ -79,15 +112,19 @@ const WalletUnlockPage: React.FC = () => {
         return;
       }
 
+      // Verify password by decrypting
       await CryptoService.decrypt(
-        vault.encryptedSeed,
+        legacyVault.encryptedSeed,
         password,
-        vault.salt,
-        vault.iv,
+        legacyVault.salt,
+        legacyVault.iv,
       );
 
-      if (vault.type === 'ledger') {
-        const ledgerAccount = await storage.get<LedgerAccountData>('clorio_ledger_account');
+      // Legacy vault - handle ledger accounts
+      if (legacyVault.type === 'ledger') {
+        const ledgerAccount = await storage.get<LedgerAccountData>(
+          'clorio_ledger_account',
+        );
         if (ledgerAccount?.type === 'ledger') {
           setWallet({
             publicKey: ledgerAccount.address,
@@ -132,9 +169,7 @@ const WalletUnlockPage: React.FC = () => {
       <Card className="w-full max-w-sm shrink-0 shadow-lg">
         <CardHeader>
           <CardTitle>{t('wallet_unlock.title')}</CardTitle>
-          <CardDescription>
-            {t('wallet_unlock.desc')}
-          </CardDescription>
+          <CardDescription>{t('wallet_unlock.desc')}</CardDescription>
         </CardHeader>
         <form onSubmit={handleUnlock}>
           <CardContent className="space-y-4">
@@ -152,7 +187,9 @@ const WalletUnlockPage: React.FC = () => {
               className="w-full"
               disabled={!password || isLoading}
             >
-              {isLoading ? t('wallet_unlock.unlocking') : t('wallet_unlock.unlock_button')}
+              {isLoading
+                ? t('wallet_unlock.unlocking')
+                : t('wallet_unlock.unlock_button')}
             </Button>
             <Button
               variant="link"

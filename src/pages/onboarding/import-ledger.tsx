@@ -19,13 +19,10 @@ import { LedgerStatus, LedgerError, LedgerErrorKind } from '@/lib/ledger';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
-import { CryptoService } from '@/lib/crypto';
-import { storage, sessionStorage } from '@/lib/storage';
+import { VaultManager } from '@/lib/vault-manager';
+import { sessionStorage } from '@/lib/storage';
 import { useSettingsStore } from '@/stores/settings-store';
-import type {
-  LedgerImportAccountMessage,
-  LedgerImportAccountResponse,
-} from '@/messages/types';
+import { BIP44Service } from '@/lib/bip44';
 
 type Step = 'connect' | 'confirm' | 'done';
 
@@ -36,8 +33,9 @@ export function ImportLedgerPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setWallet } = useWalletStore();
-  const { tempPassword, setIsAuthenticated, setHasVault, setTempPassword } = useSessionStore();
+  const { setWallet, loadWallets } = useWalletStore();
+  const { tempPassword, setIsAuthenticated, setHasVault, setTempPassword } =
+    useSessionStore();
 
   const {
     status,
@@ -63,12 +61,22 @@ export function ImportLedgerPage() {
     console.log('[import-ledger] handleConnect — START');
     try {
       const result = await connect();
-      console.log('[import-ledger] handleConnect — connect() returned:', result.status, '| app:', result.app ? 'present' : 'null');
+      console.log(
+        '[import-ledger] handleConnect — connect() returned:',
+        result.status,
+        '| app:',
+        result.app ? 'present' : 'null',
+      );
       if (result.status === LedgerStatus.READY) {
-        console.log('[import-ledger] handleConnect — status is READY, transitioning to "confirm" step');
+        console.log(
+          '[import-ledger] handleConnect — status is READY, transitioning to "confirm" step',
+        );
         setStep('confirm');
       } else {
-        console.warn('[import-ledger] handleConnect — status is NOT READY:', result.status);
+        console.warn(
+          '[import-ledger] handleConnect — status is NOT READY:',
+          result.status,
+        );
       }
     } catch (err) {
       console.error('[import-ledger] handleConnect — threw:', err);
@@ -97,7 +105,9 @@ export function ImportLedgerPage() {
     try {
       result = await importAddress(index);
       console.log('[import-ledger] handleImport — importAddress returned:', {
-        publicKey: result.publicKey ? result.publicKey.slice(0, 12) + '…' : 'null',
+        publicKey: result.publicKey
+          ? result.publicKey.slice(0, 12) + '…'
+          : 'null',
         rejected: result.rejected,
         error: result.error,
       });
@@ -132,7 +142,10 @@ export function ImportLedgerPage() {
       return;
     }
 
-    console.log('[import-ledger] handleImport — SUCCESS, publicKey:', result.publicKey!.slice(0, 12) + '…');
+    console.log(
+      '[import-ledger] handleImport — SUCCESS, publicKey:',
+      result.publicKey!.slice(0, 12) + '…',
+    );
     setImportedKey(result.publicKey);
     setStep('done');
   }, [accountIndex, importAddress, t]);
@@ -144,7 +157,12 @@ export function ImportLedgerPage() {
   }, []);
 
   const handleSave = React.useCallback(async () => {
-    console.log('[import-ledger] handleSave — START, importedKey:', importedKey ? importedKey.slice(0, 12) + '…' : 'null', '| tempPassword:', tempPassword ? 'present' : 'null');
+    console.log(
+      '[import-ledger] handleSave — START, importedKey:',
+      importedKey ? importedKey.slice(0, 12) + '…' : 'null',
+      '| tempPassword:',
+      tempPassword ? 'present' : 'null',
+    );
     if (!importedKey) {
       console.warn('[import-ledger] handleSave — no importedKey, aborting');
       return;
@@ -163,51 +181,55 @@ export function ImportLedgerPage() {
 
     try {
       const finalAccountName = accountName.trim() || DEFAULT_ACCOUNT_NAME;
-      console.log('[import-ledger] handleSave — encrypting vault for:', finalAccountName, '| accountIndex:', accountIndex);
+      console.log(
+        '[import-ledger] handleSave — creating vault v2 for:',
+        finalAccountName,
+        '| accountIndex:',
+        accountIndex,
+      );
 
-      const encryptedData = await CryptoService.encrypt(importedKey, tempPassword);
-      await storage.set('clorio_vault', {
-        encryptedSeed: encryptedData.ciphertext,
-        salt: encryptedData.salt,
-        iv: encryptedData.iv,
-        version: 1,
-        type: 'ledger',
-        createdAt: Date.now(),
-      });
-
-      const message: LedgerImportAccountMessage = {
-        type: 'LEDGER_IMPORT_ACCOUNT',
-        payload: {
-          publicKey: importedKey,
-          accountIndex,
-          accountName: finalAccountName,
-        },
+      const derivationPath = BIP44Service.getDerivationPath(accountIndex);
+      const walletData = {
+        name: finalAccountName,
+        secret: importedKey, // For Ledger, secret is the public key
+        type: 'ledger' as const,
+        derivationPath,
+        accountIndex,
       };
 
-      console.log('[import-ledger] handleSave — sending LEDGER_IMPORT_ACCOUNT to background...');
-      const responseRaw = await chrome.runtime.sendMessage(message);
-      console.log('[import-ledger] handleSave — LEDGER_IMPORT_ACCOUNT response:', responseRaw);
-      const response = responseRaw as
-        | LedgerImportAccountResponse
-        | { error: string };
+      const existingVault = await VaultManager.loadVault();
+      let wallet;
 
-      if (
-        !response ||
-        'error' in response ||
-        !('success' in response) ||
-        !response.success
-      ) {
-        throw new Error(
-          'error' in response ? response.error : t('ledger.import.error_save'),
+      if (existingVault) {
+        const walletId = await VaultManager.addWallet(tempPassword, walletData, {
+          setAsActive: true,
+        });
+        console.log(
+          '[import-ledger] handleSave — wallet added to existing vault, wallet ID:',
+          walletId,
         );
+        await loadWallets();
+        wallet = await VaultManager.getWalletById(walletId);
+      } else {
+        const vault = await VaultManager.createVault(tempPassword, walletData);
+        wallet = vault.wallets[0];
+        console.log(
+          '[import-ledger] handleSave — vault v2 created, wallet ID:',
+          wallet.id,
+        );
+        await loadWallets();
       }
 
-      console.log('[import-ledger] handleSave — setting wallet store...');
+      if (!wallet) {
+        throw new Error('Failed to load saved Ledger wallet');
+      }
+
+      // Set wallet in store
       setWallet({
-        publicKey: importedKey,
+        publicKey: wallet.publicKey,
         accountId: null,
         accountType: 'ledger',
-        accountName: finalAccountName,
+        accountName: wallet.name,
         ledgerAccountIndex: accountIndex,
       });
 
@@ -225,7 +247,9 @@ export function ImportLedgerPage() {
         });
       }
 
-      console.log('[import-ledger] handleSave — wallet set, auth enabled, opening extension');
+      console.log(
+        '[import-ledger] handleSave — wallet set, auth enabled, opening extension',
+      );
 
       toast({
         variant: 'success',
@@ -257,6 +281,7 @@ export function ImportLedgerPage() {
     accountName,
     tempPassword,
     setWallet,
+    loadWallets,
     setHasVault,
     setIsAuthenticated,
     setTempPassword,
@@ -291,7 +316,11 @@ export function ImportLedgerPage() {
             <LedgerConnectStep
               status={status}
               isChecking={isChecking}
-              onVerify={status === LedgerStatus.READY ? handleCheckStatus : handleConnect}
+              onVerify={
+                status === LedgerStatus.READY
+                  ? handleCheckStatus
+                  : handleConnect
+              }
             />
           </div>
         )}
