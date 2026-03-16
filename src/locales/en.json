@@ -86,6 +86,9 @@
     "received": "Received",
     "sent": "Sent",
     "delegation": "Delegation",
+    "wallet_creation_fee_title": "Wallet creation fee",
+    "wallet_creation_fee_description": "1 MINA is deducted on first receipt.",
+    "wallet_creation_fee_badge": "Notice",
     "status": {
       "pending": "Pending",
       "applied": "Applied",

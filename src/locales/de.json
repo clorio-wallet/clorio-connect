@@ -76,6 +76,9 @@
     "received": "Empfangen",
     "sent": "Gesendet",
     "delegation": "Delegation",
+    "wallet_creation_fee_title": "Wallet-Erstellungsgebühr",
+    "wallet_creation_fee_description": "1 MINA wird beim ersten Eingang abgezogen.",
+    "wallet_creation_fee_badge": "Hinweis",
     "status": {
       "pending": "Ausstehend",
       "applied": "Angewendet",

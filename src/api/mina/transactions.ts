@@ -1,4 +1,8 @@
-import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import {
+  useQuery,
+  UseQueryOptions,
+  UseQueryResult,
+} from '@tanstack/react-query';
 import { customInstance } from '../axios-instance';
 import { useSettingsStore } from '@/stores/settings-store';
 
@@ -24,7 +28,7 @@ export interface Transaction {
 
 export const getTransactions = async (
   address: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Transaction[]> => {
   const response = await customInstance<any>({
     url: `/v1/mina/transactions/${address}`,
@@ -46,9 +50,7 @@ export const getTransactions = async (
     timestamp: tx.timestamp || tx.dateTime,
     sender: tx.sender || tx.from,
     receiver: tx.receiver || tx.to,
-    isIncoming:
-      tx.isIncoming ??
-      (tx.receiver === address || tx.to === address),
+    isIncoming: tx.isIncoming ?? (tx.receiver === address || tx.to === address),
     symbol: tx.symbol || 'MINA',
     memo: tx.memo,
     nonce: tx.nonce,
@@ -58,7 +60,7 @@ export const getTransactions = async (
 
 export const useGetTransactions = (
   address: string,
-  options?: Omit<UseQueryOptions<Transaction[], Error>, 'queryKey'>
+  options?: Omit<UseQueryOptions<Transaction[], Error>, 'queryKey'>,
 ): UseQueryResult<Transaction[], Error> => {
   const networkId = useSettingsStore((s) => s.networkId);
   return useQuery({
@@ -99,7 +101,7 @@ export const broadcastPayment = (
   signature: BroadcastSignature,
 ): Promise<BroadcastResult> =>
   customInstance<BroadcastResult>({
-    url: '/v1/mina/transactions/payment',
+    url: '/v1/mina/transaction',
     method: 'POST',
     data: { input, signature },
   });
@@ -118,7 +120,7 @@ export const broadcastDelegation = (
 
 export const getTransaction = async (
   hash: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Transaction> => {
   const response = await customInstance<any>({
     url: `/v1/mina/transaction/${hash}`,
@@ -148,7 +150,7 @@ export const getTransaction = async (
 
 export const useGetTransaction = (
   hash: string | null,
-  options?: Omit<UseQueryOptions<Transaction, Error>, 'queryKey'>
+  options?: Omit<UseQueryOptions<Transaction, Error>, 'queryKey'>,
 ): UseQueryResult<Transaction, Error> => {
   const networkId = useSettingsStore((s) => s.networkId);
   return useQuery({
@@ -159,4 +161,3 @@ export const useGetTransaction = (
     ...options,
   });
 };
-

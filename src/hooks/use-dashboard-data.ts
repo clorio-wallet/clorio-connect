@@ -7,7 +7,7 @@ import { useMinimumLoading } from '@/hooks/use-minimum-loading';
 import { DEFAULT_NETWORKS } from '@/lib/networks';
 
 export const useDashboardData = () => {
-  const { publicKey } = useWalletStore();
+  const { publicKey, activeWalletId, accountName } = useWalletStore();
   const { networkId, balancePollInterval } = useSettingsStore();
 
   const network = DEFAULT_NETWORKS[networkId] || DEFAULT_NETWORKS.mainnet;
@@ -59,7 +59,8 @@ export const useDashboardData = () => {
   });
 
   const account = {
-    name: 'Mina Wallet 1', // TODO: Add custom names
+    id: activeWalletId || '',
+    name: accountName || 'Mina Wallet',
     address: publicKey || '',
     balance: balanceMina.toLocaleString(undefined, {
       minimumFractionDigits: 2,

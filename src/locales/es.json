@@ -76,6 +76,9 @@
     "received": "Recibido",
     "sent": "Enviado",
     "delegation": "Delegación",
+    "wallet_creation_fee_title": "Tarifa de creación de la billetera",
+    "wallet_creation_fee_description": "Se deduce 1 MINA en la primera recepción.",
+    "wallet_creation_fee_badge": "Aviso",
     "status": {
       "pending": "Pendiente",
       "applied": "Aplicado",

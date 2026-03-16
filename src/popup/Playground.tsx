@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ModeSelector } from '@/components/ui/mode-selector';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,6 +120,7 @@ const mockValidators = [
 ];
 
 const PlaygroundPage: React.FC = () => {
+  const navigate = useNavigate();
   const [uiMode, setUiMode] = useState<'popup' | 'sidepanel'>('sidepanel');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { theme, setTheme, palette, setPalette } = useTheme();
@@ -157,6 +159,27 @@ const PlaygroundPage: React.FC = () => {
           all available UI components and themes.
         </p>
       </div>
+
+      {/* Vault Testing Navigation */}
+      <Card className="border-primary">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            🧪 Multi-Wallet Vault Testing
+          </CardTitle>
+          <CardDescription>
+            Test the new multi-wallet vault system (Phase 1 implementation)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={() => navigate('/vault-testing')}
+            className="w-full"
+            size="lg"
+          >
+            Open Vault Testing Page
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-8">
         {/* Theme & Mode Section */}
@@ -566,14 +589,16 @@ const PlaygroundPage: React.FC = () => {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => setDebugBalance(prev => prev + (Math.random() * 100))}
+                        onClick={() =>
+                          setDebugBalance((prev) => prev + Math.random() * 100)
+                        }
                       >
                         Update Balance
                       </Button>
                       <Button
                         size="sm"
-                        variant={debugLoading ? "default" : "outline"}
-                        onClick={() => setDebugLoading(prev => !prev)}
+                        variant={debugLoading ? 'default' : 'outline'}
+                        onClick={() => setDebugLoading((prev) => !prev)}
                       >
                         Loading: {debugLoading ? 'ON' : 'OFF'}
                       </Button>
@@ -581,7 +606,7 @@ const PlaygroundPage: React.FC = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          setBalanceDisplayKey(prev => prev + 1);
+                          setBalanceDisplayKey((prev) => prev + 1);
                           setDebugLoading(true);
                         }}
                       >
@@ -591,7 +616,11 @@ const PlaygroundPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-end gap-4">
-                    <BalanceDisplay balance={123.4567} symbol="MINA" size="lg" />
+                    <BalanceDisplay
+                      balance={123.4567}
+                      symbol="MINA"
+                      size="lg"
+                    />
                     <BalanceDisplay balance={0} symbol="MINA" loading />
                   </div>
                 </div>
@@ -803,16 +832,16 @@ const PlaygroundPage: React.FC = () => {
                     <TransactionList
                       transactions={Array.from({ length: 20 }).map((_, i) => ({
                         id: String(i),
-                        type: i % 2 === 0 ? "payment" : "delegation",
-                        status: "applied",
+                        type: i % 2 === 0 ? 'payment' : 'delegation',
+                        status: 'applied',
                         amount: 100,
-                        symbol: "MINA",
-                        sender: "B62...",
-                        receiver: "B62...",
+                        symbol: 'MINA',
+                        sender: 'B62...',
+                        receiver: 'B62...',
                         isIncoming: i % 2 !== 0,
                         fee: 0.1,
-                        timestamp: "2024-01-01",
-                        hash: "0x...",
+                        timestamp: '2024-01-01',
+                        hash: '0x...',
                       }))}
                     />
                   </div>

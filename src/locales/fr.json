@@ -76,6 +76,9 @@
     "received": "Reçu",
     "sent": "Envoyé",
     "delegation": "Délégation",
+    "wallet_creation_fee_title": "Frais de création du portefeuille",
+    "wallet_creation_fee_description": "1 MINA est déduit à la première réception.",
+    "wallet_creation_fee_badge": "Info",
     "status": {
       "pending": "En attente",
       "applied": "Appliqué",
