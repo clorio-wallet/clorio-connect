@@ -4,7 +4,7 @@ import 'dotenv/config';
 export default defineConfig({
   clorio: {
     input: {
-      target: process.env.VITE_API_URL ? `${process.env.VITE_API_URL}/docs/json` : 'http://localhost:3000/docs/json',
+      target: `${process.env.VITE_API_URL}/docs/json`,
       override: {
         transformer: './src/api/orval-transformer.cjs',
       },
