@@ -72,6 +72,9 @@ export const useSessionStore = create<SessionState>((set) => ({
         await import('@/lib/storage');
       const { useSettingsStore } = await import('@/stores/settings-store');
       const { useWalletStore } = await import('@/stores/wallet-store');
+      const storedVault = await persistentStorage.get('clorio_vault');
+
+      set({ hasVault: Boolean(storedVault) });
 
       const session = await sessionStorage.get<{
         password: string;

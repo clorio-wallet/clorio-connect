@@ -13,8 +13,7 @@ export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [showMethodSelection, setShowMethodSelection] = useState(false);
-  const { tempPassword, setTempPassword, setHasVault } =
-    useSessionStore();
+  const { tempPassword, setTempPassword, setHasVault } = useSessionStore();
 
   useEffect(() => {
     const checkExistingAccount = async () => {
@@ -43,7 +42,7 @@ export const WelcomePage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-between h-[100vh] py-6 md:py-12 px-4 md:px-6 overflow-y-auto">
+    <div className="flex h-[100vh] flex-col items-center justify-between overflow-y-auto px-4 py-6 md:px-6 md:py-12">
       <ClorioConnectLogo className="w-[25vw]" />
       <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 md:gap-12 min-h-[300px]">
         <div className="text-center flex flex-col items-center justify-center gap-4">
@@ -72,6 +71,13 @@ export const WelcomePage: React.FC = () => {
         <button className="hover:underline">{t('welcome.terms')}</button>
         <span className="mx-2">/</span>
         <button className="hover:underline">{t('welcome.privacy')}</button>
+        <span className="mx-2">/</span>
+        <button
+          className="hover:underline"
+          onClick={() => navigate('/prelogin-settings')}
+        >
+          {t('welcome.settings')}
+        </button>
       </div>
 
       <PasswordSetupSheet

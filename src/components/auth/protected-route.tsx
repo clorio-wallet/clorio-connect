@@ -7,14 +7,14 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useSessionStore();
+  const { isAuthenticated, hasVault } = useSessionStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/wallet-unlock');
+      navigate(hasVault ? '/wallet-unlock' : '/welcome', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [hasVault, isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
     return null;

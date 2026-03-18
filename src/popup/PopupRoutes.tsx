@@ -44,6 +44,7 @@ const StakingPage = lazy(() => import('@/pages/Staking'));
 const SendPage = lazy(() => import('@/pages/send'));
 
 const SettingsPage = lazy(() => import('@/pages/Settings'));
+const PreLoginSettingsPage = lazy(() => import('@/pages/PreLoginSettings'));
 
 type RouteConfig = {
   path: string;
@@ -65,6 +66,11 @@ const routeConfigs: RouteConfig[] = [
   {
     path: '/wallet-unlock',
     element: <WalletUnlockPage />,
+  },
+  {
+    path: '/prelogin-settings',
+    element: <PreLoginSettingsPage />,
+    fallback: <SettingsSkeleton />,
   },
   {
     path: '/onboarding/create',
