@@ -286,6 +286,7 @@
       "password_label": "Passwort",
       "confirm_password_label": "Passwort bestätigen",
       "password_mismatch": "Passwörter stimmen nicht überein",
+      "password_requirements": "Verwenden Sie mindestens 8 Zeichen, einschließlich Großbuchstaben, Kleinbuchstaben, einer Zahl und eines Sonderzeichens.",
       "strength_label": "Stärke:",
       "strength_weak": "Schwach",
       "strength_kinda_weak": "Etwas schwach",

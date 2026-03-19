@@ -239,7 +239,8 @@
     "subtitle_2": "YOUR CONTROL",
     "start_button": "Let's start",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "settings": "Settings"
   },
   "wallet_unlock": {
     "title": "Welcome Back",
@@ -308,8 +309,8 @@
       "title": "Wallet Setup",
       "desc": "Choose how you want to set up your wallet.",
       "create_new": "Create New Wallet",
-      "import_phrase": "I have a Secret Recovery Phrase",
-      "import_ledger": "Connect Ledger Hardware Wallet"
+      "import_phrase": "Import wallet",
+      "import_ledger": "Connect Ledger"
     },
     "password_sheet": {
       "title": "Security first",
@@ -317,6 +318,7 @@
       "password_label": "Password",
       "confirm_password_label": "Confirm Password",
       "password_mismatch": "Passwords do not match",
+      "password_requirements": "Use at least 8 characters, including uppercase, lowercase, a number, and a special character.",
       "strength_label": "Strength:",
       "strength_weak": "Weak",
       "strength_kinda_weak": "Kinda weak",

@@ -286,6 +286,7 @@
       "password_label": "Mot de passe",
       "confirm_password_label": "Confirmer le mot de passe",
       "password_mismatch": "Les mots de passe ne correspondent pas",
+      "password_requirements": "Utilisez au moins 8 caractères, avec une majuscule, une minuscule, un chiffre et un caractère spécial.",
       "strength_label": "Force :",
       "strength_weak": "Faible",
       "strength_kinda_weak": "Un peu faible",

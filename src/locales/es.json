@@ -286,6 +286,7 @@
       "password_label": "Contraseña",
       "confirm_password_label": "Confirmar Contraseña",
       "password_mismatch": "Las contraseñas no coinciden",
+      "password_requirements": "Usa al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un carácter especial.",
       "strength_label": "Fortaleza:",
       "strength_weak": "Débil",
       "strength_kinda_weak": "Algo débil",

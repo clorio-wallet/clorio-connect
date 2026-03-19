@@ -29,18 +29,27 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  const isPasswordValid = (pass: string) =>
+    pass.length >= 8 &&
+    /[A-Z]/.test(pass) &&
+    /[a-z]/.test(pass) &&
+    /[0-9]/.test(pass) &&
+    /[^A-Za-z0-9]/.test(pass);
+
   const calculateStrength = (pass: string) => {
     if (!pass) return 0;
     let score = 0;
-    if (pass.length > 8) score += 25;
-    if (pass.length > 12) score += 25;
+    if (pass.length >= 8) score += 20;
+    if (pass.length >= 12) score += 20;
     if (/[A-Z]/.test(pass)) score += 15;
+    if (/[a-z]/.test(pass)) score += 15;
     if (/[0-9]/.test(pass)) score += 15;
-    if (/[^A-Za-z0-9]/.test(pass)) score += 20;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 15;
     return Math.min(score, 100);
   };
 
   const strength = calculateStrength(password);
+  const passwordValid = isPasswordValid(password);
 
   const getStrengthLabel = (s: number) => {
     if (s === 0) return '';
@@ -58,7 +67,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
   };
 
   const handleContinue = () => {
-    if (password !== confirmPassword) return;
+    if (!passwordValid || password !== confirmPassword) return;
     onSuccess(password);
   };
 
@@ -107,6 +116,11 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
                       style={{ width: `${strength}%` }}
                     />
                   </div>
+                  {!passwordValid && (
+                    <p className="text-xs text-destructive">
+                      {t('onboarding.password_sheet.password_requirements')}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -150,6 +164,7 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
             disabled={
               !password ||
               !confirmPassword ||
+              !passwordValid ||
               password !== confirmPassword ||
               !acceptedTerms
             }

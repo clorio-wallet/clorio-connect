@@ -56,6 +56,26 @@ const CardDescription = React.forwardRef<
 ))
 CardDescription.displayName = "CardDescription"
 
+interface CardHeaderWithActionProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  action: React.ReactNode
+  children: React.ReactNode
+  contentClassName?: string
+}
+
+const CardHeaderWithAction = React.forwardRef<
+  HTMLDivElement,
+  CardHeaderWithActionProps
+>(({ className, children, action, contentClassName, ...props }, ref) => (
+  <CardHeader ref={ref} className={cn("space-y-4", className)} {...props}>
+    <div className="flex items-start justify-between gap-4">
+      <div className={cn("min-w-0 space-y-1", contentClassName)}>{children}</div>
+      <div className="shrink-0">{action}</div>
+    </div>
+  </CardHeader>
+))
+CardHeaderWithAction.displayName = "CardHeaderWithAction"
+
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -76,4 +96,12 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+export {
+  Card,
+  CardHeader,
+  CardHeaderWithAction,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+}

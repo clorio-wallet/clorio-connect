@@ -5,7 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardFooter,
-  CardHeader,
+  CardHeaderWithAction,
   CardTitle,
 } from '@/components/ui/card';
 import { PasswordInput } from '@/components/wallet/password-input';
@@ -19,6 +19,7 @@ import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { Settings } from 'lucide-react';
 
 import { LoopingLottie } from '@/components/ui/looping-lottie';
 import lockAnimation from '../animations/lock.json';
@@ -68,18 +69,15 @@ const WalletUnlockPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Try to load vault v2 first (multi-wallet)
       const vaultV2 = await VaultManager.loadVault();
 
       if (vaultV2) {
-        // Vault v2 exists - verify password by trying to decrypt active wallet
         try {
           await VaultManager.getPrivateKey(password, vaultV2.activeWalletId);
         } catch {
           throw new Error('Incorrect password');
         }
 
-        // Password correct - load all wallets into store
         const { loadWallets } = useWalletStore.getState();
         await loadWallets();
 
@@ -99,7 +97,6 @@ const WalletUnlockPage: React.FC = () => {
         return;
       }
 
-      // Fallback to legacy vault v1 for backward compatibility
       const legacyVault = await storage.get<VaultData>('clorio_vault');
 
       if (!legacyVault) {
@@ -112,7 +109,6 @@ const WalletUnlockPage: React.FC = () => {
         return;
       }
 
-      // Verify password by decrypting
       await CryptoService.decrypt(
         legacyVault.encryptedSeed,
         password,
@@ -120,7 +116,6 @@ const WalletUnlockPage: React.FC = () => {
         legacyVault.iv,
       );
 
-      // Legacy vault - handle ledger accounts
       if (legacyVault.type === 'ledger') {
         const ledgerAccount = await storage.get<LedgerAccountData>(
           'clorio_ledger_account',
@@ -162,15 +157,29 @@ const WalletUnlockPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center w-full overflow-hidden p-4">
+    <div className="flex-1 flex w-full flex-col items-center justify-center overflow-hidden p-4">
       <div className="w-[30vh] h-[30vh] max-w-[200px] max-h-[200px] min-w-[120px] min-h-[120px] shrink-0 mb-6">
         <LoopingLottie animationData={lockAnimation} loopLastSeconds={3} />
       </div>
       <Card className="w-full max-w-sm shrink-0 shadow-lg">
-        <CardHeader>
+        <CardHeaderWithAction
+          action={
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              className="rounded-full text-muted-foreground"
+              onClick={() => navigate('/prelogin-settings')}
+              title={t('settings.title', 'Settings')}
+              aria-label={t('settings.title', 'Settings')}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          }
+        >
           <CardTitle>{t('wallet_unlock.title')}</CardTitle>
           <CardDescription>{t('wallet_unlock.desc')}</CardDescription>
-        </CardHeader>
+        </CardHeaderWithAction>
         <form onSubmit={handleUnlock}>
           <CardContent className="space-y-4">
             <PasswordInput
