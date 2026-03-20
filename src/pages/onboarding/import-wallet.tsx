@@ -13,15 +13,6 @@ import { useTranslation } from 'react-i18next';
 import { VaultManager } from '@/lib/vault-manager';
 import { BIP44Service } from '@/lib/bip44';
 import { DEFAULT_WALLET_NAME_PREFIX } from '@/lib/types/vault';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-
 export const ImportWalletPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -34,11 +25,6 @@ export const ImportWalletPage: React.FC = () => {
   const [mnemonic, setMnemonic] = useState<string[]>([]);
   const [privateKey, setPrivateKey] = useState('');
   const [isImporting, setIsImporting] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
-  const [debugKeys, setDebugKeys] = useState<{
-    publicKey: string;
-    privateKey: string;
-  } | null>(null);
 
   const handleFinish = async () => {
     if (!tempPassword) {
@@ -83,7 +69,6 @@ export const ImportWalletPage: React.FC = () => {
         const mnemonicString = mnemonic.join(' ');
         secret = mnemonicString;
 
-        // Derive keys to get public key
         const message: AppMessage = {
           type: 'DERIVE_KEYS_FROM_MNEMONIC',
           payload: { mnemonic: mnemonicString, accountIndex: 0 },
@@ -96,7 +81,6 @@ export const ImportWalletPage: React.FC = () => {
           throw new Error(response.error);
         }
         derivedPublicKey = response.publicKey;
-        setDebugKeys(response);
       } else {
         walletType = 'privateKey';
         if (!privateKey.startsWith('EK')) {
@@ -128,13 +112,8 @@ export const ImportWalletPage: React.FC = () => {
         }
         secret = privateKey.trim();
         derivedPublicKey = response.publicKey || '';
-        setDebugKeys({
-          publicKey: derivedPublicKey,
-          privateKey: secret,
-        });
       }
 
-      // Create vault v2 with imported wallet
       const vault = await VaultManager.createVault(tempPassword, {
         name: `${DEFAULT_WALLET_NAME_PREFIX}1`,
         secret,
@@ -151,7 +130,6 @@ export const ImportWalletPage: React.FC = () => {
       setHasVault(true);
       setIsAuthenticated(true);
 
-      // Set wallet in store with v2 format
       setWallet({
         publicKey: firstWallet.publicKey,
         accountId: null,
@@ -160,12 +138,12 @@ export const ImportWalletPage: React.FC = () => {
         accountName: firstWallet.name,
       });
 
-      setShowDebug(true);
-
       toast({
         title: t('onboarding.import.success_title'),
         description: t('onboarding.import.success_desc'),
       });
+
+      navigate('/dashboard');
     } catch (error) {
       console.error('Failed to import wallet:', error);
       toast({
@@ -176,11 +154,6 @@ export const ImportWalletPage: React.FC = () => {
     } finally {
       setIsImporting(false);
     }
-  };
-
-  const handleCloseDebug = () => {
-    setShowDebug(false);
-    navigate('/dashboard');
   };
 
   return (
@@ -255,43 +228,6 @@ export const ImportWalletPage: React.FC = () => {
             : t('onboarding.import.button_import')}
         </Button>
       </div>
-
-      <Dialog
-        open={showDebug}
-        onOpenChange={(open) => !open && handleCloseDebug()}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('onboarding.import.debug_title')}</DialogTitle>
-            <DialogDescription>
-              {t('onboarding.import.debug_desc')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>
-                {t('onboarding.wallet_keys_sheet.public_key_label')}
-              </Label>
-              <div className="p-2 bg-muted rounded-md break-all font-mono text-xs">
-                {debugKeys?.publicKey}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>
-                {t('onboarding.wallet_keys_sheet.private_key_label')}
-              </Label>
-              <div className="p-2 bg-muted rounded-md break-all font-mono text-xs">
-                {debugKeys?.privateKey}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCloseDebug}>
-              {t('onboarding.import.go_dashboard')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

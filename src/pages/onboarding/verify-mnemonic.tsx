@@ -37,7 +37,6 @@ export const VerifyMnemonicPage: React.FC = () => {
       return;
     }
 
-    // Select 3 random indices to verify
     const indices = new Set<number>();
     while (indices.size < 3) {
       indices.add(Math.floor(Math.random() * 12));
@@ -46,7 +45,6 @@ export const VerifyMnemonicPage: React.FC = () => {
   }, [tempMnemonic, navigate, toast, t]);
 
   const handleVerifyAndFinish = async () => {
-    // Verify words
     for (const index of verificationIndices) {
       const enteredWord = verificationValues[index]?.trim().toLowerCase();
       const actualWord = tempMnemonic![index];
@@ -67,7 +65,6 @@ export const VerifyMnemonicPage: React.FC = () => {
     try {
       const mnemonicString = tempMnemonic!.join(' ');
 
-      // Create vault v2 with first wallet
       const vault = await VaultManager.createVault(tempPassword!, {
         name: `${DEFAULT_WALLET_NAME_PREFIX}1`,
         secret: mnemonicString,
@@ -81,7 +78,6 @@ export const VerifyMnemonicPage: React.FC = () => {
       setHasVault(true);
       setIsAuthenticated(true);
 
-      // Set wallet in store with v2 format
       setWallet({
         publicKey: firstWallet.publicKey,
         accountId: null,
@@ -94,6 +90,8 @@ export const VerifyMnemonicPage: React.FC = () => {
         title: t('onboarding.verify.success_title'),
         description: t('onboarding.verify.success_desc'),
       });
+
+      setTimeout(() => navigate('/'), 100);
     } catch (error) {
       console.error('Failed to create wallet:', error);
       toast({
