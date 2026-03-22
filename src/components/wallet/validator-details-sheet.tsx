@@ -26,6 +26,7 @@ export interface ValidatorDetails {
   imgurl?: string;
   websiteUrl?: string;
   explorerUrl?: string;
+  isCustomAddress?: boolean;
 }
 
 interface ValidatorDetailsSheetProps {
@@ -45,7 +46,6 @@ export const ValidatorDetailsSheet: React.FC<ValidatorDetailsSheetProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  // hooks must be invoked unconditionally
   const networkId = useSettingsStore((s) => {
     return s.networkId;
   });

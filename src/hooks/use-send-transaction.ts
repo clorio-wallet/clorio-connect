@@ -21,7 +21,7 @@ import type { SignPaymentMessage, SignPaymentResponse } from '@/messages/types';
 export interface BroadcastResult {
   kind: 'broadcast';
   id: string;
-  hash: string;
+  hash?: string;
   fee: string;
   amount: string;
 }
@@ -70,7 +70,8 @@ export function useSendTransaction() {
     if (!publicKey) throw new Error('Wallet not initialized');
 
     const index = ledgerAccountIndex ?? 0;
-    const nonce = accountData?.nonce ?? 0;
+    const refreshed = await refetchAccount();
+    const nonce = refreshed.data?.nonce ?? accountData?.nonce ?? 0;
 
     const { status, app } = await checkLedgerStatus();
     if (status !== LedgerStatus.READY || !app) {
@@ -119,7 +120,8 @@ export function useSendTransaction() {
   ): Promise<BroadcastResult> => {
     if (!publicKey) throw new Error('Wallet not initialized');
 
-    const nonce = (accountData?.nonce ?? 0).toString();
+    const refreshed = await refetchAccount();
+    const nonce = (refreshed.data?.nonce ?? accountData?.nonce ?? 0).toString();
 
     const payment = {
       from: publicKey,
@@ -183,7 +185,8 @@ export function useSendTransaction() {
         },
       );
 
-      if (!tx?.hash) {
+      const broadcastId = tx?.id ?? tx?.hash;
+      if (!broadcastId) {
         throw new Error(t('send.broadcast_error'));
       }
 
@@ -197,7 +200,7 @@ export function useSendTransaction() {
 
       return {
         kind: 'broadcast',
-        id: tx.id ?? tx.hash,
+        id: broadcastId,
         hash: tx.hash,
         fee: tx.fee ?? payment.fee,
         amount: tx.amount ?? payment.amount,

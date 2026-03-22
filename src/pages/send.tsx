@@ -29,7 +29,7 @@ import type { SendTransactionFormData } from '@/lib/validations';
 const SendPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey } = useWalletStore();
+  const { publicKey, accountType } = useWalletStore();
   const { balancePollInterval } = useSettingsStore();
   const { toast } = useToast();
   const { sendTransaction, loading: sending } = useSendTransaction();
@@ -39,6 +39,14 @@ const SendPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [signedResult, setSignedResult] =
     React.useState<SignedLedgerPaymentResult | null>(null);
+  const [broadcastOpen, setBroadcastOpen] = React.useState(false);
+  const [broadcastStatus, setBroadcastStatus] = React.useState<
+    'broadcasting' | 'success' | 'failed'
+  >('broadcasting');
+  const [broadcastId, setBroadcastId] = React.useState<string | null>(null);
+  const [broadcastHash, setBroadcastHash] = React.useState<string | null>(null);
+  const [broadcastError, setBroadcastError] = React.useState<string | null>(null);
+  const lastPasswordRef = React.useRef<string>('');
 
   useEffect(() => {
     if (!publicKey) {
@@ -49,15 +57,25 @@ const SendPage: React.FC = () => {
   const pollIntervalMs =
     balancePollInterval > 0 ? balancePollInterval * 60 * 1000 : 0;
 
-  const { data: accountData, isLoading: isAccountLoading } = useGetAccount(
+  const {
+    data: accountData,
+    isLoading: isAccountLoading,
+    refetch: refetchAccount,
+  } = useGetAccount(
     publicKey || '',
     {
       query: {
         enabled: !!publicKey,
         refetchInterval: pollIntervalMs > 0 ? pollIntervalMs : false,
+        refetchOnMount: 'always',
       },
     },
   );
+
+  useEffect(() => {
+    if (!publicKey) return;
+    refetchAccount();
+  }, [publicKey, refetchAccount]);
 
   const { network } = useDashboardData();
 
@@ -65,6 +83,39 @@ const SendPage: React.FC = () => {
 
   const balanceRaw = accountData?.balance || 0;
   const balanceMina = Number(balanceRaw) / 1e9;
+
+  const handleRetryBroadcast = async () => {
+    if (!pendingData) return;
+    if (!lastPasswordRef.current) {
+      setBroadcastOpen(false);
+      setIsDialogOpen(true);
+      return;
+    }
+
+    setBroadcastStatus('broadcasting');
+    setBroadcastId(null);
+    setBroadcastHash(null);
+    setBroadcastError(null);
+
+    await refetchAccount();
+
+    try {
+      const result = await sendTransaction(pendingData, lastPasswordRef.current);
+      if (result.kind === 'signed') return;
+      setBroadcastStatus('success');
+      setBroadcastId(result.id);
+      setBroadcastHash(result.hash ?? null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('send.error_failed');
+      setBroadcastStatus('failed');
+      setBroadcastError(message);
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: message,
+      });
+    }
+  };
 
   const handleSubmit = async (formData: SendTransactionFormData) => {
     setPendingData(formData);
@@ -109,31 +160,148 @@ const SendPage: React.FC = () => {
             onConfirm={async (password) => {
               if (!pendingData) return;
               try {
+                if (accountType !== 'ledger') {
+                  lastPasswordRef.current = password || '';
+                  setIsDialogOpen(false);
+                  setBroadcastOpen(true);
+                  setBroadcastStatus('broadcasting');
+                  setBroadcastId(null);
+                  setBroadcastHash(null);
+                  setBroadcastError(null);
+                }
+
                 const result = await sendTransaction(pendingData, password || '');
-                setIsDialogOpen(false);
-                setPendingData(null);
 
                 if (result.kind === 'signed') {
+                  setIsDialogOpen(false);
+                  setPendingData(null);
                   setSignedResult(result);
                   return;
                 }
 
-                navigate('/transactions');
+                setBroadcastStatus('success');
+                setBroadcastId(result.id);
+                setBroadcastHash(result.hash ?? null);
               } catch (err) {
                 if (!(err instanceof LedgerError)) {
                   const message =
                     err instanceof Error ? err.message : t('send.error_failed');
+                  setBroadcastStatus('failed');
+                  setBroadcastError(message);
                   toast({
                     variant: 'destructive',
                     title: t('common.error'),
                     description: message,
                   });
                 }
-                throw err;
+                if (accountType === 'ledger') {
+                  throw err;
+                }
               }
             }}
           />
         )}
+
+        <Dialog
+          open={broadcastOpen}
+          onOpenChange={(open) => {
+            setBroadcastOpen(open);
+            if (!open) {
+              const shouldNavigate =
+                broadcastStatus === 'success' && (broadcastId || broadcastHash);
+              setBroadcastId(null);
+              setBroadcastHash(null);
+              setBroadcastError(null);
+              setPendingData(null);
+              if (shouldNavigate) {
+                navigate('/transactions');
+              }
+            }
+          }}
+        >
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t('send.send_button')}</DialogTitle>
+              <DialogDescription>
+                {broadcastStatus === 'broadcasting'
+                  ? 'Broadcasting…'
+                  : broadcastStatus === 'success'
+                    ? 'Broadcast success'
+                    : 'Broadcast failed'}
+              </DialogDescription>
+            </DialogHeader>
+
+            {pendingData && (
+              <div className="space-y-3 text-sm">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground">To</div>
+                  <div className="break-all">{pendingData.recipient}</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground">Amount</div>
+                    <div>{pendingData.amount} MINA</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground">Fee</div>
+                    <div>{pendingData.fee} MINA</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground">Network</div>
+                    <div>{network.label}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground">Memo</div>
+                    <div className="truncate">
+                      {pendingData.memo ? pendingData.memo : '-'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {broadcastStatus === 'success' && (
+              <div className="space-y-2 text-sm">
+                {broadcastId && (
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground">Id</div>
+                    <div className="break-all font-mono">{broadcastId}</div>
+                  </div>
+                )}
+                {broadcastHash && (
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground">Hash</div>
+                    <div className="break-all font-mono">{broadcastHash}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {broadcastStatus === 'failed' && broadcastError && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
+                {broadcastError}
+              </div>
+            )}
+
+            <DialogFooter>
+              {broadcastStatus === 'failed' && (
+                <Button variant="outline" onClick={handleRetryBroadcast}>
+                  {t('common.retry', 'Retry')}
+                </Button>
+              )}
+              <Button
+                onClick={() => setBroadcastOpen(false)}
+                disabled={broadcastStatus === 'broadcasting'}
+              >
+                {broadcastStatus === 'success'
+                  ? t('common.continue', 'Continue')
+                  : t('common.close', 'Close')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog
           open={!!signedResult}
@@ -145,7 +313,7 @@ const SendPage: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Ledger signed payment</DialogTitle>
               <DialogDescription>
-                Firma reale acquisita dal dispositivo. Nessun broadcast e stato eseguito.
+                The transaction was signed on your Ledger device.
               </DialogDescription>
             </DialogHeader>
 

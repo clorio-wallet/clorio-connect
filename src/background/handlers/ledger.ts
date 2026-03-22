@@ -1,13 +1,4 @@
-/**
- * handlers/ledger.ts
- *
- * Handles all Ledger-related background messages:
- *   - SW keepalive (prevents the service worker from being terminated while
- *     the user is confirming an operation on the physical device)
- *   - LEDGER_IMPORT_ACCOUNT  — persists the imported public key/metadata
- *   - LEDGER_SUBMIT_PAYMENT  — broadcasts a signed payment (TODO: GraphQL)
- *   - LEDGER_SUBMIT_DELEGATION — broadcasts a signed delegation (TODO: GraphQL)
- */
+
 
 import { storage } from '@/lib/storage';
 import type {
@@ -15,7 +6,6 @@ import type {
   LedgerSubmitTxResponse,
 } from '@/messages/types';
 
-// ─── REST helpers ─────────────────────────────────────────────────────────────
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) ?? '';
 
@@ -32,7 +22,6 @@ async function restPost<T>(path: string, body: unknown): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LedgerAccount {
   address: string;
@@ -41,10 +30,6 @@ interface LedgerAccount {
   type: 'ledger';
 }
 
-// ─── SW keepalive ─────────────────────────────────────────────────────────────
-// The service worker is terminated after ~30 s of inactivity.
-// While the user is confirming a Ledger operation on the device we keep it
-// alive with a periodic no-op triggered by the popup.
 
 let _keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -62,7 +47,6 @@ export function stopKeepalive(): void {
   }
 }
 
-// ─── Import account ───────────────────────────────────────────────────────────
 
 export async function handleImportAccount(
   payload: { publicKey: string; accountIndex: number; accountName: string },
@@ -89,7 +73,6 @@ export async function handleImportAccount(
   }
 }
 
-// ─── Submit payment ───────────────────────────────────────────────────────────
 
 export async function handleSubmitPayment(
   payload: {
@@ -130,6 +113,7 @@ export async function handleSubmitPayment(
         validUntil: validUntil.toString(),
       },
       signature,
+      rawSignature: signature,
     });
 
     sendResponse({ success: true, hash: result.hash });
@@ -142,7 +126,6 @@ export async function handleSubmitPayment(
   }
 }
 
-// ─── Submit delegation ────────────────────────────────────────────────────────
 
 export async function handleSubmitDelegation(
   payload: {
@@ -181,6 +164,7 @@ export async function handleSubmitDelegation(
           validUntil: validUntil.toString(),
         },
         signature,
+        rawSignature: signature,
       },
     );
 

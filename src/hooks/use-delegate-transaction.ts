@@ -61,7 +61,8 @@ export function useDelegateTransaction() {
     if (!publicKey) throw new Error('Wallet not initialized');
 
     const index = ledgerAccountIndex ?? 0;
-    const nonce = accountData?.nonce ?? 0;
+    const refreshed = await refetchAccount();
+    const nonce = refreshed.data?.nonce ?? accountData?.nonce ?? 0;
 
     const { status, app } = await checkLedgerStatus();
     if (status !== LedgerStatus.READY || !app) {
@@ -109,7 +110,8 @@ export function useDelegateTransaction() {
   ): Promise<BroadcastDelegationResult> => {
     if (!publicKey) throw new Error('Wallet not initialized');
 
-    const nonce = (accountData?.nonce ?? 0).toString();
+    const refreshed = await refetchAccount();
+    const nonce = (refreshed.data?.nonce ?? accountData?.nonce ?? 0).toString();
 
     const delegation = {
       from: publicKey,
@@ -185,7 +187,8 @@ export function useDelegateTransaction() {
       },
     );
 
-    if (!result?.hash) {
+    const broadcastHash = result?.hash ?? result?.id;
+    if (!broadcastHash) {
       throw new Error(t('send.broadcast_error', 'Broadcast failed'));
     }
 
@@ -199,7 +202,7 @@ export function useDelegateTransaction() {
     });
 
     refetchAccount();
-    return { kind: 'broadcast', hash: result.hash };
+    return { kind: 'broadcast', hash: broadcastHash };
   };
 
   const delegateTransaction = async (

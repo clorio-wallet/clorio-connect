@@ -70,3 +70,22 @@ export function toNano(value: string | number): string {
   const nanoValue = Math.floor(num * Math.pow(10, decimals));
   return nanoValue.toString();
 }
+
+export function minaSignatureToRawHex(signature: {
+  field: string;
+  scalar: string;
+}): string | null {
+  try {
+    const to32ByteHex = (value: string): string => {
+      const n = BigInt(value);
+      if (n < 0n) throw new Error('Negative signature component');
+      const hex = n.toString(16);
+      if (hex.length > 64) throw new Error('Signature component too large');
+      return hex.padStart(64, '0');
+    };
+
+    return `${to32ByteHex(signature.field)}${to32ByteHex(signature.scalar)}`;
+  } catch {
+    return null;
+  }
+}

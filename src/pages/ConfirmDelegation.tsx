@@ -159,6 +159,8 @@ export function ConfirmDelegationSheet({
 
   if (!validator) return null;
 
+  const isCustomAddress = validator.isCustomAddress === true;
+
   const handleBack = () => {
     if (!isLedger && step === 'confirm') {
       setStep('review');
@@ -204,25 +206,47 @@ export function ConfirmDelegationSheet({
 
               <div className="w-full rounded-xl border border-border/40 bg-card/30 overflow-hidden">
                 <div className="p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-sm">
-                      {t('validators.total_stake_label', 'Total stake')}
-                    </span>
-                    <span className="font-mono text-sm">
-                      {formatBalance(validator.stake)} MINA
-                    </span>
-                  </div>
+                  {!isCustomAddress && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-sm">
+                          {t('validators.total_stake_label', 'Total stake')}
+                        </span>
+                        <span className="font-mono text-sm">
+                          {formatBalance(validator.stake)} MINA
+                        </span>
+                      </div>
 
-                  <div className="h-px bg-border/40" />
+                      <div className="h-px bg-border/40" />
 
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-sm">
-                      {t('validators.fee_label', 'Validator fee')}
-                    </span>
-                    <span className="font-mono text-sm">{validator.fee}%</span>
-                  </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-sm">
+                          {t('validators.fee_label', 'Validator fee')}
+                        </span>
+                        <span className="font-mono text-sm">{validator.fee}%</span>
+                      </div>
 
-                  <div className="h-px bg-border/40" />
+                      <div className="h-px bg-border/40" />
+                    </>
+                  )}
+
+                  {isCustomAddress && (
+                    <>
+                      <div className="rounded-lg border border-border/40 bg-background/40 p-3">
+                        <p className="text-sm font-medium">
+                          {t('staking.custom_address_label', 'Custom address')}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          {t(
+                            'staking.custom_address_confirm_desc',
+                            'You are delegating directly to a validator public key that was entered manually.',
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="h-px bg-border/40" />
+                    </>
+                  )}
 
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-sm">
