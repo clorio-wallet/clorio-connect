@@ -24,7 +24,7 @@ export const DashboardTransactionList: React.FC<
     refetch,
   } = useGetTransactions(publicKey, {
     refetchInterval: 30000,
-    enabled: !!publicKey, // Ensure we don't call with empty key
+    enabled: !!publicKey,
   });
   const [selectedTxHash, setSelectedTxHash] = React.useState<string | null>(
     null,

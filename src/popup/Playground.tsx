@@ -125,7 +125,6 @@ const PlaygroundPage: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { theme, setTheme, palette, setPalette } = useTheme();
 
-  // Debug state for BalanceDisplay
   const [debugBalance, setDebugBalance] = useState(123.4567);
   const [debugLoading, setDebugLoading] = useState(false);
   const [balanceDisplayKey, setBalanceDisplayKey] = useState(0);
@@ -160,7 +159,6 @@ const PlaygroundPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Vault Testing Navigation */}
       <Card className="border-primary">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -182,7 +180,6 @@ const PlaygroundPage: React.FC = () => {
       </Card>
 
       <div className="grid gap-8">
-        {/* Theme & Mode Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Theme & Mode</h2>
           <Card>
@@ -260,7 +257,6 @@ const PlaygroundPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* Buttons Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Buttons</h2>
           <Card>
@@ -285,7 +281,6 @@ const PlaygroundPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* Inputs Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Inputs</h2>
           <Card>
@@ -316,7 +311,6 @@ const PlaygroundPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* Tabs Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Tabs</h2>
           <Card>
@@ -379,7 +373,6 @@ const PlaygroundPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* Overlays Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Overlays</h2>
           <Card>
@@ -471,7 +464,6 @@ const PlaygroundPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* Form Elements Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Form Elements & Selection</h2>
           <Card>
@@ -504,7 +496,6 @@ const PlaygroundPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* Feedback & Loading Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Feedback & Loading</h2>
           <Card>
@@ -555,7 +546,6 @@ const PlaygroundPage: React.FC = () => {
             </CardContent>
           </Card>
         </section>
-        {/* Wallet Components Section */}
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Wallet Components</h2>
           <Card>
@@ -757,13 +747,13 @@ const PlaygroundPage: React.FC = () => {
                     <Label>Account Card</Label>
                     <AccountCard
                       account={{
+                        id: 'demo-wallet',
                         name: 'Main Account',
                         address: 'B62qjsV6W2...7j3d',
                         balance: '1,234.56',
                         symbol: 'MINA',
                       }}
                       isActive={true}
-                      onRename={() => {}}
                     />
                   </div>
 

@@ -184,7 +184,6 @@ export const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = (
           </div>
         </div>
 
-        {/* Explorer Button */}
         <div className="w-full flex gap-2">
           <Button
             variant="outline"

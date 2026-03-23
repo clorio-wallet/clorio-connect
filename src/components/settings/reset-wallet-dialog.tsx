@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import { useSessionStore } from '@/stores/session-store';
@@ -14,25 +14,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Spinner } from '../ui';
 
 interface ResetWalletDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const ResetWalletDialog: React.FC<ResetWalletDialogProps> = ({ open, onOpenChange }) => {
+export const ResetWalletDialog: React.FC<ResetWalletDialogProps> = ({
+  open,
+  onOpenChange,
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { resetWallet } = useSessionStore();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const handleResetWallet = async () => {
+    setLoading(true);
     await resetWallet();
+    onOpenChange(false);
     toast({
       title: t('settings.reset_sheet.success_title'),
       description: t('settings.reset_sheet.success_desc'),
+      duration: 5000,
     });
-    navigate('/welcome');
+    navigate('/welcome', { replace: true });
   };
 
   return (
@@ -53,7 +61,7 @@ export const ResetWalletDialog: React.FC<ResetWalletDialogProps> = ({ open, onOp
             onClick={handleResetWallet}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {t('settings.reset_sheet.confirm_button')}
+            {loading ? <Spinner /> : t('settings.reset_sheet.confirm_button')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,10 +1,10 @@
-import * as React from "react";
-import { motion } from "framer-motion";
-import { TransactionCard, WalletCreationFeeCard } from "./transaction-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslation } from "react-i18next";
-import { Transaction, useGetTransactions } from "@/api/mina/transactions";
-import { useWalletStore } from "@/stores/wallet-store";
+import * as React from 'react';
+import { motion } from 'framer-motion';
+import { TransactionCard, WalletCreationFeeCard } from './transaction-card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
+import { Transaction, useGetTransactions } from '@/api/mina/transactions';
+import { useWalletStore } from '@/stores/wallet-store';
 
 export interface TransactionListProps {
   transactions?: Transaction[];
@@ -15,21 +15,27 @@ export interface TransactionListProps {
 }
 
 export function TransactionList(props: TransactionListProps) {
-  const { transactions, isLoading, onTransactionClick, className, emptyComponent } = props;
+  const {
+    transactions,
+    isLoading,
+    onTransactionClick,
+    className,
+    emptyComponent,
+  } = props;
   const { t } = useTranslation();
   const { publicKey } = useWalletStore();
 
   const hasExternalTransactions = Array.isArray(transactions);
 
-  const {
-    data: internalTransactions = [],
-    isLoading: isInternalLoading,
-  } = useGetTransactions(publicKey || "", {
-    refetchInterval: 30000,
-    enabled: !hasExternalTransactions && !!publicKey,
-  });
+  const { data: internalTransactions = [], isLoading: isInternalLoading } =
+    useGetTransactions(publicKey || '', {
+      refetchInterval: 30000,
+      enabled: !hasExternalTransactions && !!publicKey,
+    });
 
-  const items = hasExternalTransactions ? transactions || [] : internalTransactions;
+  const items = hasExternalTransactions
+    ? transactions || []
+    : internalTransactions;
   const loading = hasExternalTransactions ? !!isLoading : isInternalLoading;
 
   if (loading) {
@@ -54,37 +60,34 @@ export function TransactionList(props: TransactionListProps) {
       {items.length === 0 ? (
         emptyComponent || (
           <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
-            <p>{t("transactions.no_transactions")}</p>
+            <p>{t('transactions.no_transactions')}</p>
           </div>
         )
       ) : (
         <>
           {items.map((tx, index) => (
-            <React.Fragment key={tx.id || tx.hash}>
-              <motion.div
-                className="py-1.5"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <TransactionCard
-                  {...tx}
-                  onClick={() => onTransactionClick?.(tx)}
-                />
-              </motion.div>
-
-              {index === 0 && (
-                <motion.div
-                  className="py-1.5"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.05 }}
-                >
-                  <WalletCreationFeeCard />
-                </motion.div>
-              )}
-            </React.Fragment>
+            <motion.div
+              key={tx.id || tx.hash}
+              className="py-1.5"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <TransactionCard
+                {...tx}
+                onClick={() => onTransactionClick?.(tx)}
+              />
+            </motion.div>
           ))}
+
+          <motion.div
+            className="py-1.5"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: items.length * 0.05 }}
+          >
+            <WalletCreationFeeCard />
+          </motion.div>
         </>
       )}
     </div>
