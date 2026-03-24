@@ -3,6 +3,7 @@ export type UiMode = 'popup' | 'sidepanel';
 export type MessageType =
   | 'DERIVE_KEYS_FROM_MNEMONIC'
   | 'VALIDATE_PRIVATE_KEY'
+  | 'GET_PRIVATE_KEY'
   | 'SIGN_PAYMENT'
   | 'SIGN_DELEGATION'
   | 'LEDGER_KEEPALIVE_START'
@@ -30,6 +31,14 @@ export interface ValidatePrivateKeyMessage extends BaseMessage {
   type: 'VALIDATE_PRIVATE_KEY';
   payload: {
     privateKey: string;
+  };
+}
+
+export interface GetPrivateKeyMessage extends BaseMessage {
+  type: 'GET_PRIVATE_KEY';
+  payload: {
+    password: string;
+    walletId: string;
   };
 }
 
@@ -132,6 +141,7 @@ export interface OpenExtensionMessage extends BaseMessage {
 export type AppMessage =
   | DeriveKeysMessage
   | ValidatePrivateKeyMessage
+  | GetPrivateKeyMessage
   | SignPaymentMessage
   | SignDelegationMessage
   | LedgerKeepaliveMessage
@@ -150,6 +160,11 @@ export interface DeriveKeysResponse {
 export interface ValidatePrivateKeyResponse {
   isValid: boolean;
   publicKey?: string;
+  error?: string;
+}
+
+export interface GetPrivateKeyResponse {
+  privateKey?: string;
   error?: string;
 }
 

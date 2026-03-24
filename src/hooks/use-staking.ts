@@ -5,10 +5,7 @@ import { useDashboardData } from '@/hooks/use-dashboard-data';
 
 import { useGetAccount } from '@/api/mina/mina';
 import type { GetAccount } from '@/api/model/getAccount';
-import {
-  useDelegateTransaction,
-  type SignedLedgerDelegationResult,
-} from '@/hooks/use-delegate-transaction';
+import { useDelegateTransaction } from '@/hooks/use-delegate-transaction';
 import { LedgerError } from '@/lib/ledger';
 import { useGetValidators, type Validator } from '@/api/mina/validators';
 import type { ValidatorDetails } from '@/components/wallet/validator-details-sheet';
@@ -20,18 +17,21 @@ interface UseStakingReturn {
   accountData: GetAccount | undefined;
   selectedValidator: ValidatorDetails | null;
   confirmOpen: boolean;
-  signedResult: SignedLedgerDelegationResult | null;
+  resultOpen: boolean;
+  resultHash: string | null;
+  resultError: string | null;
   customSheetOpen: boolean;
   delegating: boolean;
   setSelectedValidator: (v: ValidatorDetails | null) => void;
   setConfirmOpen: (open: boolean) => void;
+  setResultOpen: (open: boolean) => void;
   handleCardClick: (validator: Validator) => void;
   handleStartDelegating: () => void;
   handleConfirmDelegation: (password: string) => Promise<void>;
   handleCustomClick: () => void;
   handleCustomConfirm: (address: string) => void;
   setCustomSheetOpen: (open: boolean) => void;
-  setSignedResult: (result: SignedLedgerDelegationResult | null) => void;
+  handleRetryDelegation: () => void;
   refetch: () => void;
   displayLoading: boolean;
 }
@@ -56,8 +56,9 @@ export function useStaking(): UseStakingReturn {
   const [selectedValidator, setSelectedValidator] =
     useState<ValidatorDetails | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [signedResult, setSignedResult] =
-    useState<SignedLedgerDelegationResult | null>(null);
+  const [resultOpen, setResultOpen] = useState(false);
+  const [resultHash, setResultHash] = useState<string | null>(null);
+  const [resultError, setResultError] = useState<string | null>(null);
   const [customSheetOpen, setCustomSheetOpen] = useState(false);
 
   const validatorsWithDelegation = useMemo(() => {
@@ -99,18 +100,26 @@ export function useStaking(): UseStakingReturn {
     async (password: string) => {
       if (!selectedValidator) return;
       try {
+        setResultHash(null);
+        setResultError(null);
+
         const result = await delegateTransaction(
           selectedValidator.publicKey,
           password,
         );
-        setConfirmOpen(false);
-        setSelectedValidator(null);
 
-        if (result.kind === 'signed') {
-          setSignedResult(result);
-        }
+        setConfirmOpen(false);
+        setResultOpen(true);
+        setResultHash(result.hash);
       } catch (error) {
         console.error('Delegation failed:', error);
+        setConfirmOpen(false);
+        setResultOpen(true);
+        setResultError(
+          error instanceof Error
+            ? error.message
+            : t('validators.delegation_failed', 'Failed to delegate'),
+        );
         if (!(error instanceof LedgerError)) {
           toast({
             title: t('common.error', 'Error'),
@@ -127,6 +136,14 @@ export function useStaking(): UseStakingReturn {
     [selectedValidator, delegateTransaction, toast, t],
   );
 
+  const handleRetryDelegation = useCallback(async () => {
+    if (!selectedValidator) return;
+    setResultHash(null);
+    setResultError(null);
+    setConfirmOpen(true);
+    setResultOpen(false);
+  }, [selectedValidator]);
+
   const refetch = useCallback(() => {
     refetchAccount();
     refetchValidators();
@@ -139,18 +156,21 @@ export function useStaking(): UseStakingReturn {
     accountData,
     selectedValidator,
     confirmOpen,
-    signedResult,
+    resultOpen,
+    resultHash,
+    resultError,
     customSheetOpen,
     delegating,
     setSelectedValidator,
     setConfirmOpen,
+    setResultOpen,
     handleCardClick,
     handleStartDelegating,
     handleConfirmDelegation,
     handleCustomClick,
     handleCustomConfirm,
     setCustomSheetOpen,
-    setSignedResult,
+    handleRetryDelegation,
     refetch,
     displayLoading,
   };

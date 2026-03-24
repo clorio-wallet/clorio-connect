@@ -5,6 +5,7 @@ import type {
   DeriveKeysResponse,
   SignPaymentResponse,
   ValidatePrivateKeyResponse,
+  GetPrivateKeyResponse,
   SignDelegationResponse,
   LedgerImportAccountResponse,
   LedgerSubmitTxResponse,
@@ -26,11 +27,14 @@ import {
   handleValidatePrivateKey,
   handleSignDelegation,
 } from './handlers/wallet';
+import { VaultManager } from '@/lib/vault-manager';
+import { deriveMinaPrivateKey } from '@/lib/mina-utils';
 
 type AnyResponse =
   | DeriveKeysResponse
   | SignPaymentResponse
   | ValidatePrivateKeyResponse
+  | GetPrivateKeyResponse
   | SignDelegationResponse
   | LedgerImportAccountResponse
   | LedgerSubmitTxResponse
@@ -38,7 +42,10 @@ type AnyResponse =
   | { ok: true }
   | { error: string };
 
-type MessageByType<T extends AppMessage['type']> = Extract<AppMessage, { type: T }>;
+type MessageByType<T extends AppMessage['type']> = Extract<
+  AppMessage,
+  { type: T }
+>;
 
 type HandlerEntry<T extends AppMessage['type'], R extends AnyResponse> = {
   async: boolean;
@@ -65,8 +72,11 @@ const handlers: RouterMap = {
 
   LEDGER_IMPORT_ACCOUNT: {
     async: true,
-    handle: (msg, _sender, sendResponse: (r: LedgerImportAccountResponse) => void) =>
-      handleImportAccount(msg.payload, sendResponse),
+    handle: (
+      msg,
+      _sender,
+      sendResponse: (r: LedgerImportAccountResponse) => void,
+    ) => handleImportAccount(msg.payload, sendResponse),
   },
 
   LEDGER_SUBMIT_PAYMENT: {
@@ -83,26 +93,92 @@ const handlers: RouterMap = {
 
   DERIVE_KEYS_FROM_MNEMONIC: {
     async: true,
-    handle: (msg, _sender, sendResponse: (r: DeriveKeysResponse | { error: string }) => void) =>
-      handleDeriveKeys(msg.payload, sendResponse),
+    handle: (
+      msg,
+      _sender,
+      sendResponse: (r: DeriveKeysResponse | { error: string }) => void,
+    ) => handleDeriveKeys(msg.payload, sendResponse),
   },
 
   SIGN_PAYMENT: {
     async: true,
-    handle: (msg, _sender, sendResponse: (r: SignPaymentResponse | { error: string }) => void) =>
-      handleSignPayment(msg.payload, sendResponse),
+    handle: (
+      msg,
+      _sender,
+      sendResponse: (r: SignPaymentResponse | { error: string }) => void,
+    ) => handleSignPayment(msg.payload, sendResponse),
   },
 
   VALIDATE_PRIVATE_KEY: {
     async: false,
-    handle: (msg, _sender, sendResponse: (r: ValidatePrivateKeyResponse) => void) =>
-      handleValidatePrivateKey(msg.payload, sendResponse),
+    handle: (
+      msg,
+      _sender,
+      sendResponse: (r: ValidatePrivateKeyResponse) => void,
+    ) => handleValidatePrivateKey(msg.payload, sendResponse),
+  },
+
+  GET_PRIVATE_KEY: {
+    async: true,
+    handle: async (
+      msg,
+      _sender,
+      sendResponse: (r: GetPrivateKeyResponse) => void,
+    ) => {
+      try {
+        const { password, walletId } = msg.payload;
+
+        // Get wallet info to check type
+        const vault = await VaultManager.loadVault();
+        if (!vault) {
+          sendResponse({ error: 'No vault found' });
+          return;
+        }
+
+        const wallet = vault.wallets.find((w) => w.id === walletId);
+        if (!wallet) {
+          sendResponse({ error: 'Wallet not found' });
+          return;
+        }
+
+        if (wallet.type === 'ledger') {
+          sendResponse({ error: 'Ledger wallets do not expose a private key' });
+          return;
+        }
+
+        // Decrypt the secret (mnemonic or private key)
+        const secret = await VaultManager.getPrivateKey(password, walletId);
+
+        let privateKey: string;
+        if (wallet.type === 'privateKey') {
+          privateKey = secret.trim();
+        } else {
+          // For mnemonic wallets, derive the private key
+          privateKey = await deriveMinaPrivateKey(
+            secret,
+            wallet.accountIndex ?? 0,
+          );
+        }
+
+        sendResponse({ privateKey });
+      } catch (error) {
+        console.error('[background] GET_PRIVATE_KEY failed:', error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Failed to retrieve private key';
+        sendResponse({ error: message });
+      }
+    },
   },
 
   SIGN_DELEGATION: {
     async: true,
-    handle: (msg, _sender, sendResponse: (r: SignDelegationResponse | { error: string }) => void) =>
-      handleSignDelegation(msg.payload, sendResponse),
+    handle: (
+      msg,
+      _sender,
+      sendResponse: (r: SignDelegationResponse | { error: string }) => void,
+    ) => handleSignDelegation(msg.payload, sendResponse),
   },
 
   CLOSE_VIEW: {
@@ -156,6 +232,7 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('[background] Extension installed/updated');
 });
 
-chrome.runtime.onMessage.addListener((message: AppMessage, sender, sendResponse) =>
-  route(message, sender, sendResponse),
+chrome.runtime.onMessage.addListener(
+  (message: AppMessage, sender, sendResponse) =>
+    route(message, sender, sendResponse),
 );

@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
-import { useGetAccount } from '@/api/mina/mina';
-import { broadcastPayment } from '@/api/mina/transactions';
+import { broadcastPayment, useGetAccountNonce } from '@/api/mina/transactions';
 import { useToast } from '@/hooks/use-toast';
 import { SendTransactionFormData } from '@/lib/validations';
 import { FEATURES } from '@/lib/const';
@@ -14,7 +13,6 @@ import {
   LedgerStatus,
   LedgerError,
   NetworkId,
-  type SignedPayload,
 } from '@/lib/ledger';
 import type { SignPaymentMessage, SignPaymentResponse } from '@/messages/types';
 
@@ -26,15 +24,7 @@ export interface BroadcastResult {
   amount: string;
 }
 
-export interface SignedLedgerPaymentResult {
-  kind: 'signed';
-  signature: string;
-  payload: SignedPayload;
-}
-
-export type SendTransactionResult =
-  | BroadcastResult
-  | SignedLedgerPaymentResult;
+export type SendTransactionResult = BroadcastResult;
 
 function toLedgerNetworkId(
   networkLabel: string,
@@ -55,10 +45,10 @@ function mockBroadcastResult(fee: string, amount: string): BroadcastResult {
 export function useSendTransaction() {
   const { publicKey, accountType, ledgerAccountIndex } = useWalletStore();
   const { networkId } = useSettingsStore();
-  const { data: accountData, refetch: refetchAccount } = useGetAccount(
-    publicKey || '',
-    { query: { enabled: !!publicKey } },
-  );
+  const { data: accountNonceData, refetch: refetchAccountNonce } =
+    useGetAccountNonce(publicKey || '', {
+      enabled: !!publicKey,
+    });
 
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -66,12 +56,16 @@ export function useSendTransaction() {
 
   const sendWithLedger = async (
     formData: SendTransactionFormData,
-  ): Promise<SignedLedgerPaymentResult> => {
+  ): Promise<BroadcastResult> => {
     if (!publicKey) throw new Error('Wallet not initialized');
 
     const index = ledgerAccountIndex ?? 0;
-    const refreshed = await refetchAccount();
-    const nonce = refreshed.data?.nonce ?? accountData?.nonce ?? 0;
+
+    // Refresh to get latest nonce including mempool
+    const refreshed = await refetchAccountNonce();
+    // Use pendingNonce which includes account nonce + mempool transactions
+    const nonce =
+      refreshed.data?.pendingNonce ?? accountNonceData?.pendingNonce ?? 0;
 
     const { status, app } = await checkLedgerStatus();
     if (status !== LedgerStatus.READY || !app) {
@@ -107,11 +101,64 @@ export function useSendTransaction() {
       );
     }
 
-    return {
-      kind: 'signed',
-      signature: result.signature,
-      payload: result.payload,
+    // Parse the Ledger signature (hex string) into field and scalar
+    // Ledger signature format: 64 bytes total - first 32 bytes are field, last 32 bytes are scalar
+    const signatureHex = result.signature;
+    if (signatureHex.length !== 128) {
+      throw LedgerError.signFailed('Invalid signature format from Ledger');
+    }
+
+    const field = signatureHex.slice(0, 64);
+    const scalar = signatureHex.slice(64, 128);
+
+    // Broadcast the signed transaction
+    const payment = {
+      from: publicKey,
+      to: formData.recipient,
+      amount: toNano(formData.amount),
+      fee: toNano(formData.fee),
+      memo: formData.memo || '',
+      nonce: nonce.toString(),
     };
+
+    try {
+      const tx = await broadcastPayment(
+        {
+          from: payment.from,
+          to: payment.to,
+          amount: payment.amount,
+          fee: payment.fee,
+          nonce: payment.nonce,
+          memo: payment.memo,
+        },
+        { field, scalar },
+      );
+
+      const broadcastId = tx?.id ?? tx?.hash;
+      if (!broadcastId) {
+        throw new Error(t('send.broadcast_error'));
+      }
+
+      // Refresh nonce after successful broadcast
+      await refetchAccountNonce();
+
+      toast({
+        variant: 'success',
+        title: t('common.success'),
+        description: t('send.sent_toast'),
+      });
+
+      return {
+        kind: 'broadcast',
+        id: broadcastId,
+        hash: tx.hash,
+        fee: tx.fee ?? payment.fee,
+        amount: tx.amount ?? payment.amount,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('send.error_failed');
+      throw new Error(msg);
+    }
   };
 
   const sendWithSoftware = async (
@@ -120,8 +167,14 @@ export function useSendTransaction() {
   ): Promise<BroadcastResult> => {
     if (!publicKey) throw new Error('Wallet not initialized');
 
-    const refreshed = await refetchAccount();
-    const nonce = (refreshed.data?.nonce ?? accountData?.nonce ?? 0).toString();
+    // Refresh to get latest nonce including mempool
+    const refreshed = await refetchAccountNonce();
+    // Use pendingNonce which includes account nonce + mempool transactions
+    const nonce = (
+      refreshed.data?.pendingNonce ??
+      accountNonceData?.pendingNonce ??
+      0
+    ).toString();
 
     const payment = {
       from: publicKey,
@@ -165,7 +218,7 @@ export function useSendTransaction() {
         title: t('common.success'),
         description: `[DRY RUN] ${t('send.sent_toast')}`,
       });
-      refetchAccount();
+      await refetchAccountNonce();
       return mockTx;
     }
 
@@ -190,7 +243,8 @@ export function useSendTransaction() {
         throw new Error(t('send.broadcast_error'));
       }
 
-      refetchAccount();
+      // Refresh nonce after successful broadcast
+      await refetchAccountNonce();
 
       toast({
         variant: 'success',

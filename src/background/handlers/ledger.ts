@@ -153,7 +153,7 @@ export async function handleSubmitDelegation(
     });
 
     const result = await restPost<{ hash: string }>(
-      '/v1/mina/transactions/delegation',
+      '/v1/mina/transaction/delegation',
       {
         input: {
           from,

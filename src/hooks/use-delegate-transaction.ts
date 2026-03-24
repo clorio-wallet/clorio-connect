@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWalletStore } from '@/stores/wallet-store';
-import { useGetAccount } from '@/api/mina/mina';
-import { broadcastDelegation } from '@/api/mina/transactions';
+import {
+  broadcastDelegation,
+  useGetAccountNonce,
+} from '@/api/mina/transactions';
 import { useToast } from '@/hooks/use-toast';
 import { toNano } from '@/lib/utils';
 import { FEATURES } from '@/lib/const';
@@ -13,7 +15,6 @@ import {
   signLedgerDelegation,
   LedgerStatus,
   LedgerError,
-  type SignedPayload,
 } from '@/lib/ledger';
 import type {
   SignDelegationMessage,
@@ -33,22 +34,14 @@ export interface BroadcastDelegationResult {
   hash: string;
 }
 
-export interface SignedLedgerDelegationResult {
-  kind: 'signed';
-  signature: string;
-  payload: SignedPayload;
-}
-
-export type DelegateTransactionResult =
-  | BroadcastDelegationResult
-  | SignedLedgerDelegationResult;
+export type DelegateTransactionResult = BroadcastDelegationResult;
 
 export function useDelegateTransaction() {
   const { publicKey, accountType, ledgerAccountIndex } = useWalletStore();
-  const { data: accountData, refetch: refetchAccount } = useGetAccount(
-    publicKey || '',
-    { query: { enabled: !!publicKey } },
-  );
+  const { data: accountNonceData, refetch: refetchAccountNonce } =
+    useGetAccountNonce(publicKey || '', {
+      enabled: !!publicKey,
+    });
   const { networkId } = useSettingsStore();
 
   const { toast } = useToast();
@@ -57,12 +50,16 @@ export function useDelegateTransaction() {
 
   const delegateWithLedger = async (
     validatorPublicKey: string,
-  ): Promise<SignedLedgerDelegationResult> => {
+  ): Promise<BroadcastDelegationResult> => {
     if (!publicKey) throw new Error('Wallet not initialized');
 
     const index = ledgerAccountIndex ?? 0;
-    const refreshed = await refetchAccount();
-    const nonce = refreshed.data?.nonce ?? accountData?.nonce ?? 0;
+
+    // Refresh to get latest nonce including mempool
+    const refreshed = await refetchAccountNonce();
+    // Use pendingNonce which includes account nonce + mempool transactions
+    const nonce =
+      refreshed.data?.pendingNonce ?? accountNonceData?.pendingNonce ?? 0;
 
     const { status, app } = await checkLedgerStatus();
     if (status !== LedgerStatus.READY || !app) {
@@ -97,11 +94,52 @@ export function useDelegateTransaction() {
       );
     }
 
-    return {
-      kind: 'signed',
-      signature: result.signature,
-      payload: result.payload,
+    // Parse the Ledger signature (hex string) into field and scalar
+    const signatureHex = result.signature;
+    if (signatureHex.length !== 128) {
+      throw LedgerError.signFailed('Invalid signature format from Ledger');
+    }
+
+    const field = signatureHex.slice(0, 64);
+    const scalar = signatureHex.slice(64, 128);
+
+    // Broadcast the signed delegation
+    const delegation = {
+      from: publicKey,
+      to: validatorPublicKey,
+      fee: toNano(DELEGATION_FEE_MINA),
+      nonce: nonce.toString(),
+      memo: '',
     };
+
+    const broadcastResult = await broadcastDelegation(
+      {
+        from: delegation.from,
+        to: delegation.to,
+        fee: delegation.fee,
+        nonce: delegation.nonce,
+        memo: delegation.memo,
+      },
+      { field, scalar },
+    );
+
+    const broadcastHash = broadcastResult?.hash ?? broadcastResult?.id;
+    if (!broadcastHash) {
+      throw new Error(t('send.broadcast_error', 'Broadcast failed'));
+    }
+
+    toast({
+      variant: 'success',
+      title: t('common.success'),
+      description: t(
+        'validators.delegation_success',
+        'Successfully delegated to validator',
+      ),
+    });
+
+    // Refresh nonce after successful broadcast
+    await refetchAccountNonce();
+    return { kind: 'broadcast', hash: broadcastHash };
   };
 
   const delegateWithSoftware = async (
@@ -110,8 +148,14 @@ export function useDelegateTransaction() {
   ): Promise<BroadcastDelegationResult> => {
     if (!publicKey) throw new Error('Wallet not initialized');
 
-    const refreshed = await refetchAccount();
-    const nonce = (refreshed.data?.nonce ?? accountData?.nonce ?? 0).toString();
+    // Refresh to get latest nonce including mempool
+    const refreshed = await refetchAccountNonce();
+    // Use pendingNonce which includes account nonce + mempool transactions
+    const nonce = (
+      refreshed.data?.pendingNonce ??
+      accountNonceData?.pendingNonce ??
+      0
+    ).toString();
 
     const delegation = {
       from: publicKey,
@@ -169,7 +213,7 @@ export function useDelegateTransaction() {
         title: t('common.success'),
         description: `[DRY RUN] ${t('validators.delegation_success', 'Successfully delegated')}`,
       });
-      refetchAccount();
+      await refetchAccountNonce();
       return { kind: 'broadcast', hash: mockHash };
     }
 
@@ -201,7 +245,8 @@ export function useDelegateTransaction() {
       ),
     });
 
-    refetchAccount();
+    // Refresh nonce after successful broadcast
+    await refetchAccountNonce();
     return { kind: 'broadcast', hash: broadcastHash };
   };
 
