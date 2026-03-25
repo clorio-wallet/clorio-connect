@@ -292,7 +292,7 @@ export function TransactionConfirmDialog({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full"
-                  placeholder={t('security.enter_password')}
+                  placeholder={t('security.password_label')}
                   autoFocus
                 />
               </div>
@@ -305,6 +305,7 @@ export function TransactionConfirmDialog({
             variant="outline"
             onClick={handleBackOrCancel}
             disabled={isEffectivelyLoading}
+            className="flex-1"
           >
             {!isLedger && step === 'confirm'
               ? t('common.back')
@@ -315,7 +316,7 @@ export function TransactionConfirmDialog({
             <Button
               onClick={handleLedgerSign}
               disabled={ledgerLoading}
-              className="min-w-[160px]"
+              className="min-w-[160px] flex-1"
             >
               {ledgerLoading ? (
                 <>
@@ -332,7 +333,7 @@ export function TransactionConfirmDialog({
           )}
 
           {!isLedger && step === 'review' && (
-            <Button onClick={() => setStep('confirm')}>
+            <Button onClick={() => setStep('confirm')} className="flex-1">
               {t('common.continue')}
             </Button>
           )}
@@ -342,7 +343,7 @@ export function TransactionConfirmDialog({
               onConfirm={() => onConfirm(password)}
               holdDuration={1500}
               disabled={isHoldDisabled}
-              className="min-w-[160px]"
+              className="min-w-[160px] flex-1"
             >
               {loading
                 ? t('transaction_confirm.processing')

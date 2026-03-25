@@ -29,11 +29,9 @@ interface TransactionDetailsSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = ({
-  hash,
-  open,
-  onOpenChange,
-}) => {
+export const TransactionDetailsSheet: React.FC<
+  TransactionDetailsSheetProps
+> = ({ hash, open, onOpenChange }) => {
   const { t } = useTranslation();
   const { publicKey, network } = useDashboardData();
   const { data: transaction, isLoading } = useGetTransaction(hash, {
@@ -136,7 +134,9 @@ export const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = (
 
           <div className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0">
             <span className="text-sm font-medium text-muted-foreground">
-              {isIncoming ? t('transaction_details.received') : t('transaction_details.sent')}
+              {isIncoming
+                ? t('transaction_details.received')
+                : t('transaction_details.sent')}
             </span>
             <span className="text-sm font-medium text-foreground">
               {formatBalance(transaction.amount)} {transaction.symbol || 'MINA'}
@@ -145,11 +145,13 @@ export const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = (
 
           <div className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0">
             <span className="text-sm font-medium text-muted-foreground">
-              {isIncoming ? t('transaction_details.from') : t('transaction_details.to')}
+              {isIncoming
+                ? t('transaction_details.from')
+                : t('transaction_details.to')}
             </span>
             <div className="flex justify-end">
-              <AddressDisplay 
-                address={isIncoming ? transaction.sender : transaction.receiver} 
+              <AddressDisplay
+                address={isIncoming ? transaction.sender : transaction.receiver}
                 truncate={true}
                 className="text-sm text-foreground"
               />
@@ -221,15 +223,11 @@ export const TransactionDetailsSheet: React.FC<TransactionDetailsSheetProps> = (
             <BottomSheetTitle>
               {t('transaction_details.title_sent')}
             </BottomSheetTitle>
-            <BottomSheetDescription>
-              Transaction details
-            </BottomSheetDescription>
+            <BottomSheetDescription>Transaction details</BottomSheetDescription>
           </BottomSheetHeader>
         </div>
 
-        <div className="overflow-y-auto max-h-[75vh]">
-          {renderContent()}
-        </div>
+        <div className="overflow-y-auto max-h-[75vh]">{renderContent()}</div>
       </BottomSheetContent>
     </BottomSheet>
   );
