@@ -72,6 +72,14 @@ export function ImportLedgerPage() {
           '[import-ledger] handleConnect — status is READY, transitioning to "confirm" step',
         );
         setStep('confirm');
+
+        // Reopen the extension after successful connection
+        console.log('[import-ledger] handleConnect — reopening extension');
+        await new Promise<void>((resolve) => {
+          chrome.runtime.sendMessage({ type: 'OPEN_EXTENSION' }, () =>
+            resolve(),
+          );
+        });
       } else {
         console.warn(
           '[import-ledger] handleConnect — status is NOT READY:',
@@ -201,9 +209,13 @@ export function ImportLedgerPage() {
       let wallet;
 
       if (existingVault) {
-        const walletId = await VaultManager.addWallet(tempPassword, walletData, {
-          setAsActive: true,
-        });
+        const walletId = await VaultManager.addWallet(
+          tempPassword,
+          walletData,
+          {
+            setAsActive: true,
+          },
+        );
         console.log(
           '[import-ledger] handleSave — wallet added to existing vault, wallet ID:',
           walletId,
@@ -247,9 +259,7 @@ export function ImportLedgerPage() {
         });
       }
 
-      console.log(
-        '[import-ledger] handleSave — wallet set, auth enabled, opening extension',
-      );
+      console.log('[import-ledger] handleSave — wallet saved successfully');
 
       toast({
         variant: 'success',
@@ -257,12 +267,26 @@ export function ImportLedgerPage() {
         description: t('ledger.import.success_desc'),
       });
 
-      // Ask the background to open the extension (popup or sidepanel) and
-      // wait for confirmation before closing — ensures the SW stays alive
-      // until chrome.sidePanel.open() / openPopup() actually completes.
-      await new Promise<void>((resolve) => {
-        chrome.runtime.sendMessage({ type: 'OPEN_EXTENSION' }, () => resolve());
-      });
+      // Small delay to ensure toast is shown
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      try {
+        if (chrome.sidePanel?.open) {
+          await chrome.sidePanel.open({
+            windowId: chrome.windows.WINDOW_ID_CURRENT,
+          });
+          console.log('[import-ledger] handleSave — sidePanel opened');
+        } else if (chrome.action?.openPopup) {
+          await chrome.action.openPopup();
+          console.log('[import-ledger] handleSave — popup opened');
+        }
+      } catch (err) {
+        console.warn(
+          '[import-ledger] handleSave — Could not open extension:',
+          err,
+        );
+        // Continue anyway - we'll navigate to dashboard in current window
+      }
       window.close();
     } catch (err) {
       console.error('[import-ledger] handleSave — FAILED:', err);

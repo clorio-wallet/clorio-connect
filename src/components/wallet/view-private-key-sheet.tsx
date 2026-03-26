@@ -13,20 +13,7 @@ import {
   BottomSheetFooter,
 } from '@/components/ui/bottom-sheet';
 import { PasswordInput } from '@/components/wallet/password-input';
-import { storage } from '@/lib/storage';
-import { CryptoService } from '@/lib/crypto';
-import { deriveMinaPrivateKey } from '@/lib/mina-utils';
 import { useWalletStore } from '@/stores/wallet-store';
-import { VaultManager } from '@/lib/vault-manager';
-import type { WalletEntry } from '@/lib/types/vault';
-
-interface LegacyVaultData {
-  encryptedSeed: string;
-  salt: string;
-  iv: string;
-  version: number;
-  type?: 'mnemonic' | 'privateKey';
-}
 
 interface ViewPrivateKeySheetProps {
   open: boolean;
@@ -40,7 +27,9 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
   const { t } = useTranslation();
   const { toast } = useToast();
   const { activeWalletId, wallets } = useWalletStore();
-  const [step, setStep] = useState<'warning' | 'password' | 'display'>('warning');
+  const [step, setStep] = useState<'warning' | 'password' | 'display'>(
+    'warning',
+  );
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,58 +51,55 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
       return;
     }
 
+    if (!activeWalletId) {
+      setError(t('security.view_private_key.no_wallet'));
+      return;
+    }
+
+    const activeWallet = wallets.find((wallet) => wallet.id === activeWalletId);
+    if (!activeWallet) {
+      setError(t('security.view_private_key.wallet_not_found'));
+      return;
+    }
+
+    if (activeWallet.type === 'ledger') {
+      setError(t('security.view_private_key.key_unavailable'));
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      const activeWallet = wallets.find((wallet) => wallet.id === activeWalletId);
-
-      let privateKey = '';
-
-      if (activeWalletId && activeWallet) {
-        if (activeWallet.type === 'ledger') {
-          throw new Error('Ledger wallets do not expose a private key');
-        }
-
-        const secret = await VaultManager.getPrivateKey(password, activeWalletId);
-
-        if (activeWallet.type === 'privateKey') {
-          privateKey = secret.trim();
-        } else {
-          privateKey = await deriveMinaPrivateKey(
-            secret,
-            activeWallet.accountIndex ?? 0,
-          );
-        }
-      } else {
-        const legacyVault = await storage.get<LegacyVaultData>('clorio_vault');
-        if (!legacyVault) {
-          throw new Error('No wallet found');
-        }
-
-        const secret = await CryptoService.decrypt(
-          legacyVault.encryptedSeed,
+      // Send message to background to get private key securely
+      // This follows the architecture rule: private key operations happen in background
+      const response = await chrome.runtime.sendMessage({
+        type: 'GET_PRIVATE_KEY',
+        payload: {
           password,
-          legacyVault.salt,
-          legacyVault.iv,
-        );
+          walletId: activeWalletId,
+        },
+      });
 
-        if (legacyVault.type === 'privateKey') {
-          privateKey = secret.trim();
-        } else {
-          privateKey = await deriveMinaPrivateKey(secret);
-        }
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      setRevealedKey(privateKey);
+      if (!response.privateKey) {
+        throw new Error('Failed to retrieve private key');
+      }
+
+      setRevealedKey(response.privateKey);
       setStep('display');
     } catch (error) {
-      console.error('Failed to verify password:', error);
+      console.error('Failed to retrieve private key:', error);
       const message = error instanceof Error ? error.message : '';
-      if (message.includes('Ledger wallets do not expose a private key')) {
+      if (message.includes('Ledger') || message.includes('not expose')) {
         setError(t('security.view_private_key.key_unavailable'));
-      } else {
+      } else if (message.includes('password') || message.includes('decrypt')) {
         setError(t('security.view_private_key.incorrect_password'));
+      } else {
+        setError(t('security.view_private_key.retrieval_failed'));
       }
     } finally {
       setIsLoading(false);
@@ -126,16 +112,15 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
         <BottomSheetHeader>
           <BottomSheetTitle>
             {step === 'warning' && t('security.view_private_key.title_warning')}
-            {step === 'password' && t('security.view_private_key.title_password')}
+            {step === 'password' &&
+              t('security.view_private_key.title_password')}
             {step === 'display' && t('security.view_private_key.title_display')}
           </BottomSheetTitle>
-          <BottomSheetDescription>
-            {step === 'warning' &&
-              t('security.view_private_key.desc_warning')}
+          <BottomSheetDescription className="text-left">
+            {step === 'warning' && t('security.view_private_key.desc_warning')}
             {step === 'password' &&
               t('security.view_private_key.desc_password')}
-            {step === 'display' &&
-              t('security.view_private_key.desc_display')}
+            {step === 'display' && t('security.view_private_key.desc_display')}
           </BottomSheetDescription>
         </BottomSheetHeader>
 
@@ -150,7 +135,9 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
 
           {step === 'password' && (
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">{t('security.view_private_key.password_label')}</Label>
+              <Label htmlFor="confirm-password">
+                {t('security.view_private_key.password_label')}
+              </Label>
               <PasswordInput
                 id="confirm-password"
                 value={password}
@@ -168,7 +155,9 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
           {step === 'display' && (
             <div className="space-y-2">
               {isLoading ? (
-                <p className="text-sm text-muted-foreground">{t('security.view_private_key.decrypting')}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('security.view_private_key.decrypting')}
+                </p>
               ) : revealedKey ? (
                 <div className="space-y-2">
                   <Label>{t('security.view_private_key.title_display')}</Label>
@@ -182,7 +171,9 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
                         navigator.clipboard.writeText(revealedKey);
                         toast({
                           title: t('common.copied'),
-                          description: t('security.view_private_key.key_copied'),
+                          description: t(
+                            'security.view_private_key.key_copied',
+                          ),
                         });
                       }}
                     >
@@ -209,10 +200,7 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
               >
                 {t('common.cancel')}
               </Button>
-              <Button
-                className="flex-1"
-                onClick={() => setStep('password')}
-              >
+              <Button className="flex-1" onClick={() => setStep('password')}>
                 {t('security.view_private_key.i_am_alone')}
               </Button>
             </div>
@@ -232,16 +220,15 @@ export const ViewPrivateKeySheet: React.FC<ViewPrivateKeySheetProps> = ({
                 onClick={handleVerifyPassword}
                 disabled={isLoading}
               >
-                {isLoading ? t('security.view_private_key.verifying') : t('security.view_private_key.view_btn')}
+                {isLoading
+                  ? t('security.view_private_key.verifying')
+                  : t('security.view_private_key.view_btn')}
               </Button>
             </div>
           )}
 
           {step === 'display' && (
-            <Button
-              className="w-full"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button className="w-full" onClick={() => onOpenChange(false)}>
               {t('common.close')}
             </Button>
           )}
