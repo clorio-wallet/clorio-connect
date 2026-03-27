@@ -314,7 +314,7 @@ export function ConfirmDelegationSheet({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full"
-                  placeholder={t('security.enter_password')}
+                  placeholder={t('security.password_label')}
                   autoFocus
                 />
               </div>
@@ -327,6 +327,7 @@ export function ConfirmDelegationSheet({
             variant="outline"
             onClick={handleBack}
             disabled={isEffectivelyLoading}
+            className="flex-1"
           >
             {!isLedger && step === 'confirm'
               ? t('common.back')
@@ -337,7 +338,7 @@ export function ConfirmDelegationSheet({
             <Button
               onClick={handleLedgerSign}
               disabled={ledgerLoading}
-              className="min-w-[160px]"
+              className="min-w-[160px] flex-1"
             >
               {ledgerLoading ? (
                 <>
@@ -354,7 +355,7 @@ export function ConfirmDelegationSheet({
           )}
 
           {!isLedger && step === 'review' && (
-            <Button onClick={() => setStep('confirm')}>
+            <Button onClick={() => setStep('confirm')} className="flex-1">
               {t('common.continue')}
             </Button>
           )}
@@ -364,7 +365,7 @@ export function ConfirmDelegationSheet({
               onConfirm={() => onConfirm(password)}
               holdDuration={1500}
               disabled={isHoldDisabled}
-              className="min-w-[160px]"
+              className="min-w-[160px] flex-1"
             >
               {loading
                 ? t('transaction_confirm.processing')

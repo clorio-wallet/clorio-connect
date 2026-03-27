@@ -7,7 +7,7 @@ import { StakingInfoCard } from '@/components/wallet/staking-info-card';
 import { ValidatorDetailsSheet } from '@/components/wallet/validator-details-sheet';
 import { ConfirmDelegationSheet } from '@/pages/ConfirmDelegation';
 import { CustomDelegateSheet } from '@/components/staking/custom-delegate-sheet';
-import { LedgerResultDialog } from '@/components/staking/ledger-result-dialog';
+import { DelegationResultSheet } from '@/components/staking/delegation-result-sheet';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, PencilLine } from 'lucide-react';
 
@@ -20,21 +20,31 @@ const StakingPage: React.FC = () => {
     accountData,
     selectedValidator,
     confirmOpen,
-    signedResult,
+    resultOpen,
+    resultHash,
+    resultError,
     customSheetOpen,
     delegating,
     setSelectedValidator,
     setConfirmOpen,
+    setResultOpen,
     handleCardClick,
     handleStartDelegating,
     handleConfirmDelegation,
     handleCustomClick,
     handleCustomConfirm,
     setCustomSheetOpen,
-    setSignedResult,
+    handleRetryDelegation,
     refetch,
     displayLoading,
   } = useStaking();
+
+  const getResultStatus = () => {
+    if (delegating) return 'broadcasting';
+    if (resultHash) return 'success';
+    if (resultError) return 'failed';
+    return 'broadcasting';
+  };
 
   return (
     <div className="space-y-6 py-2">
@@ -84,7 +94,7 @@ const StakingPage: React.FC = () => {
       </div>
 
       <ValidatorDetailsSheet
-        open={!!selectedValidator && !confirmOpen}
+        open={!!selectedValidator && !confirmOpen && !resultOpen}
         onOpenChange={(o) => {
           if (!o) setSelectedValidator(null);
         }}
@@ -100,7 +110,7 @@ const StakingPage: React.FC = () => {
         open={confirmOpen}
         onOpenChange={(o) => {
           setConfirmOpen(o);
-          if (!o) setSelectedValidator(null);
+          if (!o && !resultOpen) setSelectedValidator(null);
         }}
         validator={selectedValidator}
         onConfirm={handleConfirmDelegation}
@@ -113,10 +123,20 @@ const StakingPage: React.FC = () => {
         onConfirm={handleCustomConfirm}
       />
 
-      <LedgerResultDialog
-        open={!!signedResult}
-        onOpenChange={() => setSignedResult(null)}
-        result={signedResult}
+      <DelegationResultSheet
+        open={resultOpen}
+        onOpenChange={(open) => {
+          setResultOpen(open);
+          if (!open) {
+            setSelectedValidator(null);
+          }
+        }}
+        status={getResultStatus()}
+        validatorName={selectedValidator?.name || null}
+        validatorAddress={selectedValidator?.publicKey || null}
+        hash={resultHash}
+        error={resultError}
+        onRetry={handleRetryDelegation}
       />
     </div>
   );

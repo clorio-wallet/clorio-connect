@@ -21,11 +21,7 @@ if (process.env.BROWSER === 'firefox') {
 }
 
 export default defineConfig({
-  plugins: [
-    react(),
-    crx({ manifest: manifestConfig }),
-    nodePolyfills(),
-  ],
+  plugins: [react(), crx({ manifest: manifestConfig }), nodePolyfills()],
   resolve: {
     alias: { '@': '/src' },
   },
@@ -41,4 +37,5 @@ export default defineConfig({
       },
     },
   },
+  publicDir: 'public',
 });
