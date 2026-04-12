@@ -9,6 +9,9 @@ import type {
   SignDelegationResponse,
   LedgerImportAccountResponse,
   LedgerSubmitTxResponse,
+  DappRpcResponse,
+  DappGetPendingApprovalResponse,
+  DappResolvePendingApprovalResponse,
 } from '@/messages/types';
 
 import { handleSetUiMode, openExtension } from './sidepanel';
@@ -27,8 +30,14 @@ import {
   handleValidatePrivateKey,
   handleSignDelegation,
 } from './handlers/wallet';
+import {
+  handleDappRpcRequest,
+  handleGetPendingDappApproval,
+  handleResolveDappApproval,
+} from './handlers/dapp';
 import { VaultManager } from '@/lib/vault-manager';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
+import { initializeMinaClientManager } from './mina-client-manager';
 
 type AnyResponse =
   | DeriveKeysResponse
@@ -39,6 +48,9 @@ type AnyResponse =
   | LedgerImportAccountResponse
   | LedgerSubmitTxResponse
   | SetUiModeResponse
+  | DappRpcResponse
+  | DappGetPendingApprovalResponse
+  | DappResolvePendingApprovalResponse
   | { ok: true }
   | { error: string };
 
@@ -203,6 +215,30 @@ const handlers: RouterMap = {
         });
     },
   },
+
+  DAPP_RPC_REQUEST: {
+    async: true,
+    handle: (msg, _sender, sendResponse: (r: DappRpcResponse) => void) =>
+      handleDappRpcRequest(msg.payload, sendResponse),
+  },
+
+  DAPP_GET_PENDING_APPROVAL: {
+    async: true,
+    handle: (
+      _msg,
+      _sender,
+      sendResponse: (r: DappGetPendingApprovalResponse) => void,
+    ) => handleGetPendingDappApproval(sendResponse),
+  },
+
+  DAPP_RESOLVE_PENDING_APPROVAL: {
+    async: true,
+    handle: (
+      msg,
+      _sender,
+      sendResponse: (r: DappResolvePendingApprovalResponse) => void,
+    ) => handleResolveDappApproval(msg.payload, sendResponse),
+  },
 };
 
 function route(
@@ -227,6 +263,11 @@ function route(
 }
 
 console.log('[background] Service Worker running');
+
+// Pre-initialize mina-signer client for fast dApp requests
+initializeMinaClientManager().catch((error) => {
+  console.error('[background] Failed to pre-initialize mina-signer:', error);
+});
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[background] Extension installed/updated');
