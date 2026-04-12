@@ -17,6 +17,7 @@ const PANEL_PATH = 'src/popup/index.html';
 // Queue for sidePanel.open() requests that require user gesture
 let sidePanelOpenQueue: (() => Promise<void>)[] = [];
 let isProcessingQueue = false;
+let queuedRequestCount = 0;
 
 function readStoredMode(): Promise<UiMode> {
   return new Promise((resolve) => {
@@ -42,6 +43,31 @@ function applyPanelBehavior(mode: UiMode): void {
   chrome.sidePanel
     .setOptions({ enabled: mode === 'sidepanel', path: PANEL_PATH })
     .catch((e) => console.warn('[sidepanel] setOptions failed:', e));
+}
+
+/**
+ * Update badge to show number of queued dApp requests
+ */
+function notifySidePanelQueue(): void {
+  const count = sidePanelOpenQueue.length + queuedRequestCount;
+
+  if (count > 0) {
+    const badgeText = count > 9 ? '9+' : String(count);
+    chrome.action
+      .setBadgeText({ text: badgeText })
+      .catch((e) => console.warn('[sidepanel] setBadgeText failed:', e));
+
+    chrome.action
+      .setBadgeBackgroundColor({ color: '#EA6D20' }) // Orange-red
+      .catch((e) =>
+        console.warn('[sidepanel] setBadgeBackgroundColor failed:', e),
+      );
+  } else {
+    // Clear badge when queue is empty
+    chrome.action
+      .setBadgeText({ text: '' })
+      .catch((e) => console.warn('[sidepanel] clearBadge failed:', e));
+  }
 }
 
 async function broadcastCloseView(): Promise<void> {
@@ -71,6 +97,9 @@ async function broadcastCloseView(): Promise<void> {
  */
 async function processQueue(): Promise<void> {
   if (isProcessingQueue || sidePanelOpenQueue.length === 0) {
+    // Clear badge when processing queue (or if queue is empty)
+    queuedRequestCount = 0;
+    notifySidePanelQueue();
     return;
   }
 
@@ -89,6 +118,8 @@ async function processQueue(): Promise<void> {
   }
 
   isProcessingQueue = false;
+  queuedRequestCount = 0;
+  notifySidePanelQueue();
 }
 
 async function openSidePanel(): Promise<void> {
@@ -121,6 +152,9 @@ async function openSidePanel(): Promise<void> {
         console.log('[sidepanel] executing queued open request');
         await chrome.sidePanel.open({ windowId: targetWindowId });
       });
+      // Increment counter and notify
+      queuedRequestCount++;
+      notifySidePanelQueue();
     } else {
       console.warn('[sidepanel] sidePanel.open() failed:', error);
     }
@@ -160,6 +194,15 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.runtime.onMessage.addListener(() => {
   processQueue().catch((error) => {
     console.error('[sidepanel] processQueue failed:', error);
+  });
+});
+
+/**
+ * Listen for extension icon click to process queued sidepanel opens
+ */
+chrome.action.onClicked.addListener(() => {
+  processQueue().catch((error) => {
+    console.error('[sidepanel] processQueue from action click failed:', error);
   });
 });
 

@@ -329,6 +329,13 @@ async function enqueueApproval(
           .sendMessage({ type: DAPP_APPROVAL_REQUESTED_MESSAGE })
           .catch(() => undefined);
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.warn(
+          '[dapp] Failed to open extension for approval:',
+          errorMsg,
+          error,
+        );
+        // Note: Badge notification will be shown as fallback if sidepanel couldn't open
         finalizePendingRequest(request.id, toErrorResponse(asDappError(error)));
       }
     })();
