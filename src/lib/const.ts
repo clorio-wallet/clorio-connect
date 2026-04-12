@@ -3,6 +3,7 @@ export const NO_ANIMATION_ROUTES: string[] = [
   '/',
   '/welcome',
   '/wallet-unlock',
+  '/dapp/approval',
 ];
 
 export const FEATURES = {

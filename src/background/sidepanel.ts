@@ -2,6 +2,10 @@
  * sidepanel.ts
  *
  * Manages the UI display mode (sidepanel ↔ popup) for the extension.
+ *
+ * Implements a queue for sidePanel.open() which requires a user gesture.
+ * When user gesture is unavailable, requests are queued and processed
+ * on the next available gesture (e.g., icon click).
  */
 
 import type { UiMode, SetUiModeResponse } from '@/messages/types';
@@ -9,6 +13,10 @@ import type { UiMode, SetUiModeResponse } from '@/messages/types';
 const STORAGE_KEY = 'uiMode';
 const DEFAULT_MODE: UiMode = 'sidepanel';
 const PANEL_PATH = 'src/popup/index.html';
+
+// Queue for sidePanel.open() requests that require user gesture
+let sidePanelOpenQueue: (() => Promise<void>)[] = [];
+let isProcessingQueue = false;
 
 function readStoredMode(): Promise<UiMode> {
   return new Promise((resolve) => {
@@ -57,6 +65,32 @@ async function broadcastCloseView(): Promise<void> {
   );
 }
 
+/**
+ * Process queued sidePanel.open() requests
+ * These require a user gesture, so they're queued when unavailable
+ */
+async function processQueue(): Promise<void> {
+  if (isProcessingQueue || sidePanelOpenQueue.length === 0) {
+    return;
+  }
+
+  isProcessingQueue = true;
+
+  while (sidePanelOpenQueue.length > 0) {
+    const request = sidePanelOpenQueue.shift();
+    if (request) {
+      try {
+        await request();
+      } catch (error) {
+        // Log but don't throw - let other queued requests process
+        console.warn('[sidepanel] Queued operation failed:', error);
+      }
+    }
+  }
+
+  isProcessingQueue = false;
+}
+
 async function openSidePanel(): Promise<void> {
   let targetWindowId: number | undefined;
 
@@ -75,9 +109,22 @@ async function openSidePanel(): Promise<void> {
     return;
   }
 
-  await chrome.sidePanel
-    .open({ windowId: targetWindowId })
-    .catch((e) => console.warn('[sidepanel] sidePanel.open() failed:', e));
+  try {
+    await chrome.sidePanel.open({ windowId: targetWindowId });
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+
+    // If error is due to missing user gesture, queue for later
+    if (errorMsg.includes('user gesture')) {
+      console.warn('[sidepanel] queued for next user gesture');
+      sidePanelOpenQueue.push(async () => {
+        console.log('[sidepanel] executing queued open request');
+        await chrome.sidePanel.open({ windowId: targetWindowId });
+      });
+    } else {
+      console.warn('[sidepanel] sidePanel.open() failed:', error);
+    }
+  }
 }
 
 async function switchMode(next: UiMode): Promise<void> {
@@ -107,6 +154,15 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   }
 });
 
+/**
+ * Listen for user gestures to trigger queued sidePanel operations
+ */
+chrome.runtime.onMessage.addListener(() => {
+  processQueue().catch((error) => {
+    console.error('[sidepanel] processQueue failed:', error);
+  });
+});
+
 export async function openExtension(): Promise<void> {
   const mode = await readStoredMode();
   if (mode === 'sidepanel') {
@@ -114,9 +170,12 @@ export async function openExtension(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     await openSidePanel();
   } else if (chrome.action?.openPopup) {
-    await chrome.action
-      .openPopup()
-      .catch((e) => console.warn('[sidepanel] openPopup() failed:', e));
+    try {
+      await chrome.action.openPopup();
+    } catch (error) {
+      console.warn('[sidepanel] openPopup() failed:', error);
+      // Graceful degradation - silently fail if popup can't open
+    }
   }
 }
 

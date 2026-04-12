@@ -1,3 +1,9 @@
+import type {
+  DappPendingApproval,
+  DappProviderError,
+  DappRpcPayload,
+} from '@/lib/dapp';
+
 export type UiMode = 'popup' | 'sidepanel';
 
 export type MessageType =
@@ -13,7 +19,10 @@ export type MessageType =
   | 'LEDGER_SUBMIT_DELEGATION'
   | 'SET_UIMODE'
   | 'CLOSE_VIEW'
-  | 'OPEN_EXTENSION';
+  | 'OPEN_EXTENSION'
+  | 'DAPP_RPC_REQUEST'
+  | 'DAPP_GET_PENDING_APPROVAL'
+  | 'DAPP_RESOLVE_PENDING_APPROVAL';
 
 export interface BaseMessage {
   type: MessageType;
@@ -138,6 +147,23 @@ export interface OpenExtensionMessage extends BaseMessage {
   type: 'OPEN_EXTENSION';
 }
 
+export interface DappRpcRequestMessage extends BaseMessage {
+  type: 'DAPP_RPC_REQUEST';
+  payload: DappRpcPayload;
+}
+
+export interface DappGetPendingApprovalMessage extends BaseMessage {
+  type: 'DAPP_GET_PENDING_APPROVAL';
+}
+
+export interface DappResolvePendingApprovalMessage extends BaseMessage {
+  type: 'DAPP_RESOLVE_PENDING_APPROVAL';
+  payload: {
+    requestId: string;
+    approve: boolean;
+  };
+}
+
 export type AppMessage =
   | DeriveKeysMessage
   | ValidatePrivateKeyMessage
@@ -150,7 +176,10 @@ export type AppMessage =
   | LedgerSubmitDelegationMessage
   | SetUiModeMessage
   | CloseViewMessage
-  | OpenExtensionMessage;
+  | OpenExtensionMessage
+  | DappRpcRequestMessage
+  | DappGetPendingApprovalMessage
+  | DappResolvePendingApprovalMessage;
 
 export interface DeriveKeysResponse {
   publicKey: string;
@@ -196,5 +225,19 @@ export interface LedgerImportAccountResponse {
 export interface LedgerSubmitTxResponse {
   success: boolean;
   hash?: string;
+  error?: string;
+}
+
+export interface DappRpcResponse {
+  result?: unknown;
+  error?: DappProviderError;
+}
+
+export interface DappGetPendingApprovalResponse {
+  request: DappPendingApproval | null;
+}
+
+export interface DappResolvePendingApprovalResponse {
+  ok: boolean;
   error?: string;
 }

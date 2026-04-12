@@ -2,14 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persistOptions } from '@/lib/query-client';
 import { useNetworkStore } from '@/stores/network-store';
+import { useSettingsStore } from '@/stores/settings-store';
 import { useSessionStore } from '@/stores/session-store';
 import { CacheCleaner } from '@/components/cache-cleaner';
 import { QueryRestorationBoundary } from '@/components/query-restoration-boundary';
+import { DAPP_NETWORK_ID_STORAGE_KEY } from '@/lib/dapp';
+import { storage } from '@/lib/storage';
 import { PopupRoutes } from './PopupRoutes';
 
 const App: React.FC = () => {
   const { fetchNetworks } = useNetworkStore();
   const { restoreSession } = useSessionStore();
+  const networkId = useSettingsStore((state) => state.networkId);
   const [isRestored, setIsRestored] = useState(false);
   // Track whether we've already started closing to avoid double-close races.
   const isClosingRef = useRef(false);
@@ -50,6 +54,12 @@ const App: React.FC = () => {
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [fetchNetworks]);
+
+  useEffect(() => {
+    void storage.set(DAPP_NETWORK_ID_STORAGE_KEY, networkId).catch((error) => {
+      console.warn('[App] Failed to sync dApp network id:', error);
+    });
+  }, [networkId]);
 
   if (!isRestored) {
     return null;

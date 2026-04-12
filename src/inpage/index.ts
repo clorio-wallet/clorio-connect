@@ -1,4 +1,5 @@
-console.log("Inpage script loaded");
+import { installMinaProvider } from './provider';
 
-// Injected Provider (window.wallet)
-// This script is injected into the web page context
+console.log('Inpage script loaded');
+
+installMinaProvider();

@@ -37,7 +37,6 @@ import {
 } from './handlers/dapp';
 import { VaultManager } from '@/lib/vault-manager';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
-import { initializeMinaClientManager } from './mina-client-manager';
 
 type AnyResponse =
   | DeriveKeysResponse
@@ -262,12 +261,9 @@ function route(
   return entry.async;
 }
 
-console.log('[background] Service Worker running');
-
-// Pre-initialize mina-signer client for fast dApp requests
-initializeMinaClientManager().catch((error) => {
-  console.error('[background] Failed to pre-initialize mina-signer:', error);
-});
+console.log(
+  '[background] Service Worker running (mina-signer will load on first use)',
+);
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[background] Extension installed/updated');

@@ -1,10 +1,17 @@
-import React, { Suspense, lazy, ReactNode } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, ReactNode, useEffect } from 'react';
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from 'react-router-dom';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import DevToolsLoader from '@/components/dev-tools-loader';
 import { WelcomePage } from '@/pages/Welcome';
 import { RootGuard } from '@/pages/RootGuard';
 import WalletUnlockPage from '@/pages/wallet-unlock';
+import { DAPP_APPROVAL_REQUESTED_MESSAGE } from '@/lib/dapp';
 import {
   DashboardSkeleton,
   TransactionsSkeleton,
@@ -42,9 +49,27 @@ const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 const TransactionsPage = lazy(() => import('@/pages/Transactions'));
 const StakingPage = lazy(() => import('@/pages/Staking'));
 const SendPage = lazy(() => import('@/pages/send'));
+const DappApprovalPage = lazy(() => import('@/pages/DappApproval'));
 
 const SettingsPage = lazy(() => import('@/pages/Settings'));
 const PreLoginSettingsPage = lazy(() => import('@/pages/PreLoginSettings'));
+
+const DappApprovalNavigationEffect: React.FC = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleMessage = (message: { type?: string }) => {
+      if (message?.type === DAPP_APPROVAL_REQUESTED_MESSAGE) {
+        navigate('/dapp/approval');
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+    return () => chrome.runtime.onMessage.removeListener(handleMessage);
+  }, [navigate]);
+
+  return null;
+};
 
 type RouteConfig = {
   path: string;
@@ -66,6 +91,11 @@ const routeConfigs: RouteConfig[] = [
   {
     path: '/wallet-unlock',
     element: <WalletUnlockPage />,
+  },
+  {
+    path: '/dapp/approval',
+    element: <DappApprovalPage />,
+    fallback: <GenericSkeleton />,
   },
   {
     path: '/prelogin-settings',
@@ -158,6 +188,7 @@ export const PopupRoutes: React.FC = () => {
     <>
       <DevToolsLoader />
       <HashRouter>
+        <DappApprovalNavigationEffect />
         <Routes>
           <Route element={<PopupLayout />}>
             {routeConfigs.map((config) => (

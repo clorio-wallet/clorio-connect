@@ -82,6 +82,10 @@ export const useSessionStore = create<SessionState>((set) => ({
       }>('clorio_session');
 
       if (!session) {
+        set({
+          isAuthenticated: false,
+          tempPassword: null,
+        });
         const onboardingPassword = await sessionStorage.get<string>(
           'clorio_onboarding_password',
         );
@@ -95,6 +99,10 @@ export const useSessionStore = create<SessionState>((set) => ({
 
       if (autoLockTimeout === 0) {
         await sessionStorage.remove('clorio_session');
+        set({
+          isAuthenticated: false,
+          tempPassword: null,
+        });
         return false;
       }
 
@@ -102,6 +110,10 @@ export const useSessionStore = create<SessionState>((set) => ({
         const elapsedMinutes = (Date.now() - session.timestamp) / 1000 / 60;
         if (elapsedMinutes > autoLockTimeout) {
           await sessionStorage.remove('clorio_session');
+          set({
+            isAuthenticated: false,
+            tempPassword: null,
+          });
           return false;
         }
       }
@@ -142,6 +154,10 @@ export const useSessionStore = create<SessionState>((set) => ({
       return true;
     } catch (error) {
       console.error('Failed to restore session:', error);
+      set({
+        isAuthenticated: false,
+        tempPassword: null,
+      });
       return false;
     }
   },
