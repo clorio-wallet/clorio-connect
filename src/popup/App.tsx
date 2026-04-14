@@ -57,7 +57,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     void storage.set(DAPP_NETWORK_ID_STORAGE_KEY, networkId).catch((error) => {
-      console.warn('[App] Failed to sync dApp network id:', error);
+      console.warn('[App] Failed to sync zkApp network id:', error);
     });
   }, [networkId]);
 

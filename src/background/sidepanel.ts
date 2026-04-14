@@ -19,6 +19,9 @@ let sidePanelOpenQueue: (() => Promise<void>)[] = [];
 let isProcessingQueue = false;
 let queuedRequestCount = 0;
 
+// Track the popup window opened as sidepanel fallback
+let dappPopupWindowId: number | null = null;
+
 function readStoredMode(): Promise<UiMode> {
   return new Promise((resolve) => {
     chrome.storage.local.get({ [STORAGE_KEY]: DEFAULT_MODE }, (res) => {
@@ -46,7 +49,7 @@ function applyPanelBehavior(mode: UiMode): void {
 }
 
 /**
- * Update badge to show number of queued dApp requests
+ * Update badge to show number of queued zkApp requests
  */
 function notifySidePanelQueue(): void {
   const count = sidePanelOpenQueue.length + queuedRequestCount;
@@ -122,6 +125,60 @@ async function processQueue(): Promise<void> {
   notifySidePanelQueue();
 }
 
+async function openDappPopup(): Promise<void> {
+  // Focus existing popup if still open
+  if (dappPopupWindowId !== null) {
+    try {
+      await chrome.windows.update(dappPopupWindowId, { focused: true });
+      return;
+    } catch {
+      dappPopupWindowId = null;
+    }
+  }
+
+  // chrome.windows.create() does NOT require a user gesture — safe to call
+  // from a service worker event triggered by a content script message.
+  const win = await chrome.windows.create({
+    url: chrome.runtime.getURL(PANEL_PATH),
+    type: 'popup',
+    width: 400,
+    height: 630,
+    focused: true,
+  });
+
+  const winId = win?.id;
+  if (winId !== undefined) {
+    dappPopupWindowId = winId;
+    chrome.windows.onRemoved.addListener(function cleanup(windowId) {
+      if (windowId === winId) {
+        dappPopupWindowId = null;
+        chrome.windows.onRemoved.removeListener(cleanup);
+      }
+    });
+  }
+}
+
+const DAPP_NOTIFICATION_ID = 'clorio_dapp_request';
+
+function showDappRequestNotification(): void {
+  chrome.notifications.create(DAPP_NOTIFICATION_ID, {
+    type: 'basic',
+    iconUrl: 'icon-48.png',
+    title: 'Clorio Connect',
+    message: 'A dApp is requesting access. Click to open the wallet.',
+    priority: 2,
+  });
+}
+
+chrome.notifications.onClicked.addListener((notificationId) => {
+  if (notificationId === DAPP_NOTIFICATION_ID) {
+    chrome.notifications.clear(DAPP_NOTIFICATION_ID);
+    processQueue().catch((e) =>
+      console.warn('[sidepanel] processQueue from notification failed:', e),
+    );
+  }
+});
+
 async function openSidePanel(): Promise<void> {
   let targetWindowId: number | undefined;
 
@@ -145,16 +202,18 @@ async function openSidePanel(): Promise<void> {
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
 
-    // If error is due to missing user gesture, queue for later
+    // sidePanel.open() requires a user gesture — open a popup as immediate
+    // fallback (chrome.windows.create does not require a gesture).
     if (errorMsg.includes('user gesture')) {
-      console.warn('[sidepanel] queued for next user gesture');
       sidePanelOpenQueue.push(async () => {
-        console.log('[sidepanel] executing queued open request');
         await chrome.sidePanel.open({ windowId: targetWindowId });
       });
-      // Increment counter and notify
       queuedRequestCount++;
       notifySidePanelQueue();
+      await openDappPopup().catch(() => {
+        // If popup also fails, fall back to badge + notification
+        showDappRequestNotification();
+      });
     } else {
       console.warn('[sidepanel] sidePanel.open() failed:', error);
     }
@@ -206,7 +265,26 @@ chrome.action.onClicked.addListener(() => {
   });
 });
 
+async function hasOpenExtensionView(): Promise<boolean> {
+  // chrome.runtime.getContexts is MV3-native and works in service workers.
+  // chrome.extension.getViews() is unavailable in service workers (MV3).
+  if (chrome.runtime.getContexts) {
+    const contexts = await chrome.runtime.getContexts({
+      contextTypes: ['SIDE_PANEL', 'POPUP', 'TAB'] as chrome.runtime.ContextType[],
+    });
+    return contexts.length > 0;
+  }
+  return dappPopupWindowId !== null;
+}
+
 export async function openExtension(): Promise<void> {
+  // If any extension view is already open (sidepanel, popup, or our fallback
+  // popup window), the DAPP_APPROVAL_REQUESTED_MESSAGE sent by enqueueApproval
+  // will navigate it — no need to open a new window.
+  if (await hasOpenExtensionView()) {
+    return;
+  }
+
   const mode = await readStoredMode();
   if (mode === 'sidepanel') {
     applyPanelBehavior('sidepanel');

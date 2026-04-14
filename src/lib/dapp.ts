@@ -10,6 +10,10 @@ export type DappRpcMethod =
   | 'mina_requestAccounts'
   | 'mina_accounts'
   | 'mina_requestNetwork'
+  | 'mina_switchChain'
+  | 'mina_verifyMessage'
+  | 'mina_signFields'
+  | 'mina_signJsonMessage'
   | 'mina_sendPayment'
   | 'mina_sendStakeDelegation'
   | 'mina_signMessage'
@@ -78,6 +82,26 @@ export interface DappSignMessageParams {
   message: string;
 }
 
+export interface DappVerifyMessageParams {
+  data: string;
+  publicKey: string;
+  signature: {
+    field: string;
+    scalar: string;
+  };
+}
+
+export interface DappSignFieldsParams {
+  message: Array<string | number>;
+}
+
+export interface DappSignJsonMessageParams {
+  message: Array<{
+    label: string;
+    value: string;
+  }>;
+}
+
 export interface DappSendPaymentParams {
   to: string;
   amount: string | number;
@@ -103,6 +127,10 @@ export interface DappSendTransactionParams {
   };
   nonce?: number;
   onlySign?: boolean;
+}
+
+export interface DappSwitchChainParams {
+  networkID: DappNetworkId;
 }
 
 export interface DappBridgeRequest {
@@ -155,6 +183,14 @@ export function getDappMethodLabel(method: DappRpcMethod): string {
       return 'Read connected accounts';
     case 'mina_requestNetwork':
       return 'Read network';
+    case 'mina_switchChain':
+      return 'Switch network';
+    case 'mina_verifyMessage':
+      return 'Verify message';
+    case 'mina_signFields':
+      return 'Sign fields';
+    case 'mina_signJsonMessage':
+      return 'Sign JSON message';
     case 'mina_sendPayment':
       return 'Send payment';
     case 'mina_sendStakeDelegation':

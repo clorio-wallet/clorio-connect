@@ -16,10 +16,14 @@ import {
   DappPermissions,
   DappProviderError,
   DappRpcPayload,
+  DappSignFieldsParams,
+  DappSignJsonMessageParams,
   DappSendPaymentParams,
   DappSendStakeDelegationParams,
   DappSendTransactionParams,
   DappSignMessageParams,
+  DappSwitchChainParams,
+  DappVerifyMessageParams,
   DappNetworkId,
   isRecord,
 } from '@/lib/dapp';
@@ -32,6 +36,8 @@ import { getPrivateKeyFromVault } from './wallet';
 import { getSignerClient } from '../mina-client-manager';
 
 const REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
+const DEFAULT_PAYMENT_FEE = '0.1';
+const DAPP_LAST_SIGNED_MESSAGE_STORAGE_KEY = 'clorio_dapp_last_signed_message';
 const GRAPHQL_ENDPOINTS: Record<DappNetworkId, string> = {
   mainnet:
     import.meta.env.VITE_MAINNET_GRAPHQL_URL ||
@@ -78,6 +84,39 @@ function asDappError(error: unknown): DappProviderError {
 async function getCurrentNetworkId(): Promise<DappNetworkId> {
   const stored = await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY);
   return stored === 'devnet' ? 'devnet' : 'mainnet';
+}
+
+async function setCurrentNetworkId(networkId: DappNetworkId): Promise<void> {
+  await storage.set(DAPP_NETWORK_ID_STORAGE_KEY, networkId);
+}
+
+function normalizeSwitchChainParams(params: unknown): DappSwitchChainParams {
+  if (typeof params === 'string') {
+    return { networkID: params === 'mainnet' ? 'mainnet' : 'devnet' };
+  }
+
+  if (!isRecord(params)) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'switchChain requires a networkID.',
+    );
+  }
+
+  const requested =
+    typeof params.networkID === 'string'
+      ? params.networkID
+      : typeof params.chainId === 'string'
+        ? params.chainId
+        : null;
+
+  if (requested !== 'mainnet' && requested !== 'devnet') {
+    throw createDappError(
+      DAPP_ERROR_CODES.unsupportedChain,
+      'Only mainnet and devnet are supported.',
+    );
+  }
+
+  return { networkID: requested };
 }
 
 function removeJsonQuotes(json: string): string {
@@ -181,13 +220,31 @@ async function savePermissions(permissions: DappPermissions): Promise<void> {
   await storage.set(DAPP_PERMISSIONS_STORAGE_KEY, permissions);
 }
 
+type LastSignedMessage = {
+  origin: string;
+  publicKey: string;
+  data: string;
+  signature: {
+    field: string;
+    scalar: string;
+  };
+};
+
+async function saveLastSignedMessage(message: LastSignedMessage): Promise<void> {
+  await storage.set(DAPP_LAST_SIGNED_MESSAGE_STORAGE_KEY, message);
+}
+
+async function loadLastSignedMessage(): Promise<LastSignedMessage | undefined> {
+  return storage.get<LastSignedMessage>(DAPP_LAST_SIGNED_MESSAGE_STORAGE_KEY);
+}
+
 function normalizeOrigin(origin: string): string {
   try {
     return new URL(origin).origin;
   } catch {
     throw createDappError(
       DAPP_ERROR_CODES.invalidParams,
-      'Invalid dApp origin.',
+      'Invalid zkApp origin.',
     );
   }
 }
@@ -240,6 +297,23 @@ function buildApprovalSummary(request: DappRpcPayload) {
     };
   }
 
+  if (request.method === 'mina_signFields') {
+    const params = request.params as DappSignFieldsParams | undefined;
+    const message = Array.isArray(params?.message) ? params.message : [];
+    return { fields: message.slice(0, 10) };
+  }
+
+  if (request.method === 'mina_signJsonMessage') {
+    const params = request.params as DappSignJsonMessageParams | undefined;
+    const message = Array.isArray(params?.message) ? params.message : [];
+    return { entries: message.slice(0, 5) };
+  }
+
+  if (request.method === 'mina_switchChain') {
+    const params = request.params as DappSwitchChainParams | undefined;
+    return { networkID: params?.networkID };
+  }
+
   return undefined;
 }
 
@@ -280,7 +354,7 @@ async function enqueueApproval(
     return toErrorResponse(
       createDappError(
         DAPP_ERROR_CODES.pendingRequest,
-        'Another dApp request is already pending.',
+        'Another zkApp request is already pending.',
       ),
     );
   }
@@ -351,6 +425,141 @@ function normalizeSignMessageParams(params: unknown): DappSignMessageParams {
   }
 
   return { message: params.message };
+}
+
+function normalizeVerifyMessageParams(
+  params: unknown,
+  fallback?: { data?: string; publicKey?: string },
+): DappVerifyMessageParams {
+  if (
+    isRecord(params) &&
+    typeof params.field === 'string' &&
+    typeof params.scalar === 'string' &&
+    fallback?.data &&
+    fallback.publicKey
+  ) {
+    return {
+      data: fallback.data,
+      publicKey: fallback.publicKey,
+      signature: {
+        field: params.field,
+        scalar: params.scalar,
+      },
+    };
+  }
+
+  if (isRecord(params) && typeof params.message === 'string') {
+    const signature = isRecord(params.signature) ? params.signature : undefined;
+    const publicKey =
+      typeof params.publicKey === 'string'
+        ? params.publicKey
+        : typeof params.address === 'string'
+          ? params.address
+          : undefined;
+
+    if (
+      publicKey &&
+      signature &&
+      typeof signature.field === 'string' &&
+      typeof signature.scalar === 'string'
+    ) {
+      return {
+        data: params.message,
+        publicKey,
+        signature: {
+          field: signature.field,
+          scalar: signature.scalar,
+        },
+      };
+    }
+  }
+
+  if (Array.isArray(params) && params.length >= 3) {
+    const [data, signature, publicKey] = params;
+    if (
+      typeof data === 'string' &&
+      typeof publicKey === 'string' &&
+      isRecord(signature) &&
+      typeof signature.field === 'string' &&
+      typeof signature.scalar === 'string'
+    ) {
+      return {
+        data,
+        publicKey,
+        signature: {
+          field: signature.field,
+          scalar: signature.scalar,
+        },
+      };
+    }
+  }
+
+  if (
+    !isRecord(params) ||
+    (typeof params.data !== 'string' && typeof fallback?.data !== 'string') ||
+    (typeof params.publicKey !== 'string' && typeof fallback?.publicKey !== 'string') ||
+    !isRecord(params.signature) ||
+    typeof params.signature.field !== 'string' ||
+    typeof params.signature.scalar !== 'string'
+  ) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected signed message payload with data, publicKey, and signature.',
+    );
+  }
+
+  return {
+    data:
+      typeof params.data === 'string'
+        ? params.data
+        : (fallback?.data as string),
+    publicKey:
+      typeof params.publicKey === 'string'
+        ? params.publicKey
+        : (fallback?.publicKey as string),
+    signature: {
+      field: params.signature.field,
+      scalar: params.signature.scalar,
+    },
+  };
+}
+
+function normalizeSignFieldsParams(params: unknown): DappSignFieldsParams {
+  if (!isRecord(params) || !Array.isArray(params.message)) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected a message array for signFields.',
+    );
+  }
+
+  const message = params.message.filter(
+    (value): value is string | number =>
+      typeof value === 'string' || typeof value === 'number',
+  );
+
+  return { message };
+}
+
+function normalizeSignJsonMessageParams(
+  params: unknown,
+): DappSignJsonMessageParams {
+  if (!isRecord(params) || !Array.isArray(params.message)) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected a JSON message array to sign.',
+    );
+  }
+
+  return {
+    message: params.message
+      .filter(
+        (entry): entry is { label: string; value: string } =>
+          isRecord(entry) &&
+          typeof entry.label === 'string' &&
+          typeof entry.value === 'string',
+      )
+      .map((entry) => ({ label: entry.label, value: entry.value })),
+  };
 }
 
 function normalizeSendPaymentParams(params: unknown): DappSendPaymentParams {
@@ -497,7 +706,62 @@ async function performMessageSignature(
   const { message } = normalizeSignMessageParams(request.params);
   const privateKey = await getPrivateKeyFromVault(password, wallet.id);
   const client = await getSignerClient();
-  return client.signMessage(message, privateKey);
+  const signed = client.signMessage(message, privateKey) as {
+    data: string;
+    publicKey: string;
+    signature: { field: string; scalar: string };
+  };
+
+  await saveLastSignedMessage({
+    origin,
+    publicKey: signed.publicKey,
+    data: signed.data,
+    signature: signed.signature,
+  });
+
+  return signed;
+}
+
+async function performMessageVerification(
+  request: DappRpcPayload,
+): Promise<boolean> {
+  const origin = normalizeOrigin(request.site.origin);
+  const permissions = await loadPermissions();
+  const lastSigned = await loadLastSignedMessage();
+  const params = normalizeVerifyMessageParams(request.params, {
+    publicKey: permissions[origin]?.publicKey ?? lastSigned?.publicKey,
+    data: lastSigned?.origin === origin ? lastSigned.data : undefined,
+  });
+  const client = await getSignerClient();
+  return client.verifyMessage(params);
+}
+
+async function performFieldSignature(request: DappRpcPayload): Promise<unknown> {
+  const { privateKey, client } = await getUnlockedWalletContext(request);
+  const { message } = normalizeSignFieldsParams(request.params);
+  return client.signFields(message.map((value) => BigInt(value)), privateKey);
+}
+
+async function performJsonMessageSignature(
+  request: DappRpcPayload,
+): Promise<unknown> {
+  const origin = normalizeOrigin(request.site.origin);
+  const { privateKey, client } = await getUnlockedWalletContext(request);
+  const { message } = normalizeSignJsonMessageParams(request.params);
+  const signed = client.signMessage(JSON.stringify(message), privateKey) as {
+    data: string;
+    publicKey: string;
+    signature: { field: string; scalar: string };
+  };
+
+  await saveLastSignedMessage({
+    origin,
+    publicKey: signed.publicKey,
+    data: signed.data,
+    signature: signed.signature,
+  });
+
+  return signed;
 }
 
 async function getUnlockedWalletContext(request: DappRpcPayload) {
@@ -531,9 +795,9 @@ async function performSendPayment(request: DappRpcPayload): Promise<unknown> {
   }
 
   if (!params.fee) {
-    throw createDappError(
-      DAPP_ERROR_CODES.invalidParams,
-      'A fee is required for payments.',
+    console.warn(
+      '[dapp] Payment request missing fee, using default network fee fallback',
+      { origin: request.site.origin, to: params.to, amount: params.amount },
     );
   }
 
@@ -549,7 +813,7 @@ async function performSendPayment(request: DappRpcPayload): Promise<unknown> {
     from: wallet.publicKey,
     to: params.to,
     amount: toNano(params.amount),
-    fee: toNano(params.fee),
+    fee: toNano(params.fee ?? DEFAULT_PAYMENT_FEE),
     nonce: nonce.toString(),
     memo: params.memo ?? '',
   };
@@ -815,13 +1079,25 @@ async function resolveApproval(
       case 'mina_signMessage':
         result = await performMessageSignature(pending.request);
         break;
+      case 'mina_signFields':
+        result = await performFieldSignature(pending.request);
+        break;
+      case 'mina_signJsonMessage':
+        result = await performJsonMessageSignature(pending.request);
+        break;
       case 'mina_sendTransaction':
         result = await performTransactionSignature(pending.request);
         break;
+      case 'mina_switchChain': {
+        const { networkID } = normalizeSwitchChainParams(pending.request.params);
+        await setCurrentNetworkId(networkID);
+        result = { networkID };
+        break;
+      }
       default:
         throw createDappError(
           DAPP_ERROR_CODES.unsupportedMethod,
-          'Unsupported dApp approval method.',
+          'Unsupported zkApp approval method.',
         );
     }
 
@@ -864,6 +1140,30 @@ async function processDappRequest(
 
     case 'mina_requestNetwork':
       return toResponse({ networkID: await getCurrentNetworkId() });
+
+    case 'mina_switchChain': {
+      const wallet = await getActiveSoftwareWallet();
+      normalizeSwitchChainParams(request.params);
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
+
+    case 'mina_verifyMessage':
+      return toResponse(await performMessageVerification(request));
+
+    case 'mina_signFields': {
+      const wallet = await getActiveSoftwareWallet();
+      normalizeSignFieldsParams(request.params);
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
+
+    case 'mina_signJsonMessage': {
+      const wallet = await getActiveSoftwareWallet();
+      normalizeSignJsonMessageParams(request.params);
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
 
     case 'wallet_info':
       return toResponse({
@@ -921,7 +1221,7 @@ async function processDappRequest(
       return toErrorResponse(
         createDappError(
           DAPP_ERROR_CODES.unsupportedMethod,
-          'Unsupported dApp method.',
+          'Unsupported zkApp method.',
         ),
       );
   }

@@ -10,6 +10,7 @@ export type MessageType =
   | 'DERIVE_KEYS_FROM_MNEMONIC'
   | 'VALIDATE_PRIVATE_KEY'
   | 'GET_PRIVATE_KEY'
+  | 'GET_MNEMONIC'
   | 'SIGN_PAYMENT'
   | 'SIGN_DELEGATION'
   | 'LEDGER_KEEPALIVE_START'
@@ -45,6 +46,14 @@ export interface ValidatePrivateKeyMessage extends BaseMessage {
 
 export interface GetPrivateKeyMessage extends BaseMessage {
   type: 'GET_PRIVATE_KEY';
+  payload: {
+    password: string;
+    walletId: string;
+  };
+}
+
+export interface GetMnemonicMessage extends BaseMessage {
+  type: 'GET_MNEMONIC';
   payload: {
     password: string;
     walletId: string;
@@ -168,6 +177,7 @@ export type AppMessage =
   | DeriveKeysMessage
   | ValidatePrivateKeyMessage
   | GetPrivateKeyMessage
+  | GetMnemonicMessage
   | SignPaymentMessage
   | SignDelegationMessage
   | LedgerKeepaliveMessage
@@ -194,6 +204,11 @@ export interface ValidatePrivateKeyResponse {
 
 export interface GetPrivateKeyResponse {
   privateKey?: string;
+  error?: string;
+}
+
+export interface GetMnemonicResponse {
+  mnemonic?: string;
   error?: string;
 }
 

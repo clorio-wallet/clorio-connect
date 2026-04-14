@@ -26,6 +26,8 @@ import { VaultManager } from '@/lib/vault-manager';
 import { formatAddress } from '@/lib/utils';
 import { sessionStorage } from '@/lib/storage';
 
+const DEFAULT_PAYMENT_FEE = '0.1';
+
 function getRequestTitle(method: DappRpcMethod): string {
   switch (method) {
     case 'mina_requestAccounts':
@@ -38,8 +40,14 @@ function getRequestTitle(method: DappRpcMethod): string {
       return 'Approve message signature';
     case 'mina_sendTransaction':
       return 'Approve zkApp signature';
+    case 'mina_signFields':
+      return 'Approve field signature';
+    case 'mina_signJsonMessage':
+      return 'Approve JSON message signature';
+    case 'mina_switchChain':
+      return 'Approve network switch';
     default:
-      return 'Approve dApp request';
+      return 'Approve zkApp request';
   }
 }
 
@@ -55,6 +63,12 @@ function getRequestDescription(method: DappRpcMethod): string {
       return 'Review the message before allowing the site to use your wallet.';
     case 'mina_sendTransaction':
       return 'Review the zkApp transaction summary before signing it in the background service.';
+    case 'mina_signFields':
+      return 'This site wants to sign an array of fields with your private key. Review the data before approving.';
+    case 'mina_signJsonMessage':
+      return 'This site wants to sign a JSON message with your private key. Review the data before approving.';
+    case 'mina_switchChain':
+      return 'This site wants to switch your active network. Confirm the target network before approving.';
     default:
       return 'Review the request details before continuing.';
   }
@@ -187,13 +201,19 @@ const DappApprovalPage: React.FC = () => {
     }
 
     const lines: string[] = [];
+    const fallbackFee =
+      pendingRequest.method === 'mina_sendPayment' &&
+      (pendingRequest.summary.fee === undefined || pendingRequest.summary.fee === null)
+        ? DEFAULT_PAYMENT_FEE
+        : pendingRequest.summary.fee;
+
     if (pendingRequest.summary.onlySign !== undefined) {
       lines.push(
         `onlySign: ${pendingRequest.summary.onlySign ? 'true' : 'false'}`,
       );
     }
-    if (pendingRequest.summary.fee !== undefined) {
-      lines.push(`fee: ${pendingRequest.summary.fee}`);
+    if (fallbackFee !== undefined && fallbackFee !== null) {
+      lines.push(`fee: ${fallbackFee}`);
     }
     if (pendingRequest.summary.amount !== undefined) {
       lines.push(`amount: ${pendingRequest.summary.amount}`);
@@ -224,7 +244,7 @@ const DappApprovalPage: React.FC = () => {
       <div className="flex min-h-[70vh] items-center justify-center p-4">
         <Card className="w-full max-w-lg shadow-lg">
           <CardHeader>
-            <CardTitle>No pending dApp request</CardTitle>
+            <CardTitle>No pending zkApp request</CardTitle>
             <CardDescription>
               Return to the extension dashboard or trigger a new request from
               the site.
@@ -253,7 +273,7 @@ const DappApprovalPage: React.FC = () => {
           <CardHeader>
             <CardTitle>Unlock to continue</CardTitle>
             <CardDescription>
-              Clorio keeps dApp approvals and signatures in the background
+              Clorio keeps zkApp approvals and signatures in the background
               service. Unlock your wallet to continue.
             </CardDescription>
           </CardHeader>

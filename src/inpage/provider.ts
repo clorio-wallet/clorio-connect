@@ -4,10 +4,14 @@ import type {
   DappBridgeResponse,
   DappProviderError,
   DappProviderEventName,
+  DappSignFieldsParams,
+  DappSignJsonMessageParams,
   DappSendPaymentParams,
   DappSendStakeDelegationParams,
+  DappSwitchChainParams,
   DappSendTransactionParams,
   DappSignMessageParams,
+  DappVerifyMessageParams,
 } from '@/lib/dapp';
 import { DAPP_BRIDGE_CHANNEL } from '@/lib/dapp';
 
@@ -68,11 +72,63 @@ class ClorioMinaProvider {
     return network;
   }
 
+  async switchChain(
+    params: DappSwitchChainParams | { chainId?: string; networkID?: string } | string,
+  ): Promise<{ networkID: string }> {
+    const normalized = this.normalizeSwitchChainParams(params);
+    const network = (await this.request('mina_switchChain', normalized)) as {
+      networkID: string;
+    };
+    this.setNetwork(network);
+    return network;
+  }
+
   async signMessage(
     params: DappSignMessageParams,
   ): Promise<{ data: string; signature: { field: string; scalar: string } }> {
     return this.request('mina_signMessage', params) as Promise<{
       data: string;
+      signature: { field: string; scalar: string };
+    }>;
+  }
+
+  async verifyMessage(
+    dataOrParams: string | DappVerifyMessageParams,
+    signature?: DappVerifyMessageParams['signature'],
+    publicKey?: string,
+  ): Promise<boolean> {
+    const params =
+      typeof dataOrParams === 'string'
+        ? {
+            data: dataOrParams,
+            signature,
+            publicKey,
+          }
+        : dataOrParams;
+
+    return this.request('mina_verifyMessage', params) as Promise<boolean>;
+  }
+
+  async signFields(params: DappSignFieldsParams): Promise<{
+    data: Array<string | number>;
+    publicKey: string;
+    signature: string;
+  }> {
+    return this.request('mina_signFields', params) as Promise<{
+      data: Array<string | number>;
+      publicKey: string;
+      signature: string;
+    }>;
+  }
+
+  async signJsonMessage(params: DappSignJsonMessageParams): Promise<{
+    data: string;
+    publicKey: string;
+    signature: { field: string; scalar: string };
+  }> {
+    return this.request('mina_signJsonMessage', params) as Promise<{
+      data: string;
+      publicKey: string;
       signature: { field: string; scalar: string };
     }>;
   }
@@ -155,6 +211,17 @@ class ClorioMinaProvider {
     if (changed) {
       this.emit('chainChanged', network);
     }
+  }
+
+  private normalizeSwitchChainParams(
+    params: DappSwitchChainParams | { chainId?: string; networkID?: string } | string,
+  ): DappSwitchChainParams {
+    if (typeof params === 'string') {
+      return { networkID: params === 'mainnet' ? 'mainnet' : 'devnet' };
+    }
+
+    const requested = params.networkID ?? params.chainId;
+    return { networkID: requested === 'mainnet' ? 'mainnet' : 'devnet' };
   }
 
   private request(

@@ -10,23 +10,31 @@
  * - Subsequent calls: 0-5ms (cache hit)
  */
 
+import Client from 'mina-signer';
 import { storage } from '@/lib/storage';
 import { DAPP_NETWORK_ID_STORAGE_KEY, DappNetworkId } from '@/lib/dapp';
 
 type MinaClient = {
+  signFields(fields: bigint[], privateKey: string): {
+    signature: string;
+    publicKey: string;
+    data: bigint[];
+  };
   signMessage(message: string, privateKey: string): unknown;
+  verifyMessage(signed: {
+    data: string;
+    publicKey: string;
+    signature: { field: string; scalar: string };
+  }): boolean;
   signPayment(input: unknown, privateKey: string): unknown;
   signStakeDelegation(input: unknown, privateKey: string): unknown;
   signTransaction(input: unknown, privateKey: string): unknown;
 };
 
-interface MinaSignerModule {
-  default: new (config: { network: 'mainnet' | 'testnet' }) => MinaClient;
-}
-
 class MinaClientManager {
   private static instance: MinaClientManager;
   private clientPromise: Promise<MinaClient> | null = null;
+  private clientNetworkId: DappNetworkId | null = null;
   private startTime = 0;
 
   private constructor() {}
@@ -52,23 +60,23 @@ class MinaClientManager {
    * This is called once per extension session
    */
   async initialize(): Promise<MinaClient> {
-    if (this.clientPromise) {
+    const networkId = await this.getCurrentNetworkId();
+
+    if (this.clientPromise && this.clientNetworkId === networkId) {
       console.debug('[MinaClientManager] Client already initialized, skipping');
       return this.clientPromise;
     }
 
     this.startTime = performance.now();
     console.debug('[MinaClientManager] Initializing mina-signer module...');
+    this.clientNetworkId = networkId;
 
     this.clientPromise = (async () => {
       try {
-        const networkId = await this.getCurrentNetworkId();
         console.debug(
           `[MinaClientManager] Loading mina-signer for network: ${networkId}`,
         );
 
-        const { default: Client } =
-          (await import('mina-signer')) as MinaSignerModule;
         const client = new Client({
           network: networkId === 'mainnet' ? 'mainnet' : 'testnet',
         });
@@ -81,6 +89,7 @@ class MinaClientManager {
         return client;
       } catch (error) {
         this.clientPromise = null; // Reset on error for retry
+        this.clientNetworkId = null;
         console.error(
           '[MinaClientManager] Failed to initialize client:',
           error,
@@ -97,7 +106,9 @@ class MinaClientManager {
    * Initializes on first call, returns cached instance on subsequent calls
    */
   async getSignerClient(): Promise<MinaClient> {
-    if (!this.clientPromise) {
+    const networkId = await this.getCurrentNetworkId();
+
+    if (!this.clientPromise || this.clientNetworkId !== networkId) {
       await this.initialize();
     }
 
@@ -119,6 +130,7 @@ class MinaClientManager {
    */
   reset(): void {
     this.clientPromise = null;
+    this.clientNetworkId = null;
     console.debug('[MinaClientManager] Client cache reset');
   }
 }
@@ -132,7 +144,7 @@ export function getMinaClientManager(): MinaClientManager {
 
 /**
  * Initialize the mina-signer client at Service Worker boot time
- * Pre-loads the module to ensure fast access on first dApp request
+ * Pre-loads the module to ensure fast access on first zkApp request
  */
 export async function initializeMinaClientManager(): Promise<MinaClient> {
   const manager = getMinaClientManager();

@@ -153,16 +153,20 @@ const routeConfigs: RouteConfig[] = [
     protected: true,
     fallback: <SettingsSkeleton />,
   },
-  {
-    path: '/playground',
-    element: <PlaygroundPage />,
-    fallback: <GenericSkeleton />,
-  },
-  {
-    path: '/vault-testing',
-    element: <VaultTestingPage />,
-    fallback: <GenericSkeleton />,
-  },
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/playground',
+          element: <PlaygroundPage />,
+          fallback: <GenericSkeleton />,
+        },
+        {
+          path: '/vault-testing',
+          element: <VaultTestingPage />,
+          fallback: <GenericSkeleton />,
+        },
+      ]
+    : []),
 ];
 
 const renderRouteElement = (config: RouteConfig) => {

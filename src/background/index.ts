@@ -51,7 +51,8 @@ type AnyResponse =
   | DappGetPendingApprovalResponse
   | DappResolvePendingApprovalResponse
   | { ok: true }
-  | { error: string };
+  | { error: string }
+  | { result?: unknown; error?: { code: number; message: string } };
 
 type MessageByType<T extends AppMessage['type']> = Extract<
   AppMessage,
@@ -183,6 +184,46 @@ const handlers: RouterMap = {
     },
   },
 
+  GET_MNEMONIC: {
+    async: true,
+    handle: async (
+      msg,
+      _sender,
+      sendResponse: (r: { data?: string; error?: string }) => void,
+    ) => {
+      try {
+        const { password, walletId } = msg.payload;
+
+        const vault = await VaultManager.loadVault();
+        if (!vault) {
+          sendResponse({ error: 'No vault found' });
+          return;
+        }
+
+        const wallet = vault.wallets.find((w) => w.id === walletId);
+        if (!wallet) {
+          sendResponse({ error: 'Wallet not found' });
+          return;
+        }
+
+        if (wallet.type !== 'mnemonic') {
+          sendResponse({ error: 'Wallet is not a mnemonic wallet' });
+          return;
+        }
+
+        const mnemonic = await VaultManager.getPrivateKey(password, walletId);
+        sendResponse({ data: mnemonic.trim() });
+      } catch (error) {
+        console.error('[background] GET_MNEMONIC failed:', error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Failed to retrieve mnemonic';
+        sendResponse({ error: message });
+      }
+    },
+  },
+
   SIGN_DELEGATION: {
     async: true,
     handle: (
@@ -217,8 +258,34 @@ const handlers: RouterMap = {
 
   DAPP_RPC_REQUEST: {
     async: true,
-    handle: (msg, _sender, sendResponse: (r: DappRpcResponse) => void) =>
-      handleDappRpcRequest(msg.payload, sendResponse),
+    handle: (msg, sender, sendResponse: (r: DappRpcResponse) => void) => {
+      // Validate that the message originates from a real content script tab,
+      // not from an extension page or synthetic internal message.
+      if (!sender.tab?.id || sender.tab.url === undefined) {
+        sendResponse({
+          result: undefined,
+          error: { code: -32603, message: 'Invalid request origin.' },
+        });
+        return;
+      }
+      try {
+        const senderOrigin = new URL(sender.tab.url).origin;
+        if (senderOrigin !== msg.payload.site.origin) {
+          sendResponse({
+            result: undefined,
+            error: { code: -32603, message: 'Origin mismatch.' },
+          });
+          return;
+        }
+      } catch {
+        sendResponse({
+          result: undefined,
+          error: { code: -32603, message: 'Invalid sender URL.' },
+        });
+        return;
+      }
+      handleDappRpcRequest(msg.payload, sendResponse);
+    },
   },
 
   DAPP_GET_PENDING_APPROVAL: {
