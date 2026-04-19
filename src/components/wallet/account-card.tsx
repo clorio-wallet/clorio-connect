@@ -324,20 +324,6 @@ export function AccountCard({
                     <Edit2 className="h-4 w-4 mr-2" />
                     {t('settings.account_card.rename', 'Rename')}
                   </DropdownMenuItem>
-                  {onViewPrivateKey && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewPrivateKey();
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      {t(
-                        'settings.account_card.view_private_key',
-                        'View Private Key',
-                      )}
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleDeleteClick}

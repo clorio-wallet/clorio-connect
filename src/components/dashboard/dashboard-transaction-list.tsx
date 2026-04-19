@@ -31,6 +31,11 @@ export const DashboardTransactionList: React.FC<
   );
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    if (!publicKey) return;
+    void refetch();
+  }, [publicKey, refetch]);
+
   const recentTransactions = transactions?.slice(0, 10) || [];
 
   const handleRefresh = () => {
@@ -74,6 +79,7 @@ export const DashboardTransactionList: React.FC<
         transactions={recentTransactions}
         isLoading={isLoading}
         emptyComponent={EmptyState}
+        hideCreationFee={recentTransactions.length > 9}
         onTransactionClick={(tx) => {
           setSelectedTxHash(tx.hash);
           setIsSheetOpen(true);

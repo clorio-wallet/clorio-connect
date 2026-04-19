@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { NetworkBadge } from '@/components/wallet';
-import { WalletSwitcher } from '@/components/wallet/wallet-switcher';
 import { useWalletStore } from '@/stores/wallet-store';
 
 import {
@@ -30,6 +29,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { useSidePanelMode } from '@/hooks/use-side-panel-mode';
+import { AccountSelectorSheet } from '../settings/account-selector-sheet';
 
 export const AppHeader: React.FC = () => {
   const { t } = useTranslation();
@@ -212,7 +212,7 @@ export const AppHeader: React.FC = () => {
         )}
       </header>
 
-      <WalletSwitcher
+      <AccountSelectorSheet
         open={isWalletSwitcherOpen}
         onOpenChange={setIsWalletSwitcherOpen}
       />

@@ -12,6 +12,7 @@ export interface TransactionListProps {
   onTransactionClick?: (transaction: Transaction) => void;
   className?: string;
   emptyComponent?: React.ReactNode;
+  hideCreationFee?: boolean;
 }
 
 export function TransactionList(props: TransactionListProps) {
@@ -21,17 +22,27 @@ export function TransactionList(props: TransactionListProps) {
     onTransactionClick,
     className,
     emptyComponent,
+    hideCreationFee = false,
   } = props;
   const { t } = useTranslation();
   const { publicKey } = useWalletStore();
 
   const hasExternalTransactions = Array.isArray(transactions);
 
-  const { data: internalTransactions = [], isLoading: isInternalLoading } =
+  const {
+    data: internalTransactions = [],
+    isLoading: isInternalLoading,
+    refetch: refetchInternalTransactions,
+  } =
     useGetTransactions(publicKey || '', {
       refetchInterval: 30000,
       enabled: !hasExternalTransactions && !!publicKey,
     });
+
+  React.useEffect(() => {
+    if (hasExternalTransactions || !publicKey) return;
+    void refetchInternalTransactions();
+  }, [hasExternalTransactions, publicKey, refetchInternalTransactions]);
 
   const items = hasExternalTransactions
     ? transactions || []
@@ -80,14 +91,16 @@ export function TransactionList(props: TransactionListProps) {
             </motion.div>
           ))}
 
-          <motion.div
-            className="py-1.5"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: items.length * 0.05 }}
-          >
-            <WalletCreationFeeCard />
-          </motion.div>
+          {!hideCreationFee && (
+            <motion.div
+              className="py-1.5"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: items.length * 0.05 }}
+            >
+              <WalletCreationFeeCard />
+            </motion.div>
+          )}
         </>
       )}
     </div>

@@ -362,12 +362,6 @@ export function AccountSelectorSheet({
             />
             {t('common.refresh', 'Refresh')}
           </Button>
-
-          <p className="text-xs text-center text-muted-foreground">
-            {t('wallets.total_wallets', '{{count}} wallet(s) in total', {
-              count: wallets.length,
-            })}
-          </p>
         </div>
       </BottomSheetContent>
 

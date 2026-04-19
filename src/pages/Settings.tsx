@@ -30,13 +30,15 @@ import { NetworkSheet } from '@/components/settings/network-sheet';
 import { SecuritySheet } from '@/components/settings/security-sheet';
 import { RefreshRateSheet } from '@/components/settings/refresh-rate-sheet';
 import { ResetWalletDialog } from '@/components/settings/reset-wallet-dialog';
-import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
+import { BackupSheet } from '@/components/wallet/backup-sheet';
 import { LanguageSheet } from '@/components/settings/language-sheet';
 import { AppHeader } from '@/components/dashboard/dashboard-header';
 import { WalletList } from '@/components/wallet/wallet-list';
 import { AddWalletDialog } from '@/components/wallet/add-wallet-dialog';
 import { AccountSelectorSheet } from '@/components/settings/account-selector-sheet';
 import { VaultManager } from '@/lib/vault-manager';
+import { storage } from '@/lib/storage';
+import { DAPP_PERMISSIONS_STORAGE_KEY } from '@/lib/dapp';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +51,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  BottomSheet,
+  BottomSheetBody,
+  BottomSheetContent,
+  BottomSheetDescription,
+  BottomSheetHeader,
+  BottomSheetTitle,
+} from '@/components/ui/bottom-sheet';
 
 type DisplayMode = 'popup' | 'sidepanel';
 
@@ -310,7 +320,7 @@ const WalletsSection: React.FC = () => {
 
       {/* View Secret Sheet */}
       {selectedWalletId && (
-        <ViewPrivateKeySheet
+        <BackupSheet
           open={isViewSecretOpen}
           onOpenChange={setIsViewSecretOpen}
         />
@@ -342,7 +352,7 @@ const CurrentAccountSection: React.FC = () => {
               </div>
               {walletCount > 1 && (
                 <div className="text-xs text-muted-foreground mt-1">
-                  {t('wallets.total_wallets', '{{count}} wallet(s) in total', {
+                  {t('wallets.total_wallets', '{{count}} wallet', {
                     count: walletCount,
                   })}
                 </div>
@@ -451,7 +461,7 @@ const GeneralSettingsSection: React.FC = () => {
       />
       <SettingsItem
         icon={Key}
-        label={t('settings.view_private_key')}
+        label={t('settings.backup_wallet')}
         onClick={() => setIsViewKeyOpen(true)}
       />
       <SettingsItem
@@ -466,11 +476,8 @@ const GeneralSettingsSection: React.FC = () => {
         open={isRefreshRateOpen}
         onOpenChange={setIsRefreshRateOpen}
       />
-      <ViewPrivateKeySheet
-        open={isViewKeyOpen}
-        onOpenChange={setIsViewKeyOpen}
-      />
       <LanguageSheet open={isLanguageOpen} onOpenChange={setIsLanguageOpen} />
+      <BackupSheet open={isViewKeyOpen} onOpenChange={setIsViewKeyOpen} />
     </SettingsSection>
   );
 };
@@ -489,6 +496,157 @@ const AboutSection: React.FC = () => {
         }}
       />
     </SettingsSection>
+  );
+};
+
+interface ConnectedApp {
+  origin: string;
+  walletId: string;
+  publicKey: string;
+  grantedAt: number;
+}
+
+const ConnectedAppsSection: React.FC = () => {
+  const { t } = useTranslation();
+  const [apps, setApps] = React.useState<ConnectedApp[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+  const { toast } = useToast();
+  const { wallets } = useWalletStore();
+
+  const loadConnectedApps = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const permissions = await storage.get<Record<string, ConnectedApp>>(
+        DAPP_PERMISSIONS_STORAGE_KEY,
+      );
+      setApps(
+        Object.values(permissions ?? {}).sort((a, b) => b.grantedAt - a.grantedAt),
+      );
+    } catch (error) {
+      console.error('Failed to load connected apps:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (isSheetOpen) {
+      void loadConnectedApps();
+    }
+  }, [isSheetOpen, loadConnectedApps]);
+
+  const handleDisconnect = async (origin: string) => {
+    try {
+      const permissions =
+        (await storage.get<Record<string, ConnectedApp>>(
+          DAPP_PERMISSIONS_STORAGE_KEY,
+        )) || {};
+      delete permissions[origin];
+      await storage.set(DAPP_PERMISSIONS_STORAGE_KEY, permissions);
+      setApps(
+        Object.values(permissions).sort((a, b) => b.grantedAt - a.grantedAt),
+      );
+      toast({
+        title: t('settings.zkapps_revoked', 'zkApp disconnected'),
+        description: t(
+          'settings.zkapps_revoked_desc',
+          'The zkApp permission has been revoked.',
+        ),
+      });
+    } catch (error) {
+      console.error('Failed to disconnect app:', error);
+      toast({
+        variant: 'destructive',
+        title: t('settings.zkapps_revoke_failed', 'Failed to revoke access'),
+        description: error instanceof Error ? error.message : t('common.error'),
+      });
+    }
+  };
+
+  const formatOrigin = (origin: string) => {
+    try {
+      const url = new URL(origin);
+      return url.hostname;
+    } catch {
+      return origin;
+    }
+  };
+
+  return (
+    <>
+      <SettingsSection title={t('settings.connected_apps', 'Connected zkApps')}>
+        <SettingsItem
+          icon={Globe}
+          label={t('settings.connected_apps', 'Connected zkApps')}
+          value={isLoading ? '...' : String(apps.length)}
+          onClick={() => setIsSheetOpen(true)}
+        />
+      </SettingsSection>
+
+      <BottomSheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <BottomSheetContent className="max-h-[85vh]">
+          <BottomSheetHeader>
+            <BottomSheetTitle>
+              {t('settings.connected_apps', 'Connected zkApps')}
+            </BottomSheetTitle>
+            <BottomSheetDescription>
+              {t(
+                'settings.connected_apps_desc',
+                'Review connected zkApps and revoke access at any time.',
+              )}
+            </BottomSheetDescription>
+          </BottomSheetHeader>
+
+          <BottomSheetBody className="space-y-3 pb-6">
+            {isLoading ? (
+              <div className="text-sm text-muted-foreground px-1">
+                {t('common.loading', 'Loading...')}
+              </div>
+            ) : apps.length === 0 ? (
+              <div className="text-sm text-muted-foreground px-1">
+                {t(
+                  'settings.connected_apps_empty',
+                  'No zkApps are currently connected.',
+                )}
+              </div>
+            ) : (
+              apps.map((app) => {
+                const wallet = wallets.find((entry) => entry.id === app.walletId);
+
+                return (
+                  <div
+                    key={app.origin}
+                    className="flex items-start justify-between gap-3 rounded-lg border bg-background/50 p-4"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate font-medium text-foreground">
+                        {formatOrigin(app.origin)}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {app.origin}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {wallet?.name ?? t('wallets.wallet_name', 'Wallet')} ·{' '}
+                        {formatAddress(app.publicKey)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDisconnect(app.origin)}
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      {t('common.revoke', 'Revoke')}
+                    </Button>
+                  </div>
+                );
+              })
+            )}
+          </BottomSheetBody>
+        </BottomSheetContent>
+      </BottomSheet>
+    </>
   );
 };
 
@@ -528,6 +686,7 @@ const SettingsPage: React.FC = () => {
       <div className="space-y-6 flex-1">
         <CurrentAccountSection />
         <GeneralSettingsSection />
+        <ConnectedAppsSection />
         <AboutSection />
         <AdvancedSettingsSection />
       </div>

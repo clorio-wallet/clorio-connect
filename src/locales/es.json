@@ -125,7 +125,7 @@
     "reset_wallet": "Restablecer billetera",
     "about": "Acerca de",
     "faq": "Preguntas frecuentes",
-    "view_private_key": "Ver clave privada",
+    "backup_wallet": "Respaldar billetera",
     "language_title": "Idioma",
     "language_desc": "Elige tu idioma preferido.",
     "network_sheet": {
@@ -176,30 +176,43 @@
     "account_card": {
       "active": "Activo",
       "rename": "Renombrar",
-      "view_private_key": "Ver clave privada",
+      "view_backup": "Ver respaldo",
       "remove": "Eliminar"
     }
   },
   "security": {
     "password_label": "Contraseña",
-    "view_private_key": {
+    "backup": {
       "title_warning": "Advertencia de seguridad",
       "title_password": "Confirmar contraseña",
-      "title_display": "Clave privada",
-      "desc_warning": "Estás a punto de ver tu clave privada. Asegúrate de estar solo y de que nadie esté mirando.",
-      "desc_password": "Ingresa tu contraseña para ver la clave privada.",
-      "desc_display": "Nunca compartas esta clave con nadie. Cualquiera que la tenga puede controlar tus fondos.",
-      "warning_box": "Advertencia: Tu clave privada otorga acceso total a tus fondos. Asegúrate de que nadie esté mirando tu pantalla.",
-      "i_am_alone": "Estoy solo, continuar",
+      "title_mnemonic": "Frase de recuperación secreta",
+      "title_private_key": "Clave privada",
+      "desc_warning": "Estás a punto de ver tu respaldo de billetera. Asegúrate de estar solo y de que nadie esté mirando.",
+      "desc_password": "Ingresa tu contraseña para ver tu respaldo de billetera.",
+      "desc_mnemonic": "Nunca compartas estas palabras con nadie. Cualquiera que las tenga puede controlar tus fondos.",
+      "desc_private_key": "Nunca compartas esta clave con nadie. Cualquiera que la tenga puede controlar tus fondos.",
+      "mnemonic_info": "Esta billetera fue creada con una frase de recuperación secreta (mnemónica). Estas 12 o 24 palabras pueden usarse para recuperar tu billetera en cualquier dispositivo.",
+      "private_key_info": "Esta billetera fue importada con una clave privada. Esta clave puede usarse para recuperar tu billetera en cualquier dispositivo.",
+      "warning_box": "Advertencia: Tu respaldo otorga acceso total a tus fondos. Asegúrate de que nadie esté mirando tu pantalla.",
+      "continue": "Continuar",
       "enter_password": "Ingresa tu contraseña",
       "password_label": "Contraseña",
       "decrypting": "Desencriptando...",
+      "mnemonic_copied": "Frase de recuperación copiada al portapapeles",
       "key_copied": "Clave privada copiada al portapapeles",
-      "key_unavailable": "La clave privada no está disponible.",
+      "unavailable": "El respaldo no está disponible.",
       "verifying": "Verificando...",
-      "view_btn": "Ver clave privada",
+      "view_backup": "Ver respaldo",
       "password_required": "Se requiere contraseña",
-      "incorrect_password": "Contraseña incorrecta"
+      "wallet_not_found": "Billetera no encontrada",
+      "not_available_for_ledger": "Las billeteras Ledger no exponen una frase de respaldo. Tus claves permanecen seguras en el dispositivo.",
+      "incorrect_password": "Contraseña incorrecta",
+      "retrieval_failed": "Error al recuperar el respaldo",
+      "your_mnemonic": "Tu frase de recuperación secreta",
+      "your_private_key": "Tu clave privada",
+      "mnemonic_words": "{{count}} palabras",
+      "security_notice": "Escribe esto y guárdalo en un lugar seguro, fuera de línea. Nunca lo almacenes digitalmente ni lo compartas en línea.",
+      "done": "Hecho"
     }
   },
   "welcome": {

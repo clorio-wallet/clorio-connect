@@ -9,6 +9,7 @@
     "error": "Error",
     "success": "Success",
     "warning": "Warning",
+    "copy": "Copy",
     "copied": "Copied",
     "advanced": "Advanced",
     "time": {
@@ -156,7 +157,7 @@
     "reset_wallet": "Reset Wallet",
     "about": "About",
     "faq": "FAQ",
-    "view_private_key": "View Private Key",
+    "backup_wallet": "Backup wallet",
     "language_title": "Language",
     "language_desc": "Choose your preferred language.",
     "network_sheet": {
@@ -207,30 +208,43 @@
     "account_card": {
       "active": "Active",
       "rename": "Rename",
-      "view_private_key": "View Private Key",
+      "view_backup": "View Backup",
       "remove": "Remove"
     }
   },
   "security": {
     "password_label": "Password",
-    "view_private_key": {
+    "backup": {
       "title_warning": "Security Warning",
       "title_password": "Confirm Password",
-      "title_display": "Private Key",
-      "desc_warning": "You are about to view your private key. Make sure you are alone and no one is watching.",
-      "desc_password": "Enter your password to view the private key.",
-      "desc_display": "Never share this key with anyone. Anyone who has it can control your funds.",
-      "warning_box": "Warning: Your private key grants full access to your funds. Ensure no one is looking at your screen.",
-      "i_am_alone": "I am alone, continue",
+      "title_mnemonic": "Secret Recovery Phrase",
+      "title_private_key": "Private Key",
+      "desc_warning": "You are about to view your wallet backup. Make sure you are alone and no one is watching.",
+      "desc_password": "Enter your password to view your wallet backup.",
+      "desc_mnemonic": "Never share these words with anyone. Anyone who has them can control your funds.",
+      "desc_private_key": "Never share this key with anyone. Anyone who has it can control your funds.",
+      "mnemonic_info": "This wallet was created with a Secret Recovery Phrase (mnemonic). These 12 words can be used to recover your wallet on any device.",
+      "private_key_info": "This wallet was imported with a Private Key. This key can be used to recover your wallet on any device.",
+      "warning_box": "Warning: Your backup grants full access to your funds. Ensure no one is looking at your screen.",
+      "continue": "Continue",
       "enter_password": "Enter your password",
       "password_label": "Password",
       "decrypting": "Decrypting...",
+      "mnemonic_copied": "Recovery phrase copied to clipboard",
       "key_copied": "Private key copied to clipboard",
-      "key_unavailable": "Private key is not available.",
+      "unavailable": "Backup is not available.",
       "verifying": "Verifying...",
-      "view_btn": "View Private Key",
+      "view_backup": "View Backup",
       "password_required": "Password is required",
-      "incorrect_password": "Incorrect password"
+      "wallet_not_found": "Wallet not found",
+      "not_available_for_ledger": "Ledger wallets do not expose a backup phrase. Your keys remain secure on the device.",
+      "incorrect_password": "Incorrect password",
+      "retrieval_failed": "Failed to retrieve backup",
+      "your_mnemonic": "Your Secret Recovery Phrase",
+      "your_private_key": "Your Private Key",
+      "mnemonic_words": "{{count}} words",
+      "security_notice": "Write this down and store it in a secure, offline location. Never store it digitally or share it online.",
+      "done": "Done"
     }
   },
   "welcome": {

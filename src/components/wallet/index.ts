@@ -13,5 +13,6 @@ export * from './validator-list';
 export * from './transaction-list';
 export * from './transaction-result-dialog';
 export * from './transaction-result-sheet';
+export * from './backup-sheet';
 export * from './send-form';
 export * from './stake-form';

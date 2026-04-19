@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/components/wallet/account-card';
 import { useNavigate } from 'react-router-dom';
-import { ViewPrivateKeySheet } from '@/components/wallet/view-private-key-sheet';
+import { BackupSheet } from '@/components/wallet/backup-sheet';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { AppHeader } from '@/components/dashboard/dashboard-header';
-import { WalletSwitcher } from '@/components/wallet/wallet-switcher';
 import { WalletActions } from '@/components/wallet/wallet-actions';
 import { ReceiveSheet } from '@/components/wallet/receive-sheet';
 import { DashboardTransactionList } from '@/components/dashboard/dashboard-transaction-list';
 import { useWalletStore } from '@/stores/wallet-store';
+import { AccountSelectorSheet } from '@/components/settings/account-selector-sheet';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +16,8 @@ const DashboardPage: React.FC = () => {
   const [isReceiveSheetOpen, setIsReceiveSheetOpen] = useState(false);
   const [isWalletSwitcherOpen, setIsWalletSwitcherOpen] = useState(false);
 
-  const { publicKey, network, account, displayLoading, refetchAccount } = useDashboardData();
+  const { publicKey, network, account, displayLoading, refetchAccount } =
+    useDashboardData();
   const isLedger = useWalletStore((state) => state.accountType === 'ledger');
 
   useEffect(() => {
@@ -35,7 +36,9 @@ const DashboardPage: React.FC = () => {
           isLoading={displayLoading}
           explorerUrl={`${network.explorerUrl}/account/${publicKey}`}
           onSelect={() => {}}
-          onViewPrivateKey={isLedger ? undefined : () => setIsViewKeyDialogOpen(true)}
+          onViewPrivateKey={
+            isLedger ? undefined : () => setIsViewKeyDialogOpen(true)
+          }
           onSwitchWallet={() => setIsWalletSwitcherOpen(true)}
           onRefreshBalance={refetchAccount}
         />
@@ -50,7 +53,7 @@ const DashboardPage: React.FC = () => {
         displayLoading={displayLoading}
       />
 
-      <ViewPrivateKeySheet
+      <BackupSheet
         open={isViewKeyDialogOpen}
         onOpenChange={setIsViewKeyDialogOpen}
       />
@@ -61,7 +64,7 @@ const DashboardPage: React.FC = () => {
         address={publicKey || ''}
       />
 
-      <WalletSwitcher
+      <AccountSelectorSheet
         open={isWalletSwitcherOpen}
         onOpenChange={setIsWalletSwitcherOpen}
       />

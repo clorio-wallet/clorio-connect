@@ -125,7 +125,7 @@
     "reset_wallet": "Wallet zurücksetzen",
     "about": "Über",
     "faq": "FAQ",
-    "view_private_key": "Privaten Schlüssel anzeigen",
+    "backup_wallet": "Wallet sichern",
     "language_title": "Sprache",
     "language_desc": "Wählen Sie Ihre bevorzugte Sprache.",
     "network_sheet": {
@@ -176,30 +176,43 @@
     "account_card": {
       "active": "Aktiv",
       "rename": "Umbenennen",
-      "view_private_key": "Privaten Schlüssel anzeigen",
+      "view_backup": "Backup anzeigen",
       "remove": "Entfernen"
     }
   },
   "security": {
     "password_label": "Passwort",
-    "view_private_key": {
+    "backup": {
       "title_warning": "Sicherheitswarnung",
       "title_password": "Passwort bestätigen",
-      "title_display": "Privater Schlüssel",
-      "desc_warning": "Sie sind dabei, Ihren privaten Schlüssel anzuzeigen. Stellen Sie sicher, dass Sie alleine sind und niemand zuschaut.",
-      "desc_password": "Geben Sie Ihr Passwort ein, um den privaten Schlüssel anzuzeigen.",
-      "desc_display": "Teilen Sie diesen Schlüssel niemals mit jemandem. Jeder, der ihn hat, kann Ihre Gelder kontrollieren.",
-      "warning_box": "Warnung: Ihr privater Schlüssel gewährt vollen Zugriff auf Ihre Gelder. Stellen Sie sicher, dass niemand auf Ihren Bildschirm schaut.",
-      "i_am_alone": "Ich bin allein, weiter",
+      "title_mnemonic": "Geheime Wiederherstellungsphrase",
+      "title_private_key": "Privater Schlüssel",
+      "desc_warning": "Sie sind dabei, Ihr Wallet-Backup anzuzeigen. Stellen Sie sicher, dass Sie alleine sind und niemand zuschaut.",
+      "desc_password": "Geben Sie Ihr Passwort ein, um Ihr Wallet-Backup anzuzeigen.",
+      "desc_mnemonic": "Teilen Sie diese Wörter niemals mit jemandem. Jeder, der sie hat, kann Ihre Gelder kontrollieren.",
+      "desc_private_key": "Teilen Sie diesen Schlüssel niemals mit jemandem. Jeder, der ihn hat, kann Ihre Gelder kontrollieren.",
+      "mnemonic_info": "Dieses Wallet wurde mit einer geheimen Wiederherstellungsphrase (mnemonisch) erstellt. Diese 12 oder 24 Wörter können verwendet werden, um Ihr Wallet auf jedem Gerät wiederherzustellen.",
+      "private_key_info": "Dieses Wallet wurde mit einem privaten Schlüssel importiert. Dieser Schlüssel kann verwendet werden, um Ihr Wallet auf jedem Gerät wiederherzustellen.",
+      "warning_box": "Warnung: Ihr Backup gewährt vollen Zugriff auf Ihre Gelder. Stellen Sie sicher, dass niemand auf Ihren Bildschirm schaut.",
+      "continue": "Weiter",
       "enter_password": "Geben Sie Ihr Passwort ein",
       "password_label": "Passwort",
       "decrypting": "Entschlüsseln...",
+      "mnemonic_copied": "Wiederherstellungsphrase in die Zwischenablage kopiert",
       "key_copied": "Privater Schlüssel in die Zwischenablage kopiert",
-      "key_unavailable": "Privater Schlüssel ist nicht verfügbar.",
+      "unavailable": "Backup ist nicht verfügbar.",
       "verifying": "Überprüfen...",
-      "view_btn": "Privaten Schlüssel anzeigen",
+      "view_backup": "Backup anzeigen",
       "password_required": "Passwort erforderlich",
-      "incorrect_password": "Falsches Passwort"
+      "wallet_not_found": "Wallet nicht gefunden",
+      "not_available_for_ledger": "Ledger-Wallets zeigen keine Backup-Phrase an. Ihre Schlüssel bleiben auf dem Gerät sicher.",
+      "incorrect_password": "Falsches Passwort",
+      "retrieval_failed": "Abruf des Backups fehlgeschlagen",
+      "your_mnemonic": "Ihre geheime Wiederherstellungsphrase",
+      "your_private_key": "Ihr privater Schlüssel",
+      "mnemonic_words": "{{count}} Wörter",
+      "security_notice": "Schreiben Sie dies auf und bewahren Sie es an einem sicheren, Offline-Ort auf. Speichern Sie es niemals digital oder teilen Sie es online.",
+      "done": "Fertig"
     }
   },
   "welcome": {

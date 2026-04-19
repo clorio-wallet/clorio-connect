@@ -125,7 +125,7 @@
     "reset_wallet": "Réinitialiser le portefeuille",
     "about": "À propos",
     "faq": "FAQ",
-    "view_private_key": "Voir la clé privée",
+    "backup_wallet": "Sauvegarder le portefeuille",
     "language_title": "Langue",
     "language_desc": "Choisissez votre langue préférée.",
     "network_sheet": {
@@ -176,30 +176,43 @@
     "account_card": {
       "active": "Actif",
       "rename": "Renommer",
-      "view_private_key": "Voir la clé privée",
+      "view_backup": "Voir la sauvegarde",
       "remove": "Supprimer"
     }
   },
   "security": {
     "password_label": "Mot de passe",
-    "view_private_key": {
+    "backup": {
       "title_warning": "Avertissement de sécurité",
       "title_password": "Confirmer le mot de passe",
-      "title_display": "Clé privée",
-      "desc_warning": "Vous êtes sur le point de voir votre clé privée. Assurez-vous d'être seul et que personne ne regarde.",
-      "desc_password": "Entrez votre mot de passe pour voir la clé privée.",
-      "desc_display": "Ne partagez jamais cette clé avec qui que ce soit. Quiconque la possède peut contrôler vos fonds.",
-      "warning_box": "Avertissement : Votre clé privée donne un accès total à vos fonds. Assurez-vous que personne ne regarde votre écran.",
-      "i_am_alone": "Je suis seul, continuer",
+      "title_mnemonic": "Phrase de récupération secrète",
+      "title_private_key": "Clé privée",
+      "desc_warning": "Vous êtes sur le point de voir votre sauvegarde de portefeuille. Assurez-vous d'être seul et que personne ne regarde.",
+      "desc_password": "Entrez votre mot de passe pour voir votre sauvegarde de portefeuille.",
+      "desc_mnemonic": "Ne partagez jamais ces mots avec qui que ce soit. Quiconque les possède peut contrôler vos fonds.",
+      "desc_private_key": "Ne partagez jamais cette clé avec qui que ce soit. Quiconque la possède peut contrôler vos fonds.",
+      "mnemonic_info": "Ce portefeuille a été créé avec une phrase de récupération secrète (mnémonique). Ces 12 ou 24 mots peuvent être utilisés pour récupérer votre portefeuille sur n'importe quel appareil.",
+      "private_key_info": "Ce portefeuille a été importé avec une clé privée. Cette clé peut être utilisée pour récupérer votre portefeuille sur n'importe quel appareil.",
+      "warning_box": "Avertissement : Votre sauvegarde donne un accès total à vos fonds. Assurez-vous que personne ne regarde votre écran.",
+      "continue": "Continuer",
       "enter_password": "Entrez votre mot de passe",
       "password_label": "Mot de passe",
       "decrypting": "Déchiffrement...",
+      "mnemonic_copied": "Phrase de récupération copiée dans le presse-papiers",
       "key_copied": "Clé privée copiée dans le presse-papiers",
-      "key_unavailable": "La clé privée n'est pas disponible.",
+      "unavailable": "La sauvegarde n'est pas disponible.",
       "verifying": "Vérification...",
-      "view_btn": "Voir la clé privée",
+      "view_backup": "Voir la sauvegarde",
       "password_required": "Mot de passe requis",
-      "incorrect_password": "Mot de passe incorrect"
+      "wallet_not_found": "Portefeuille non trouvé",
+      "not_available_for_ledger": "Les portefeuilles Ledger n'exposent pas de phrase de sauvegarde. Vos clés restent sécurisées sur l'appareil.",
+      "incorrect_password": "Mot de passe incorrect",
+      "retrieval_failed": "Échec de la récupération de la sauvegarde",
+      "your_mnemonic": "Votre phrase de récupération secrète",
+      "your_private_key": "Votre clé privée",
+      "mnemonic_words": "{{count}} mots",
+      "security_notice": "Notez ceci et conservez-le dans un lieu sûr, hors ligne. Ne le stockez jamais numériquement ou ne le partagez en ligne.",
+      "done": "Terminé"
     }
   },
   "welcome": {
