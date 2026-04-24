@@ -39,3 +39,4 @@ docs
 
 .github
 scripts
+dist*

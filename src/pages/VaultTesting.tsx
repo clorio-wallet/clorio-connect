@@ -280,7 +280,6 @@ export const VaultTestingPage: React.FC = () => {
         description: `${wallet?.type === 'mnemonic' ? 'Mnemonic' : 'Private Key'}: ${secret.slice(0, 20)}...`,
         duration: 5000,
       });
-      console.log('Full secret:', secret);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to get private key';
@@ -465,7 +464,7 @@ export const VaultTestingPage: React.FC = () => {
                     className="w-full min-h-[80px] p-2 rounded-md border bg-background text-sm"
                     value={mnemonic}
                     onChange={(e) => setMnemonic(e.target.value)}
-                    placeholder="Enter 12 or 24 word mnemonic"
+                    placeholder="Enter 12 word mnemonic"
                   />
                 </div>
               ) : (

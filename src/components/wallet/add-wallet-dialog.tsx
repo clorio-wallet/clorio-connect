@@ -369,7 +369,7 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
               <p className="text-sm text-muted-foreground">
                 {t(
                   'wallets.import_mnemonic_desc',
-                  'Import a wallet using a 12 or 24 word recovery phrase',
+                  'Import a wallet using a 12 word recovery phrase',
                 )}
               </p>
             </div>

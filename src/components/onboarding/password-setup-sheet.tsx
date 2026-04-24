@@ -86,7 +86,9 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
         <div className="flex-1 px-6 py-6 space-y-6 overflow-y-auto">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">{t('onboarding.password_sheet.password_label')}</Label>
+              <Label htmlFor="password">
+                {t('onboarding.password_sheet.password_label')}
+              </Label>
               <PasswordInput
                 id="password"
                 value={password}
@@ -126,7 +128,9 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">{t('onboarding.password_sheet.confirm_password_label')}</Label>
+              <Label htmlFor="confirm-password">
+                {t('onboarding.password_sheet.confirm_password_label')}
+              </Label>
               <PasswordInput
                 id="confirm-password"
                 value={confirmPassword}
@@ -152,9 +156,18 @@ export const PasswordSetupSheet: React.FC<PasswordSetupSheetProps> = ({
             />
             <Label
               htmlFor="terms"
-              className="text-sm font-normal text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm font-normal text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
-              {t('onboarding.password_sheet.terms_label')}
+              {t('onboarding.password_sheet.terms_prefix', 'I agree to the')}{' '}
+              <a
+                href="https://docs.clor.io/other/terms-and-conditions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary/80"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {t('onboarding.password_sheet.terms_link', 'Terms and Conditions')}
+              </a>
             </Label>
           </div>
 

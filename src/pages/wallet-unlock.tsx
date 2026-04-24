@@ -12,6 +12,7 @@ import { PasswordInput } from '@/components/wallet/password-input';
 import { Spinner } from '@/components/ui/spinner';
 import { useNavigate } from 'react-router-dom';
 import { storage, sessionStorage } from '@/lib/storage';
+import { DAPP_PENDING_APPROVAL_STORAGE_KEY } from '@/lib/dapp';
 import { CryptoService } from '@/lib/crypto';
 import { VaultManager } from '@/lib/vault-manager';
 import { useSessionStore } from '@/stores/session-store';
@@ -19,7 +20,17 @@ import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import { Settings } from 'lucide-react';
+import { Settings, AlertTriangle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import { LoopingLottie } from '@/components/ui/looping-lottie';
 import lockAnimation from '../animations/lock.json';
@@ -43,11 +54,18 @@ const WalletUnlockPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setIsAuthenticated, setHasVault, setTempPassword, isAuthenticated } =
-    useSessionStore();
+  const {
+    setIsAuthenticated,
+    setHasVault,
+    setTempPassword,
+    isAuthenticated,
+    resetWallet,
+  } = useSessionStore();
   const { setWallet } = useWalletStore();
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -93,7 +111,8 @@ const WalletUnlockPage: React.FC = () => {
           });
         }
 
-        navigate('/dashboard');
+        const pendingDapp = await sessionStorage.get(DAPP_PENDING_APPROVAL_STORAGE_KEY);
+        navigate(pendingDapp ? '/dapp/approval' : '/dashboard');
         return;
       }
 
@@ -143,7 +162,8 @@ const WalletUnlockPage: React.FC = () => {
         });
       }
 
-      navigate('/dashboard');
+      const pendingDapp = await sessionStorage.get(DAPP_PENDING_APPROVAL_STORAGE_KEY);
+      navigate(pendingDapp ? '/dapp/approval' : '/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
       toast({
@@ -153,6 +173,29 @@ const WalletUnlockPage: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResetWallet = async () => {
+    setIsResetting(true);
+    try {
+      await resetWallet();
+      setShowResetDialog(false);
+      toast({
+        title: t('settings.reset_sheet.success_title'),
+        description: t('settings.reset_sheet.success_desc'),
+        duration: 5000,
+      });
+      navigate('/welcome', { replace: true });
+    } catch (error) {
+      console.error('Failed to reset wallet:', error);
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description: t('settings.reset_sheet.error_desc'),
+      });
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -204,13 +247,41 @@ const WalletUnlockPage: React.FC = () => {
               variant="link"
               className="w-full text-xs text-muted-foreground"
               type="button"
-              onClick={() => navigate('/onboarding/import')}
+              onClick={() => setShowResetDialog(true)}
             >
               {t('wallet_unlock.forgot_password')}
             </Button>
           </CardFooter>
         </form>
       </Card>
+
+      {/* Reset Wallet Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              {t('settings.reset_sheet.title')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('settings.reset_sheet.desc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetWallet}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isResetting ? (
+                <Spinner />
+              ) : (
+                t('settings.reset_sheet.confirm_button')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

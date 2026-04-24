@@ -18,7 +18,7 @@ export const useSettingsStore = create<SettingsState>()(
       setNetworkId: (id) => set({ networkId: id }),
       autoLockTimeout: 15,
       setAutoLockTimeout: (minutes) => set({ autoLockTimeout: minutes }),
-      balancePollInterval: 5,
+      balancePollInterval: 1,
       setBalancePollInterval: (minutes) =>
         set({ balancePollInterval: minutes }),
     }),

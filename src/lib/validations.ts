@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 /**
- * Address validation (generic - customize per chain)
+ * Mina B62 address validation (Base58Check, starts with B62, 55 chars total)
  */
 export const addressSchema = z
   .string()
   .min(1, "Address is required")
-  .regex(/^[a-zA-Z0-9]+$/, "Invalid address format");
+  .regex(/^B62[1-9A-HJ-NP-Za-km-z]{52}$/, "Invalid Mina address format");
 
 /**
  * Amount validation
@@ -57,8 +57,8 @@ export const importWalletSchema = z.object({
     .min(1, "Seed phrase is required")
     .refine((val) => {
       const words = val.trim().split(/\s+/);
-      return words.length === 12 || words.length === 24;
-    }, "Seed phrase must be 12 or 24 words"),
+      return words.length === 12;
+    }, "Seed phrase must be 12 words"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters"),

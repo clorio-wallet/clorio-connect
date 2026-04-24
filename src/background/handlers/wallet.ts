@@ -12,21 +12,17 @@
  *   - Signs using active wallet or specified walletId
  */
 
-import Client from 'mina-signer';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
 import { CryptoService } from '@/lib/crypto';
 import { storage } from '@/lib/storage';
 import { VaultManager } from '@/lib/vault-manager';
+import { getSignerClient } from '../mina-client-manager';
 import type {
   DeriveKeysResponse,
   SignPaymentResponse,
   ValidatePrivateKeyResponse,
   SignDelegationResponse,
 } from '@/messages/types';
-
-// ─── Mina client singleton ────────────────────────────────────────────────────
-
-const client = new Client({ network: 'mainnet' });
 
 // ─── Vault (Legacy v1 support) ────────────────────────────────────────────────
 
@@ -124,7 +120,8 @@ export async function handleDeriveKeys(
       payload.mnemonic,
       accountIndex,
     );
-    const publicKey = client.derivePublicKey(privateKey);
+    const signerClient = await getSignerClient();
+    const publicKey = signerClient.derivePublicKey(privateKey);
     sendResponse({ privateKey, publicKey });
   } catch (error) {
     console.error('[wallet] DERIVE_KEYS_FROM_MNEMONIC failed:', error);
@@ -138,12 +135,13 @@ export async function handleDeriveKeys(
  * Handle VALIDATE_PRIVATE_KEY.
  * Attempts to derive the public key — if it succeeds the private key is valid.
  */
-export function handleValidatePrivateKey(
+export async function handleValidatePrivateKey(
   payload: { privateKey: string },
   sendResponse: (r: ValidatePrivateKeyResponse) => void,
-): void {
+): Promise<void> {
   try {
-    const publicKey = client.derivePublicKey(payload.privateKey);
+    const signerClient = await getSignerClient();
+    const publicKey = signerClient.derivePublicKey(payload.privateKey);
     sendResponse({ isValid: true, publicKey });
   } catch (error) {
     console.error('[wallet] VALIDATE_PRIVATE_KEY failed:', error);
@@ -186,21 +184,11 @@ export async function handleSignPayment(
       memo: payload.payment.memo ?? '',
     };
 
-    console.log('[wallet] SIGN_PAYMENT signing:', {
-      from: payment.from,
-      to: payment.to,
-      amount: payment.amount,
-      fee: payment.fee,
-      nonce: payment.nonce,
-      memo: payment.memo,
-    });
-
-    const signed = client.signPayment(payment, privateKey);
-
-    console.log('[wallet] SIGN_PAYMENT signed:', {
-      data: signed.data,
-      signature: signed.signature,
-    });
+    const signerClient = await getSignerClient();
+    const signed = signerClient.signPayment(payment, privateKey) as {
+      data: unknown;
+      signature: { field: string; scalar: string };
+    };
 
     sendResponse({ signature: signed.signature });
   } catch (error) {
@@ -244,20 +232,11 @@ export async function handleSignDelegation(
       memo: payload.delegation.memo ?? '',
     };
 
-    console.log('[wallet] SIGN_DELEGATION signing:', {
-      from: stakeDelegation.from,
-      to: stakeDelegation.to,
-      fee: stakeDelegation.fee,
-      nonce: stakeDelegation.nonce,
-      memo: stakeDelegation.memo,
-    });
-
-    const signed = client.signStakeDelegation(stakeDelegation, privateKey);
-
-    console.log('[wallet] SIGN_DELEGATION signed:', {
-      data: signed.data,
-      signature: signed.signature,
-    });
+    const signerClient = await getSignerClient();
+    const signed = signerClient.signStakeDelegation(stakeDelegation, privateKey) as {
+      data: unknown;
+      signature: { field: string; scalar: string };
+    };
 
     sendResponse({ signature: signed.signature });
   } catch (error) {
