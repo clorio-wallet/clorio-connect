@@ -16,8 +16,14 @@ export const VerifyMnemonicPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { tempMnemonic, tempPassword, setHasVault, setIsAuthenticated } =
-    useSessionStore();
+  const {
+    tempMnemonic,
+    tempPassword,
+    setHasVault,
+    setIsAuthenticated,
+    setTempMnemonic,
+    setTempPassword,
+  } = useSessionStore();
   const { setWallet } = useWalletStore();
 
   const [verificationIndices, setVerificationIndices] = useState<number[]>([]);
@@ -77,6 +83,8 @@ export const VerifyMnemonicPage: React.FC = () => {
 
       setHasVault(true);
       setIsAuthenticated(true);
+      setTempMnemonic(null);
+      setTempPassword(null);
 
       setWallet({
         publicKey: firstWallet.publicKey,

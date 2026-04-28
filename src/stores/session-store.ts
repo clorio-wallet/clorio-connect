@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 
+import { useSettingsStore } from '@/stores/settings-store';
+
+let autoLockTimer: ReturnType<typeof setTimeout> | null = null;
+
 interface SessionState {
   tempPassword: string | null;
   setTempPassword: (password: string | null) => void;
@@ -13,12 +17,55 @@ interface SessionState {
   hasVault: boolean;
   setHasVault: (hasVault: boolean) => void;
 
+  syncAutoLock: () => void;
+
   logout: () => Promise<void>;
   resetWallet: () => Promise<void>;
   restoreSession: () => Promise<boolean>;
 }
 
-export const useSessionStore = create<SessionState>((set) => ({
+type SessionSetter = (
+  partial: Partial<SessionState> | ((state: SessionState) => Partial<SessionState>),
+) => void;
+
+function clearAutoLockTimer() {
+  if (autoLockTimer !== null) {
+    clearTimeout(autoLockTimer);
+    autoLockTimer = null;
+  }
+}
+
+async function lockUiSession(set: SessionSetter): Promise<void> {
+  const { sessionStorage } = await import('@/lib/storage');
+
+  clearAutoLockTimer();
+  await sessionStorage.remove('clorio_session');
+
+  set({
+    isAuthenticated: false,
+    tempPassword: null,
+    tempMnemonic: null,
+  });
+}
+
+function armAutoLock(get: () => SessionState, set: SessionSetter): void {
+  clearAutoLockTimer();
+
+  if (!get().isAuthenticated) {
+    return;
+  }
+
+  const { autoLockTimeout } = useSettingsStore.getState();
+  if (autoLockTimeout <= 0) {
+    return;
+  }
+
+  autoLockTimer = setTimeout(() => {
+    void lockUiSession(set);
+  }, autoLockTimeout * 60 * 1000);
+}
+
+export const useSessionStore = create<SessionState>((set, get) => ({
   tempPassword: null,
   setTempPassword: (tempPassword) => set({ tempPassword }),
 
@@ -26,15 +73,29 @@ export const useSessionStore = create<SessionState>((set) => ({
   setTempMnemonic: (tempMnemonic) => set({ tempMnemonic }),
 
   isAuthenticated: false,
-  setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  setIsAuthenticated: (isAuthenticated) => {
+    set({ isAuthenticated });
+
+    if (!isAuthenticated) {
+      clearAutoLockTimer();
+      return;
+    }
+
+    armAutoLock(get, set);
+  },
 
   hasVault: false,
   setHasVault: (hasVault) => set({ hasVault }),
+
+  syncAutoLock: () => {
+    armAutoLock(get, set);
+  },
 
   logout: async () => {
     const { sessionStorage } = await import('@/lib/storage');
     const { useWalletStore } = await import('@/stores/wallet-store');
 
+    clearAutoLockTimer();
     await sessionStorage.remove('clorio_session');
     await sessionStorage.remove('clorio_onboarding_password');
 
@@ -51,6 +112,7 @@ export const useSessionStore = create<SessionState>((set) => ({
     const { storage, sessionStorage } = await import('@/lib/storage');
     const { useWalletStore } = await import('@/stores/wallet-store');
 
+    clearAutoLockTimer();
     await storage.remove('clorio_vault');
     await storage.remove('clorio_ledger_account');
     await sessionStorage.remove('clorio_session');
@@ -70,28 +132,20 @@ export const useSessionStore = create<SessionState>((set) => ({
     try {
       const { storage: persistentStorage, sessionStorage } =
         await import('@/lib/storage');
-      const { useSettingsStore } = await import('@/stores/settings-store');
       const { useWalletStore } = await import('@/stores/wallet-store');
       const storedVault = await persistentStorage.get('clorio_vault');
 
       set({ hasVault: Boolean(storedVault) });
 
-      const session = await sessionStorage.get<{
-        password: string;
-        timestamp: number;
-      }>('clorio_session');
+      const session = await sessionStorage.get<{ timestamp: number }>(
+        'clorio_session',
+      );
 
       if (!session) {
         set({
           isAuthenticated: false,
           tempPassword: null,
         });
-        const onboardingPassword = await sessionStorage.get<string>(
-          'clorio_onboarding_password',
-        );
-        if (onboardingPassword) {
-          set({ tempPassword: onboardingPassword });
-        }
         return false;
       }
 
@@ -119,7 +173,6 @@ export const useSessionStore = create<SessionState>((set) => ({
       }
 
       await sessionStorage.set('clorio_session', {
-        ...session,
         timestamp: Date.now(),
       });
       await sessionStorage.remove('clorio_onboarding_password');
@@ -148,11 +201,13 @@ export const useSessionStore = create<SessionState>((set) => ({
 
       set({
         isAuthenticated: true,
-        tempPassword: session.password,
+        tempPassword: null,
         hasVault: true,
       });
+      armAutoLock(get, set);
       return true;
     } catch (error) {
+      clearAutoLockTimer();
       console.error('Failed to restore session:', error);
       set({
         isAuthenticated: false,

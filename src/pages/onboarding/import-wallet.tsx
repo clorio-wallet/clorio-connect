@@ -17,7 +17,7 @@ export const ImportWalletPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { tempPassword, setHasVault, setIsAuthenticated } = useSessionStore();
+  const { tempPassword, setHasVault, setIsAuthenticated, setTempPassword } = useSessionStore();
   const { setWallet } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'mnemonic' | 'privateKey'>(
     'mnemonic',
@@ -129,6 +129,7 @@ export const ImportWalletPage: React.FC = () => {
 
       setHasVault(true);
       setIsAuthenticated(true);
+      setTempPassword(null);
 
       setWallet({
         publicKey: firstWallet.publicKey,

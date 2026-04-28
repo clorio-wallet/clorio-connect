@@ -170,6 +170,7 @@ export interface DappResolvePendingApprovalMessage extends BaseMessage {
   payload: {
     requestId: string;
     approve: boolean;
+    password?: string;
   };
 }
 

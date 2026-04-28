@@ -24,7 +24,7 @@ interface SecuritySheetProps {
 export const SecuritySheet: React.FC<SecuritySheetProps> = ({ open, onOpenChange }) => {
   const { t } = useTranslation();
   const { autoLockTimeout, setAutoLockTimeout } = useSettingsStore();
-  const { tempPassword, isAuthenticated } = useSessionStore();
+  const { isAuthenticated, syncAutoLock } = useSessionStore();
 
   const AUTO_LOCK_OPTIONS = [
     { label: t('settings.security_sheet.options.window_close'), value: 0 },
@@ -60,12 +60,12 @@ export const SecuritySheet: React.FC<SecuritySheetProps> = ({ open, onOpenChange
                   onClick={async () => {
                     setAutoLockTimeout(option.value);
                     onOpenChange(false);
+                    syncAutoLock();
                     
                     // Update persistence immediately
-                    if (isAuthenticated && tempPassword) {
+                    if (isAuthenticated) {
                       if (option.value !== 0) {
                         await sessionStorage.set('clorio_session', {
-                          password: tempPassword,
                           timestamp: Date.now()
                         });
                       } else {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSessionStore } from '@/stores/session-store';
-import { storage, sessionStorage } from '@/lib/storage';
+import { storage } from '@/lib/storage';
 import { useNavigate } from 'react-router-dom';
 import { PasswordSetupSheet } from '@/components/onboarding/password-setup-sheet';
 import { MethodSelectionSheet } from '@/components/onboarding/method-selection-sheet';
@@ -36,7 +36,6 @@ export const WelcomePage: React.FC = () => {
 
   const handlePasswordSuccess = (password: string) => {
     setTempPassword(password);
-    sessionStorage.set('clorio_onboarding_password', password);
     setShowPasswordSetup(false);
     setTimeout(() => setShowMethodSelection(true), 300);
   };

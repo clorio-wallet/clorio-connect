@@ -34,8 +34,7 @@ export function ImportLedgerPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { setWallet, loadWallets } = useWalletStore();
-  const { tempPassword, setIsAuthenticated, setHasVault, setTempPassword } =
-    useSessionStore();
+  const { tempPassword, setIsAuthenticated, setHasVault } = useSessionStore();
 
   const {
     status,
@@ -245,16 +244,12 @@ export function ImportLedgerPage() {
         ledgerAccountIndex: accountIndex,
       });
 
-      setTempPassword(tempPassword);
       setHasVault(true);
       setIsAuthenticated(true);
 
-      // Persist the session so restoreSession() in the reopened extension
-      // authenticates the user automatically (same as wallet-unlock.tsx).
       const { autoLockTimeout } = useSettingsStore.getState();
       if (autoLockTimeout !== 0) {
         await sessionStorage.set('clorio_session', {
-          password: tempPassword,
           timestamp: Date.now(),
         });
       }
@@ -308,7 +303,6 @@ export function ImportLedgerPage() {
     loadWallets,
     setHasVault,
     setIsAuthenticated,
-    setTempPassword,
     navigate,
     toast,
     t,

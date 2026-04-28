@@ -181,13 +181,6 @@ async function fetchPendingNonce(publicKey: string): Promise<number> {
   return accountNonce + outgoingCount;
 }
 
-async function getSessionPassword(): Promise<string | null> {
-  const session = await sessionStorage.get<{ password: string }>(
-    'clorio_session',
-  );
-  return typeof session?.password === 'string' ? session.password : null;
-}
-
 async function getActiveWallet(): Promise<WalletEntry> {
   const wallet = await VaultManager.getActiveWallet();
   if (!wallet) {
@@ -690,12 +683,12 @@ async function performConnectApproval(
 
 async function performMessageSignature(
   request: DappRpcPayload,
+  password?: string,
 ): Promise<unknown> {
   const origin = normalizeOrigin(request.site.origin);
   const wallet = await getActiveSoftwareWallet();
   await ensureApprovedOrigin(origin, wallet);
 
-  const password = await getSessionPassword();
   if (!password) {
     throw createDappError(
       DAPP_ERROR_CODES.walletLocked,
@@ -736,17 +729,21 @@ async function performMessageVerification(
   return client.verifyMessage(params);
 }
 
-async function performFieldSignature(request: DappRpcPayload): Promise<unknown> {
-  const { privateKey, client } = await getUnlockedWalletContext(request);
+async function performFieldSignature(
+  request: DappRpcPayload,
+  password?: string,
+): Promise<unknown> {
+  const { privateKey, client } = await getUnlockedWalletContext(request, password);
   const { message } = normalizeSignFieldsParams(request.params);
   return client.signFields(message.map((value) => BigInt(value)), privateKey);
 }
 
 async function performJsonMessageSignature(
   request: DappRpcPayload,
+  password?: string,
 ): Promise<unknown> {
   const origin = normalizeOrigin(request.site.origin);
-  const { privateKey, client } = await getUnlockedWalletContext(request);
+  const { privateKey, client } = await getUnlockedWalletContext(request, password);
   const { message } = normalizeSignJsonMessageParams(request.params);
   const signed = client.signMessage(JSON.stringify(message), privateKey) as {
     data: string;
@@ -764,12 +761,14 @@ async function performJsonMessageSignature(
   return signed;
 }
 
-async function getUnlockedWalletContext(request: DappRpcPayload) {
+async function getUnlockedWalletContext(
+  request: DappRpcPayload,
+  password?: string,
+) {
   const origin = normalizeOrigin(request.site.origin);
   const wallet = await getActiveSoftwareWallet();
   await ensureApprovedOrigin(origin, wallet);
 
-  const password = await getSessionPassword();
   if (!password) {
     throw createDappError(
       DAPP_ERROR_CODES.walletLocked,
@@ -782,9 +781,12 @@ async function getUnlockedWalletContext(request: DappRpcPayload) {
   return { wallet, privateKey, client };
 }
 
-async function performSendPayment(request: DappRpcPayload): Promise<unknown> {
+async function performSendPayment(
+  request: DappRpcPayload,
+  password?: string,
+): Promise<unknown> {
   const { wallet, privateKey, client } =
-    await getUnlockedWalletContext(request);
+    await getUnlockedWalletContext(request, password);
   const params = normalizeSendPaymentParams(request.params);
 
   if (params.from && params.from !== wallet.publicKey) {
@@ -832,9 +834,10 @@ async function performSendPayment(request: DappRpcPayload): Promise<unknown> {
 
 async function performSendStakeDelegation(
   request: DappRpcPayload,
+  password?: string,
 ): Promise<unknown> {
   const { wallet, privateKey, client } =
-    await getUnlockedWalletContext(request);
+    await getUnlockedWalletContext(request, password);
   const params = normalizeStakeDelegationParams(request.params);
 
   if (params.from && params.from !== wallet.publicKey) {
@@ -922,9 +925,10 @@ function readNestedNumber(
 
 async function performTransactionSignature(
   request: DappRpcPayload,
+  password?: string,
 ): Promise<unknown> {
   const { wallet, privateKey, client } =
-    await getUnlockedWalletContext(request);
+    await getUnlockedWalletContext(request, password);
 
   const params = normalizeSendTransactionParams(request.params);
 
@@ -1044,6 +1048,7 @@ async function performTransactionSignature(
 async function resolveApproval(
   requestId: string,
   approve: boolean,
+  password?: string,
 ): Promise<void> {
   const pending = pendingRequests.get(requestId);
   if (!pending) {
@@ -1071,22 +1076,22 @@ async function resolveApproval(
         result = await performConnectApproval(pending.request);
         break;
       case 'mina_sendPayment':
-        result = await performSendPayment(pending.request);
+        result = await performSendPayment(pending.request, password);
         break;
       case 'mina_sendStakeDelegation':
-        result = await performSendStakeDelegation(pending.request);
+        result = await performSendStakeDelegation(pending.request, password);
         break;
       case 'mina_signMessage':
-        result = await performMessageSignature(pending.request);
+        result = await performMessageSignature(pending.request, password);
         break;
       case 'mina_signFields':
-        result = await performFieldSignature(pending.request);
+        result = await performFieldSignature(pending.request, password);
         break;
       case 'mina_signJsonMessage':
-        result = await performJsonMessageSignature(pending.request);
+        result = await performJsonMessageSignature(pending.request, password);
         break;
       case 'mina_sendTransaction':
-        result = await performTransactionSignature(pending.request);
+        result = await performTransactionSignature(pending.request, password);
         break;
       case 'mina_switchChain': {
         const { networkID } = normalizeSwitchChainParams(pending.request.params);
@@ -1248,11 +1253,11 @@ export async function handleGetPendingDappApproval(
 }
 
 export async function handleResolveDappApproval(
-  payload: { requestId: string; approve: boolean },
+  payload: { requestId: string; approve: boolean; password?: string },
   sendResponse: (response: DappResolvePendingApprovalResponse) => void,
 ): Promise<void> {
   try {
-    await resolveApproval(payload.requestId, payload.approve);
+    await resolveApproval(payload.requestId, payload.approve, payload.password);
     sendResponse({ ok: true });
   } catch (error) {
     sendResponse({

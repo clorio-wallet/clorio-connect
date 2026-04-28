@@ -57,7 +57,6 @@ const WalletUnlockPage: React.FC = () => {
   const {
     setIsAuthenticated,
     setHasVault,
-    setTempPassword,
     isAuthenticated,
     resetWallet,
   } = useSessionStore();
@@ -101,12 +100,10 @@ const WalletUnlockPage: React.FC = () => {
 
         setIsAuthenticated(true);
         setHasVault(true);
-        setTempPassword(password);
 
         const { autoLockTimeout } = useSettingsStore.getState();
         if (autoLockTimeout !== 0) {
           await sessionStorage.set('clorio_session', {
-            password,
             timestamp: Date.now(),
           });
         }
@@ -152,12 +149,10 @@ const WalletUnlockPage: React.FC = () => {
 
       setIsAuthenticated(true);
       setHasVault(true);
-      setTempPassword(password);
 
       const { autoLockTimeout } = useSettingsStore.getState();
       if (autoLockTimeout !== 0) {
         await sessionStorage.set('clorio_session', {
-          password,
           timestamp: Date.now(),
         });
       }

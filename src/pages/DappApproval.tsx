@@ -28,6 +28,10 @@ import { sessionStorage } from '@/lib/storage';
 
 const DEFAULT_PAYMENT_FEE = '0.1';
 
+function requiresApprovalPassword(method: DappRpcMethod): boolean {
+  return method !== 'mina_requestAccounts' && method !== 'mina_switchChain';
+}
+
 function getRequestTitle(method: DappRpcMethod): string {
   switch (method) {
     case 'mina_requestAccounts':
@@ -80,7 +84,6 @@ const DappApprovalPage: React.FC = () => {
     isAuthenticated,
     setHasVault,
     setIsAuthenticated,
-    setTempPassword,
     restoreSession,
   } = useSessionStore();
   const { loadWallets, publicKey } = useWalletStore();
@@ -133,12 +136,10 @@ const DappApprovalPage: React.FC = () => {
 
       setHasVault(true);
       setIsAuthenticated(true);
-      setTempPassword(password);
 
       const { autoLockTimeout } = useSettingsStore.getState();
       if (autoLockTimeout !== 0) {
         await sessionStorage.set('clorio_session', {
-          password,
           timestamp: Date.now(),
         });
       }
@@ -158,12 +159,20 @@ const DappApprovalPage: React.FC = () => {
     password,
     setHasVault,
     setIsAuthenticated,
-    setTempPassword,
   ]);
 
   const handleDecision = useCallback(
     async (approve: boolean) => {
       if (!pendingRequest) {
+        return;
+      }
+
+      if (
+        approve &&
+        requiresApprovalPassword(pendingRequest.method) &&
+        password.trim().length === 0
+      ) {
+        setErrorMessage('Enter your password to approve this request.');
         return;
       }
 
@@ -176,6 +185,10 @@ const DappApprovalPage: React.FC = () => {
           payload: {
             requestId: pendingRequest.requestId,
             approve,
+            password:
+              approve && requiresApprovalPassword(pendingRequest.method)
+                ? password
+                : undefined,
           },
         })) as DappResolvePendingApprovalResponse;
 
@@ -184,6 +197,7 @@ const DappApprovalPage: React.FC = () => {
         }
 
         await loadPendingRequest();
+        setPassword('');
       } catch (error) {
         setErrorMessage(
           error instanceof Error ? error.message : 'Failed to resolve request.',
@@ -192,7 +206,7 @@ const DappApprovalPage: React.FC = () => {
         setIsSubmitting(false);
       }
     },
-    [loadPendingRequest, pendingRequest],
+    [loadPendingRequest, password, pendingRequest],
   );
 
   const summaryLines = useMemo(() => {
@@ -395,6 +409,16 @@ const DappApprovalPage: React.FC = () => {
             <p className="text-sm text-destructive">{errorMessage}</p>
           )}
 
+          {requiresApprovalPassword(pendingRequest.method) && (
+            <PasswordInput
+              id="dapp-approval-confirm-password"
+              label="Confirm password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password to sign"
+            />
+          )}
+
           {publicKey && publicKey !== pendingRequest.account.publicKey && (
             <p className="text-sm text-warning">
               The active wallet in the UI does not match the account that opened
@@ -415,7 +439,10 @@ const DappApprovalPage: React.FC = () => {
           <Button
             className="flex-1"
             onClick={() => void handleDecision(true)}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              (requiresApprovalPassword(pendingRequest.method) && !password)
+            }
           >
             {isSubmitting ? 'Processing...' : 'Approve'}
           </Button>
