@@ -1,16 +1,19 @@
 import type {
+  DappAddChainParams,
   DappBridgeEvent,
   DappBridgeRequest,
   DappBridgeResponse,
+  DappCreateNullifierParams,
   DappProviderError,
   DappProviderEventName,
-  DappSignFieldsParams,
-  DappSignJsonMessageParams,
   DappSendPaymentParams,
   DappSendStakeDelegationParams,
-  DappSwitchChainParams,
   DappSendTransactionParams,
+  DappSignFieldsParams,
+  DappSignJsonMessageParams,
   DappSignMessageParams,
+  DappSwitchChainParams,
+  DappVerifyFieldsParams,
   DappVerifyMessageParams,
 } from '@/lib/dapp';
 import { DAPP_BRIDGE_CHANNEL } from '@/lib/dapp';
@@ -23,6 +26,7 @@ type PendingRequest = {
 };
 
 class ClorioMinaProvider {
+  public readonly isClorio = true;
   public readonly isAuro = true;
 
   private readonly listeners = new Map<
@@ -52,20 +56,33 @@ class ClorioMinaProvider {
     );
   }
 
+  request(args: {
+    method: DappBridgeRequest['method'];
+    params?: unknown;
+  }): Promise<unknown> {
+    return this.sendRequest(args.method, args.params);
+  }
+
   async requestAccounts(): Promise<string[]> {
-    const accounts = (await this.request('mina_requestAccounts')) as string[];
+    const accounts = (await this.sendRequest('mina_requestAccounts')) as string[];
     this.setAccounts(accounts);
     return accounts;
   }
 
   async getAccounts(): Promise<string[]> {
-    const accounts = (await this.request('mina_accounts')) as string[];
+    const accounts = (await this.sendRequest('mina_accounts')) as string[];
+    this.setAccounts(accounts);
+    return accounts;
+  }
+
+  async getAccountsV2(): Promise<string[]> {
+    const accounts = (await this.sendRequest('mina_getAccounts')) as string[];
     this.setAccounts(accounts);
     return accounts;
   }
 
   async requestNetwork(): Promise<{ networkID: string }> {
-    const network = (await this.request('mina_requestNetwork')) as {
+    const network = (await this.sendRequest('mina_requestNetwork')) as {
       networkID: string;
     };
     this.setNetwork(network);
@@ -73,11 +90,28 @@ class ClorioMinaProvider {
   }
 
   async switchChain(
-    params: DappSwitchChainParams | { chainId?: string; networkID?: string } | string,
+    params:
+      | DappSwitchChainParams
+      | { chainId?: string; networkID?: string }
+      | string,
   ): Promise<{ networkID: string }> {
     const normalized = this.normalizeSwitchChainParams(params);
-    const network = (await this.request('mina_switchChain', normalized)) as {
+    const network = (await this.sendRequest(
+      'mina_switchChain',
+      normalized,
+    )) as {
       networkID: string;
+    };
+    this.setNetwork(network);
+    return network;
+  }
+
+  async addChain(
+    params: DappAddChainParams,
+  ): Promise<{ networkID: string; name?: string }> {
+    const network = (await this.sendRequest('mina_addChain', params)) as {
+      networkID: string;
+      name?: string;
     };
     this.setNetwork(network);
     return network;
@@ -86,7 +120,7 @@ class ClorioMinaProvider {
   async signMessage(
     params: DappSignMessageParams,
   ): Promise<{ data: string; signature: { field: string; scalar: string } }> {
-    return this.request('mina_signMessage', params) as Promise<{
+    return this.sendRequest('mina_signMessage', params) as Promise<{
       data: string;
       signature: { field: string; scalar: string };
     }>;
@@ -106,7 +140,7 @@ class ClorioMinaProvider {
           }
         : dataOrParams;
 
-    return this.request('mina_verifyMessage', params) as Promise<boolean>;
+    return this.sendRequest('mina_verifyMessage', params) as Promise<boolean>;
   }
 
   async signFields(params: DappSignFieldsParams): Promise<{
@@ -114,11 +148,15 @@ class ClorioMinaProvider {
     publicKey: string;
     signature: string;
   }> {
-    return this.request('mina_signFields', params) as Promise<{
+    return this.sendRequest('mina_signFields', params) as Promise<{
       data: Array<string | number>;
       publicKey: string;
       signature: string;
     }>;
+  }
+
+  async verifyFields(params: DappVerifyFieldsParams): Promise<boolean> {
+    return this.sendRequest('mina_verifyFields', params) as Promise<boolean>;
   }
 
   async signJsonMessage(params: DappSignJsonMessageParams): Promise<{
@@ -126,7 +164,7 @@ class ClorioMinaProvider {
     publicKey: string;
     signature: { field: string; scalar: string };
   }> {
-    return this.request('mina_signJsonMessage', params) as Promise<{
+    return this.sendRequest('mina_signJsonMessage', params) as Promise<{
       data: string;
       publicKey: string;
       signature: { field: string; scalar: string };
@@ -134,25 +172,29 @@ class ClorioMinaProvider {
   }
 
   async sendTransaction(params: DappSendTransactionParams): Promise<unknown> {
-    return this.request('mina_sendTransaction', params);
+    return this.sendRequest('mina_sendTransaction', params);
   }
 
   async sendPayment(params: DappSendPaymentParams): Promise<unknown> {
-    return this.request('mina_sendPayment', params);
+    return this.sendRequest('mina_sendPayment', params);
   }
 
   async sendStakeDelegation(
     params: DappSendStakeDelegationParams,
   ): Promise<unknown> {
-    return this.request('mina_sendStakeDelegation', params);
+    return this.sendRequest('mina_sendStakeDelegation', params);
+  }
+
+  async createNullifier(params: DappCreateNullifierParams): Promise<unknown> {
+    return this.sendRequest('mina_createNullifier', params);
   }
 
   async getWalletInfo(): Promise<unknown> {
-    return this.request('wallet_info');
+    return this.sendRequest('mina_getWalletInfo');
   }
 
   async revokePermissions(): Promise<unknown> {
-    const result = await this.request('wallet_revokePermissions');
+    const result = await this.sendRequest('mina_revokePermissions');
     this.setAccounts([]);
     return result;
   }
@@ -214,17 +256,23 @@ class ClorioMinaProvider {
   }
 
   private normalizeSwitchChainParams(
-    params: DappSwitchChainParams | { chainId?: string; networkID?: string } | string,
+    params:
+      | DappSwitchChainParams
+      | { chainId?: string; networkID?: string }
+      | string,
   ): DappSwitchChainParams {
     if (typeof params === 'string') {
-      return { networkID: params === 'mainnet' ? 'mainnet' : 'devnet' };
+      return { networkID: params };
     }
 
-    const requested = params.networkID ?? params.chainId;
-    return { networkID: requested === 'mainnet' ? 'mainnet' : 'devnet' };
+    const chainId = 'chainId' in params ? params.chainId : undefined;
+
+    return {
+      networkID: params.networkID ?? chainId ?? 'devnet',
+    };
   }
 
-  private request(
+  private sendRequest(
     method: DappBridgeRequest['method'],
     params?: unknown,
   ): Promise<unknown> {

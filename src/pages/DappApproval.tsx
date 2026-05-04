@@ -29,7 +29,11 @@ import { sessionStorage } from '@/lib/storage';
 const DEFAULT_PAYMENT_FEE = '0.1';
 
 function requiresApprovalPassword(method: DappRpcMethod): boolean {
-  return method !== 'mina_requestAccounts' && method !== 'mina_switchChain';
+  return (
+    method !== 'mina_requestAccounts' &&
+    method !== 'mina_switchChain' &&
+    method !== 'mina_addChain'
+  );
 }
 
 function getRequestTitle(method: DappRpcMethod): string {
@@ -46,10 +50,14 @@ function getRequestTitle(method: DappRpcMethod): string {
       return 'Approve zkApp signature';
     case 'mina_signFields':
       return 'Approve field signature';
+    case 'mina_createNullifier':
+      return 'Approve nullifier creation';
     case 'mina_signJsonMessage':
       return 'Approve JSON message signature';
     case 'mina_switchChain':
       return 'Approve network switch';
+    case 'mina_addChain':
+      return 'Approve add network';
     default:
       return 'Approve zkApp request';
   }
@@ -69,10 +77,14 @@ function getRequestDescription(method: DappRpcMethod): string {
       return 'Review the zkApp transaction summary before signing it in the background service.';
     case 'mina_signFields':
       return 'This site wants to sign an array of fields with your private key. Review the data before approving.';
+    case 'mina_createNullifier':
+      return 'This site wants to create a nullifier from your private key and the provided fields. Review the data before approving.';
     case 'mina_signJsonMessage':
       return 'This site wants to sign a JSON message with your private key. Review the data before approving.';
     case 'mina_switchChain':
       return 'This site wants to switch your active network. Confirm the target network before approving.';
+    case 'mina_addChain':
+      return 'This site wants to add a custom network and switch your active network.';
     default:
       return 'Review the request details before continuing.';
   }
@@ -240,6 +252,22 @@ const DappApprovalPage: React.FC = () => {
     }
     if (pendingRequest.summary.memo) {
       lines.push(`memo: ${pendingRequest.summary.memo}`);
+    }
+
+    if (pendingRequest.summary.networkID) {
+      lines.push(`networkID: ${pendingRequest.summary.networkID}`);
+    }
+
+    if (pendingRequest.summary.name) {
+      lines.push(`name: ${pendingRequest.summary.name}`);
+    }
+
+    if (pendingRequest.summary.url) {
+      lines.push(`url: ${pendingRequest.summary.url}`);
+    }
+
+    if (Array.isArray(pendingRequest.summary.fields)) {
+      lines.push(`fields: ${pendingRequest.summary.fields.join(', ')}`);
     }
 
     return lines;

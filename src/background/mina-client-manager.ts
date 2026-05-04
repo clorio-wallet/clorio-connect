@@ -11,10 +11,15 @@
  */
 
 import Client from 'mina-signer';
+import {
+  canonicalLabelToSignerNetwork,
+  normalizeToCanonicalNetworkLabel,
+} from '@/lib/networks';
 import { storage } from '@/lib/storage';
 import { DAPP_NETWORK_ID_STORAGE_KEY, DappNetworkId } from '@/lib/dapp';
 
 type MinaClient = {
+  derivePublicKey(privateKey: string): string;
   signFields(fields: bigint[], privateKey: string): {
     signature: string;
     publicKey: string;
@@ -26,6 +31,8 @@ type MinaClient = {
     publicKey: string;
     signature: { field: string; scalar: string };
   }): boolean;
+  verifyFields(signed: unknown): boolean;
+  createNullifier(fields: bigint[], privateKey: string): unknown;
   signPayment(input: unknown, privateKey: string): unknown;
   signStakeDelegation(input: unknown, privateKey: string): unknown;
   signTransaction(input: unknown, privateKey: string): unknown;
@@ -52,7 +59,11 @@ class MinaClientManager {
    */
   private async getCurrentNetworkId(): Promise<DappNetworkId> {
     const stored = await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY);
-    return stored === 'devnet' ? 'devnet' : 'mainnet';
+    return normalizeToCanonicalNetworkLabel(stored || 'mainnet');
+  }
+
+  private async getRawCurrentNetworkId(): Promise<string> {
+    return (await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY)) || 'mainnet';
   }
 
   /**
@@ -60,7 +71,9 @@ class MinaClientManager {
    * This is called once per extension session
    */
   async initialize(): Promise<MinaClient> {
+    const rawNetworkId = await this.getRawCurrentNetworkId();
     const networkId = await this.getCurrentNetworkId();
+    const signerNetwork = canonicalLabelToSignerNetwork(networkId);
 
     if (this.clientPromise && this.clientNetworkId === networkId) {
       console.debug('[MinaClientManager] Client already initialized, skipping');
@@ -78,8 +91,8 @@ class MinaClientManager {
         );
 
         const client = new Client({
-          network: networkId === 'mainnet' ? 'mainnet' : 'testnet',
-        });
+          network: signerNetwork,
+        }) as unknown as MinaClient;
 
         const duration = performance.now() - this.startTime;
         console.debug(
@@ -98,7 +111,7 @@ class MinaClientManager {
       }
     })();
 
-    return this.clientPromise;
+    return this.clientPromise as Promise<MinaClient>;
   }
 
   /**
@@ -106,7 +119,9 @@ class MinaClientManager {
    * Initializes on first call, returns cached instance on subsequent calls
    */
   async getSignerClient(): Promise<MinaClient> {
+    const rawNetworkId = await this.getRawCurrentNetworkId();
     const networkId = await this.getCurrentNetworkId();
+    const signerNetwork = canonicalLabelToSignerNetwork(networkId);
 
     if (!this.clientPromise || this.clientNetworkId !== networkId) {
       await this.initialize();

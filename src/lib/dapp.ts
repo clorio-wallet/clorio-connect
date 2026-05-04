@@ -4,20 +4,26 @@ export const DAPP_PERMISSIONS_STORAGE_KEY = 'clorio_dapp_permissions';
 export const DAPP_NETWORK_ID_STORAGE_KEY = 'clorio_dapp_network_id';
 export const DAPP_APPROVAL_REQUESTED_MESSAGE = 'DAPP_APPROVAL_REQUESTED';
 
-export type DappNetworkId = 'mainnet' | 'devnet';
+export type DappNetworkId = string;
 
 export type DappRpcMethod =
   | 'mina_requestAccounts'
+  | 'mina_getAccounts'
   | 'mina_accounts'
   | 'mina_requestNetwork'
   | 'mina_switchChain'
+  | 'mina_addChain'
   | 'mina_verifyMessage'
+  | 'mina_verifyFields'
   | 'mina_signFields'
   | 'mina_signJsonMessage'
   | 'mina_sendPayment'
   | 'mina_sendStakeDelegation'
   | 'mina_signMessage'
   | 'mina_sendTransaction'
+  | 'mina_createNullifier'
+  | 'mina_getWalletInfo'
+  | 'mina_revokePermissions'
   | 'wallet_info'
   | 'wallet_revokePermissions';
 
@@ -59,6 +65,11 @@ export interface DappApprovalSummary {
   memo?: string;
   nonce?: number;
   onlySign?: boolean;
+  fields?: Array<string | number>;
+  entries?: Array<{ label?: string; value?: string }>;
+  networkID?: string;
+  name?: string;
+  url?: string;
 }
 
 export interface DappApprovalAccount {
@@ -93,6 +104,16 @@ export interface DappVerifyMessageParams {
 
 export interface DappSignFieldsParams {
   message: Array<string | number>;
+}
+
+export interface DappVerifyFieldsParams {
+  message?: Array<string | number>;
+  data?: Array<string | number>;
+  publicKey: string;
+  signature: {
+    field: string;
+    scalar: string;
+  };
 }
 
 export interface DappSignJsonMessageParams {
@@ -131,6 +152,17 @@ export interface DappSendTransactionParams {
 
 export interface DappSwitchChainParams {
   networkID: DappNetworkId;
+}
+
+export interface DappAddChainParams {
+  networkID?: string;
+  chainId?: string;
+  url: string;
+  name: string;
+}
+
+export interface DappCreateNullifierParams {
+  message: Array<string | number>;
 }
 
 export interface DappBridgeRequest {
@@ -180,13 +212,18 @@ export function getDappMethodLabel(method: DappRpcMethod): string {
     case 'mina_requestAccounts':
       return 'Connect account';
     case 'mina_accounts':
+    case 'mina_getAccounts':
       return 'Read connected accounts';
     case 'mina_requestNetwork':
       return 'Read network';
     case 'mina_switchChain':
       return 'Switch network';
+    case 'mina_addChain':
+      return 'Add network';
     case 'mina_verifyMessage':
       return 'Verify message';
+    case 'mina_verifyFields':
+      return 'Verify fields';
     case 'mina_signFields':
       return 'Sign fields';
     case 'mina_signJsonMessage':
@@ -199,6 +236,12 @@ export function getDappMethodLabel(method: DappRpcMethod): string {
       return 'Sign message';
     case 'mina_sendTransaction':
       return 'Sign zkApp transaction';
+    case 'mina_createNullifier':
+      return 'Create nullifier';
+    case 'mina_getWalletInfo':
+      return 'Read wallet info';
+    case 'mina_revokePermissions':
+      return 'Revoke permissions';
     case 'wallet_info':
       return 'Read wallet info';
     case 'wallet_revokePermissions':

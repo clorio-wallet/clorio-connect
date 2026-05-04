@@ -12,6 +12,8 @@ import {
   DAPP_PENDING_APPROVAL_STORAGE_KEY,
   DAPP_PERMISSIONS_STORAGE_KEY,
   createDappError,
+  DappAddChainParams,
+  DappCreateNullifierParams,
   DappPendingApproval,
   DappPermissions,
   DappProviderError,
@@ -23,10 +25,19 @@ import {
   DappSendTransactionParams,
   DappSignMessageParams,
   DappSwitchChainParams,
+  DappVerifyFieldsParams,
   DappVerifyMessageParams,
   DappNetworkId,
   isRecord,
 } from '@/lib/dapp';
+import {
+  DEFAULT_NETWORKS,
+  DAPP_CUSTOM_NETWORKS_STORAGE_KEY,
+  CustomDappNetworkConfig,
+  labelToMinaId,
+  minaIdToLabel,
+  toCustomNetworkLabel,
+} from '@/lib/networks';
 import { sessionStorage, storage } from '@/lib/storage';
 import { toNano } from '@/lib/utils';
 import { VaultManager } from '@/lib/vault-manager';
@@ -74,7 +85,7 @@ function asDappError(error: unknown): DappProviderError {
     typeof error.code === 'number' &&
     typeof error.message === 'string'
   ) {
-    return error as DappProviderError;
+    return error as unknown as DappProviderError;
   }
 
   const message = error instanceof Error ? error.message : 'Unexpected error';
@@ -83,16 +94,65 @@ function asDappError(error: unknown): DappProviderError {
 
 async function getCurrentNetworkId(): Promise<DappNetworkId> {
   const stored = await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY);
-  return stored === 'devnet' ? 'devnet' : 'mainnet';
+  return stored || 'mainnet';
 }
 
 async function setCurrentNetworkId(networkId: DappNetworkId): Promise<void> {
   await storage.set(DAPP_NETWORK_ID_STORAGE_KEY, networkId);
 }
 
+async function loadCustomNetworks(): Promise<Record<string, CustomDappNetworkConfig>> {
+  return (
+    (await storage.get<Record<string, CustomDappNetworkConfig>>(
+      DAPP_CUSTOM_NETWORKS_STORAGE_KEY,
+    )) ?? {}
+  );
+}
+
+async function saveCustomNetworks(
+  networks: Record<string, CustomDappNetworkConfig>,
+): Promise<void> {
+  await storage.set(DAPP_CUSTOM_NETWORKS_STORAGE_KEY, networks);
+}
+
+async function resolveNetworkLabel(requested: string): Promise<string | null> {
+  const builtIn = minaIdToLabel(requested);
+  if (builtIn) {
+    return builtIn;
+  }
+
+  const customNetworks = await loadCustomNetworks();
+  const customMatch = Object.values(customNetworks).find(
+    (network) => network.networkID === requested || network.label === requested,
+  );
+
+  return customMatch?.label ?? null;
+}
+
+async function getGraphqlEndpointForNetwork(networkId: string): Promise<string> {
+  if (networkId === 'mainnet') {
+    return GRAPHQL_ENDPOINTS.mainnet;
+  }
+
+  if (networkId === 'devnet') {
+    return GRAPHQL_ENDPOINTS.devnet;
+  }
+
+  const customNetworks = await loadCustomNetworks();
+  const customNetwork = customNetworks[networkId];
+  if (!customNetwork?.epochUrl) {
+    throw createDappError(
+      DAPP_ERROR_CODES.unsupportedChain,
+      `No GraphQL endpoint configured for network ${networkId}.`,
+    );
+  }
+
+  return customNetwork.epochUrl;
+}
+
 function normalizeSwitchChainParams(params: unknown): DappSwitchChainParams {
   if (typeof params === 'string') {
-    return { networkID: params === 'mainnet' ? 'mainnet' : 'devnet' };
+    return { networkID: params };
   }
 
   if (!isRecord(params)) {
@@ -109,21 +169,51 @@ function normalizeSwitchChainParams(params: unknown): DappSwitchChainParams {
         ? params.chainId
         : null;
 
-  if (requested !== 'mainnet' && requested !== 'devnet') {
+  if (!requested) {
     throw createDappError(
-      DAPP_ERROR_CODES.unsupportedChain,
-      'Only mainnet and devnet are supported.',
+      DAPP_ERROR_CODES.invalidParams,
+      'switchChain requires a networkID.',
     );
   }
 
   return { networkID: requested };
 }
 
+function normalizeAddChainParams(params: unknown): DappAddChainParams {
+  if (
+    !isRecord(params) ||
+    typeof params.url !== 'string' ||
+    typeof params.name !== 'string'
+  ) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'addChain requires a name and url.',
+    );
+  }
+
+  try {
+    new URL(params.url);
+  } catch {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'addChain requires a valid URL.',
+    );
+  }
+
+  return {
+    url: params.url,
+    name: params.name.trim(),
+    networkID:
+      typeof params.networkID === 'string'
+        ? params.networkID
+        : typeof params.chainId === 'string'
+          ? params.chainId
+          : undefined,
+  };
+}
+
 function removeJsonQuotes(json: string): string {
-  return JSON.stringify(JSON.parse(json), null, 2).replace(
-    /\"(\S+)\"\s*:/gm,
-    '$1:',
-  );
+  return JSON.stringify(JSON.parse(json), null, 2).replace(/"(\S+)"\s*:/gm, '$1:');
 }
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -163,7 +253,7 @@ async function fetchPendingNonce(publicKey: string): Promise<number> {
   const accountNonce =
     typeof accountResponse?.nonce === 'number' ? accountResponse.nonce : 0;
   const mempool = Array.isArray(mempoolResponse?.mempool)
-    ? mempoolResponse.mempool.filter(isRecord)
+    ? (mempoolResponse.mempool.filter(isRecord) as Record<string, unknown>[])
     : [];
 
   const outgoingCount = mempool.filter((tx) => {
@@ -296,6 +386,12 @@ function buildApprovalSummary(request: DappRpcPayload) {
     return { fields: message.slice(0, 10) };
   }
 
+  if (request.method === 'mina_createNullifier') {
+    const params = request.params as DappCreateNullifierParams | undefined;
+    const message = Array.isArray(params?.message) ? params.message : [];
+    return { fields: message.slice(0, 10) };
+  }
+
   if (request.method === 'mina_signJsonMessage') {
     const params = request.params as DappSignJsonMessageParams | undefined;
     const message = Array.isArray(params?.message) ? params.message : [];
@@ -305,6 +401,15 @@ function buildApprovalSummary(request: DappRpcPayload) {
   if (request.method === 'mina_switchChain') {
     const params = request.params as DappSwitchChainParams | undefined;
     return { networkID: params?.networkID };
+  }
+
+  if (request.method === 'mina_addChain') {
+    const params = request.params as DappAddChainParams | undefined;
+    return {
+      networkID: params?.networkID,
+      name: params?.name,
+      url: params?.url,
+    };
   }
 
   return undefined;
@@ -533,6 +638,54 @@ function normalizeSignFieldsParams(params: unknown): DappSignFieldsParams {
   return { message };
 }
 
+function normalizeVerifyFieldsParams(params: unknown): DappVerifyFieldsParams {
+  if (!isRecord(params)) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected verifyFields payload.',
+    );
+  }
+
+  const messageSource = Array.isArray(params.message)
+    ? params.message
+    : Array.isArray(params.data)
+      ? params.data
+      : null;
+
+  if (
+    !messageSource ||
+    typeof params.publicKey !== 'string' ||
+    !isRecord(params.signature) ||
+    typeof params.signature.field !== 'string' ||
+    typeof params.signature.scalar !== 'string'
+  ) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected publicKey, data, and signature for verifyFields.',
+    );
+  }
+
+  const message = messageSource.filter(
+    (value): value is string | number =>
+      typeof value === 'string' || typeof value === 'number',
+  );
+
+  return {
+    data: message,
+    publicKey: params.publicKey,
+    signature: {
+      field: params.signature.field,
+      scalar: params.signature.scalar,
+    },
+  };
+}
+
+function normalizeCreateNullifierParams(
+  params: unknown,
+): DappCreateNullifierParams {
+  return normalizeSignFieldsParams(params);
+}
+
 function normalizeSignJsonMessageParams(
   params: unknown,
 ): DappSignJsonMessageParams {
@@ -729,6 +882,18 @@ async function performMessageVerification(
   return client.verifyMessage(params);
 }
 
+async function performFieldVerification(
+  request: DappRpcPayload,
+): Promise<boolean> {
+  const params = normalizeVerifyFieldsParams(request.params);
+  const client = await getSignerClient();
+  return client.verifyFields({
+    data: (params.data ?? []).map((value) => BigInt(value)),
+    publicKey: params.publicKey,
+    signature: params.signature,
+  });
+}
+
 async function performFieldSignature(
   request: DappRpcPayload,
   password?: string,
@@ -759,6 +924,65 @@ async function performJsonMessageSignature(
   });
 
   return signed;
+}
+
+async function performCreateNullifier(
+  request: DappRpcPayload,
+  password?: string,
+): Promise<unknown> {
+  const { privateKey, client } = await getUnlockedWalletContext(request, password);
+  const { message } = normalizeCreateNullifierParams(request.params);
+  return client.createNullifier(
+    message.map((value) => BigInt(value)),
+    privateKey,
+  );
+}
+
+async function performAddChain(
+  request: DappRpcPayload,
+): Promise<{ networkID: string; name: string }> {
+  const params = normalizeAddChainParams(request.params);
+  const builtInMatch = Object.values(DEFAULT_NETWORKS).find(
+    (network) => network.epochUrl === params.url || network.name === params.name,
+  );
+
+  if (builtInMatch) {
+    await setCurrentNetworkId(builtInMatch.label);
+    return {
+      networkID: labelToMinaId(builtInMatch.label),
+      name: builtInMatch.name,
+    };
+  }
+
+  const customNetworks = await loadCustomNetworks();
+
+  const existing = Object.values(customNetworks).find(
+    (network) => network.epochUrl === params.url || network.name === params.name,
+  );
+
+  const label = existing?.label ?? toCustomNetworkLabel(params.name);
+  const networkID = params.networkID ?? labelToMinaId(label);
+
+  if (!existing) {
+    customNetworks[label] = {
+      label,
+      name: params.name,
+      network: label === 'mainnet' ? 'mainnet' : 'testnet',
+      epochUrl: params.url,
+      explorerUrl: params.url,
+      networkID,
+      isCustom: true,
+      addedAt: Date.now(),
+    };
+    await saveCustomNetworks(customNetworks);
+  }
+
+  await setCurrentNetworkId(label);
+
+  return {
+    networkID,
+    name: params.name,
+  };
 }
 
 async function getUnlockedWalletContext(
@@ -820,7 +1044,9 @@ async function performSendPayment(
     memo: params.memo ?? '',
   };
 
-  const signed = client.signPayment(input, privateKey);
+  const signed = client.signPayment(input, privateKey) as {
+    signature: unknown;
+  };
   const result = await postJson<{ hash?: string; id?: string }>(
     `${REST_API_BASE}/v1/mina/transaction`,
     { input, signature: signed.signature },
@@ -870,7 +1096,9 @@ async function performSendStakeDelegation(
     memo: params.memo ?? '',
   };
 
-  const signed = client.signStakeDelegation(input, privateKey);
+  const signed = client.signStakeDelegation(input, privateKey) as {
+    signature: unknown;
+  };
   const result = await postJson<{ hash?: string; id?: string }>(
     `${REST_API_BASE}/v1/mina/transaction/delegation`,
     { input, signature: signed.signature },
@@ -988,10 +1216,17 @@ async function performTransactionSignature(
       },
     },
     privateKey,
-  );
+  ) as {
+    data: {
+      zkappCommand: unknown;
+    };
+  };
 
   if (params.onlySign) {
-    return signed.data;
+    return {
+      hash: '',
+      signedData: JSON.stringify(signed.data),
+    };
   }
 
   const query = `mutation {
@@ -1020,7 +1255,7 @@ async function performTransactionSignature(
       };
     };
     errors?: Array<{ message?: string }>;
-  }>(GRAPHQL_ENDPOINTS[await getCurrentNetworkId()], { query });
+  }>(await getGraphqlEndpointForNetwork(await getCurrentNetworkId()), { query });
 
   if (Array.isArray(response.errors) && response.errors.length > 0) {
     throw createDappError(
@@ -1090,13 +1325,21 @@ async function resolveApproval(
       case 'mina_signJsonMessage':
         result = await performJsonMessageSignature(pending.request, password);
         break;
+      case 'mina_createNullifier':
+        result = await performCreateNullifier(pending.request, password);
+        break;
       case 'mina_sendTransaction':
         result = await performTransactionSignature(pending.request, password);
         break;
       case 'mina_switchChain': {
         const { networkID } = normalizeSwitchChainParams(pending.request.params);
-        await setCurrentNetworkId(networkID);
-        result = { networkID };
+        const label = (await resolveNetworkLabel(networkID)) ?? networkID;
+        await setCurrentNetworkId(label);
+        result = { networkID: labelToMinaId(label) };
+        break;
+      }
+      case 'mina_addChain': {
+        result = await performAddChain(pending.request);
         break;
       }
       default:
@@ -1141,20 +1384,38 @@ async function processDappRequest(
 
   switch (request.method) {
     case 'mina_accounts':
+    case 'mina_getAccounts':
       return toResponse(await getConnectedAccounts(siteOrigin));
 
     case 'mina_requestNetwork':
-      return toResponse({ networkID: await getCurrentNetworkId() });
+      return toResponse({ networkID: labelToMinaId(await getCurrentNetworkId()) });
 
     case 'mina_switchChain': {
       const wallet = await getActiveSoftwareWallet();
-      normalizeSwitchChainParams(request.params);
+      const { networkID } = normalizeSwitchChainParams(request.params);
+      const label = await resolveNetworkLabel(networkID);
+      if (!label) {
+        throw createDappError(
+          DAPP_ERROR_CODES.unsupportedChain,
+          `Network ${networkID} is not supported.`,
+        );
+      }
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
+
+    case 'mina_addChain': {
+      const wallet = await getActiveSoftwareWallet();
+      normalizeAddChainParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }
 
     case 'mina_verifyMessage':
       return toResponse(await performMessageVerification(request));
+
+    case 'mina_verifyFields':
+      return toResponse(await performFieldVerification(request));
 
     case 'mina_signFields': {
       const wallet = await getActiveSoftwareWallet();
@@ -1171,14 +1432,16 @@ async function processDappRequest(
     }
 
     case 'wallet_info':
+    case 'mina_getWalletInfo':
       return toResponse({
         name: 'Clorio Connect',
         slug: 'clorio-connect',
         version: chrome.runtime.getManifest().version,
-        networkID: await getCurrentNetworkId(),
+        networkID: labelToMinaId(await getCurrentNetworkId()),
       });
 
-    case 'wallet_revokePermissions': {
+    case 'wallet_revokePermissions':
+    case 'mina_revokePermissions': {
       const permissions = await loadPermissions();
       delete permissions[siteOrigin];
       await savePermissions(permissions);
@@ -1211,6 +1474,13 @@ async function processDappRequest(
     case 'mina_signMessage': {
       const wallet = await getActiveSoftwareWallet();
       normalizeSignMessageParams(request.params);
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
+
+    case 'mina_createNullifier': {
+      const wallet = await getActiveSoftwareWallet();
+      normalizeCreateNullifierParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }
