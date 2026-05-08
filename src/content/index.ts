@@ -13,8 +13,12 @@
 // @ts-ignore - Vite-specific import
 import inpageUrl from '../inpage/index.ts?script&module';
 
-import type { DappBridgeRequest, DappBridgeResponse } from '@/lib/dapp';
-import { DAPP_BRIDGE_CHANNEL, DAPP_ERROR_CODES } from '@/lib/dapp';
+import type { DappBridgeEvent, DappBridgeRequest, DappBridgeResponse } from '@/lib/dapp';
+import {
+  DAPP_BRIDGE_CHANNEL,
+  DAPP_ERROR_CODES,
+  DAPP_PROVIDER_EVENT_MESSAGE,
+} from '@/lib/dapp';
 import type { DappRpcResponse } from '@/messages/types';
 
 console.log('Content script loaded');
@@ -45,6 +49,29 @@ function getPageIconUrl(): string | undefined {
 function postResponse(response: DappBridgeResponse): void {
   window.postMessage(response, window.location.origin);
 }
+
+function postEvent(event: DappBridgeEvent): void {
+  window.postMessage(event, window.location.origin);
+}
+
+chrome.runtime.onMessage.addListener((message: unknown) => {
+  if (
+    !message ||
+    typeof message !== 'object' ||
+    !('type' in message) ||
+    message.type !== DAPP_PROVIDER_EVENT_MESSAGE ||
+    !('eventName' in message)
+  ) {
+    return;
+  }
+
+  postEvent({
+    channel: DAPP_BRIDGE_CHANNEL,
+    direction: 'event',
+    eventName: message.eventName as DappBridgeEvent['eventName'],
+    params: 'params' in message ? message.params : undefined,
+  });
+});
 
 window.addEventListener(
   'message',

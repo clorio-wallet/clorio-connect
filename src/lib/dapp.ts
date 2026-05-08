@@ -3,6 +3,7 @@ export const DAPP_PENDING_APPROVAL_STORAGE_KEY = 'clorio_dapp_pending_approval';
 export const DAPP_PERMISSIONS_STORAGE_KEY = 'clorio_dapp_permissions';
 export const DAPP_NETWORK_ID_STORAGE_KEY = 'clorio_dapp_network_id';
 export const DAPP_APPROVAL_REQUESTED_MESSAGE = 'DAPP_APPROVAL_REQUESTED';
+export const DAPP_PROVIDER_EVENT_MESSAGE = 'DAPP_PROVIDER_EVENT';
 
 export type DappNetworkId = string;
 

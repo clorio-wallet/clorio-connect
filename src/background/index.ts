@@ -31,12 +31,15 @@ import {
   handleSignDelegation,
 } from './handlers/wallet';
 import {
+  broadcastAccountsChangedToConnectedTabs,
   handleDappRpcRequest,
   handleGetPendingDappApproval,
   handleResolveDappApproval,
+  syncConnectedPermissionsToActiveWallet,
 } from './handlers/dapp';
 import { VaultManager } from '@/lib/vault-manager';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
+import { VAULT_STORAGE_KEY, isVaultData, type VaultData } from '@/lib/types/vault';
 
 type AnyResponse =
   | DeriveKeysResponse
@@ -340,3 +343,38 @@ chrome.runtime.onMessage.addListener(
   (message: AppMessage, sender, sendResponse) =>
     route(message, sender, sendResponse),
 );
+
+function getActiveWalletPublicKey(vault: VaultData | null | undefined): string | null {
+  if (!vault) {
+    return null;
+  }
+
+  const activeWallet = vault.wallets.find((wallet) => wallet.id === vault.activeWalletId);
+  return activeWallet?.publicKey ?? null;
+}
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'local') {
+    return;
+  }
+
+  const vaultChange = changes[VAULT_STORAGE_KEY];
+  if (!vaultChange) {
+    return;
+  }
+
+  const oldVault = isVaultData(vaultChange.oldValue) ? vaultChange.oldValue : null;
+  const newVault = isVaultData(vaultChange.newValue) ? vaultChange.newValue : null;
+
+  const previousActiveKey = getActiveWalletPublicKey(oldVault);
+  const nextActiveKey = getActiveWalletPublicKey(newVault);
+
+  if (previousActiveKey === nextActiveKey) {
+    return;
+  }
+
+  void (async () => {
+    await syncConnectedPermissionsToActiveWallet();
+    await broadcastAccountsChangedToConnectedTabs();
+  })();
+});

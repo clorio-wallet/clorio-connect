@@ -306,6 +306,21 @@ class ClorioMinaProvider {
     }
 
     if (data.direction === 'event') {
+      if (data.eventName === 'accountsChanged') {
+        this.setAccounts(Array.isArray(data.params) ? (data.params as string[]) : []);
+        return;
+      }
+
+      if (
+        data.eventName === 'chainChanged' &&
+        data.params &&
+        typeof data.params === 'object' &&
+        'networkID' in data.params
+      ) {
+        this.setNetwork(data.params as { networkID: string });
+        return;
+      }
+
       this.emit(data.eventName, data.params);
       return;
     }

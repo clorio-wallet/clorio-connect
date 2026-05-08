@@ -11,6 +11,7 @@ import {
   DAPP_NETWORK_ID_STORAGE_KEY,
   DAPP_PENDING_APPROVAL_STORAGE_KEY,
   DAPP_PERMISSIONS_STORAGE_KEY,
+  DAPP_PROVIDER_EVENT_MESSAGE,
   createDappError,
   DappAddChainParams,
   DappCreateNullifierParams,
@@ -301,6 +302,63 @@ async function loadPermissions(): Promise<DappPermissions> {
 
 async function savePermissions(permissions: DappPermissions): Promise<void> {
   await storage.set(DAPP_PERMISSIONS_STORAGE_KEY, permissions);
+}
+
+export async function syncConnectedPermissionsToActiveWallet(): Promise<void> {
+  const activeWallet = await VaultManager.getActiveWallet();
+  const permissions = await loadPermissions();
+
+  if (!activeWallet || activeWallet.type === 'ledger') {
+    if (Object.keys(permissions).length > 0) {
+      await savePermissions({});
+    }
+    return;
+  }
+
+  const nextPermissions = Object.fromEntries(
+    Object.entries(permissions).map(([origin, permission]) => [
+      origin,
+      {
+        ...permission,
+        walletId: activeWallet.id,
+        publicKey: activeWallet.publicKey,
+      },
+    ]),
+  );
+
+  await savePermissions(nextPermissions);
+}
+
+export async function broadcastAccountsChangedToConnectedTabs(): Promise<void> {
+  const tabs = await chrome.tabs.query({});
+
+  await Promise.all(
+    tabs.map(async (tab) => {
+      if (!tab.id || !tab.url) {
+        return;
+      }
+
+      let origin: string;
+      try {
+        const url = new URL(tab.url);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          return;
+        }
+        origin = url.origin;
+      } catch {
+        return;
+      }
+
+      const accounts = await getConnectedAccounts(origin);
+      await chrome.tabs
+        .sendMessage(tab.id, {
+          type: DAPP_PROVIDER_EVENT_MESSAGE,
+          eventName: 'accountsChanged',
+          params: accounts,
+        })
+        .catch(() => undefined);
+    }),
+  );
 }
 
 type LastSignedMessage = {
@@ -831,6 +889,7 @@ async function performConnectApproval(
   };
 
   await savePermissions(permissions);
+  await broadcastAccountsChangedToConnectedTabs();
   return [wallet.publicKey];
 }
 
@@ -1445,6 +1504,7 @@ async function processDappRequest(
       const permissions = await loadPermissions();
       delete permissions[siteOrigin];
       await savePermissions(permissions);
+      await broadcastAccountsChangedToConnectedTabs();
       return toResponse(true);
     }
 
