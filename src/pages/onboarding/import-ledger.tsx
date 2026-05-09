@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LedgerConnectStep } from '@/components/ledger/ledger-connect-step';
+import { PasswordInput } from '@/components/wallet/password-input';
 import { useLedger } from '@/hooks/use-ledger';
 import { LedgerStatus, LedgerError, LedgerErrorKind } from '@/lib/ledger';
 import { useWalletStore } from '@/stores/wallet-store';
@@ -49,12 +50,28 @@ export function ImportLedgerPage() {
   const [accountName, setAccountName] = React.useState(DEFAULT_ACCOUNT_NAME);
   const [accountIndex, setAccountIndex] = React.useState(DEFAULT_ACCOUNT_INDEX);
   const [importedKey, setImportedKey] = React.useState<string | null>(null);
+  const [password, setPassword] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
   const [importError, setImportError] = React.useState<LedgerError | null>(
     null,
   );
 
   const hdPathDisplay = `m / 44' / 12586' / ${accountIndex}' / 0 / 0`;
+  const resolvedPassword = tempPassword ?? password.trim();
+
+  const requirePassword = React.useCallback(() => {
+    if (resolvedPassword) {
+      return resolvedPassword;
+    }
+
+    toast({
+      variant: 'destructive',
+      title: t('common.error', 'Error'),
+      description: t('wallets.errors.no_password', 'Password required'),
+    });
+
+    return null;
+  }, [resolvedPassword, t, toast]);
 
   const handleConnect = React.useCallback(async () => {
     console.log('[import-ledger] handleConnect — START');
@@ -174,13 +191,8 @@ export function ImportLedgerPage() {
       console.warn('[import-ledger] handleSave — no importedKey, aborting');
       return;
     }
-    if (!tempPassword) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error', 'Error'),
-        description: t('onboarding.create.error_password'),
-      });
-      navigate('/');
+    const vaultPassword = requirePassword();
+    if (!vaultPassword) {
       return;
     }
 
@@ -209,7 +221,7 @@ export function ImportLedgerPage() {
 
       if (existingVault) {
         const walletId = await VaultManager.addWallet(
-          tempPassword,
+          vaultPassword,
           walletData,
           {
             setAsActive: true,
@@ -222,7 +234,7 @@ export function ImportLedgerPage() {
         await loadWallets();
         wallet = await VaultManager.getWalletById(walletId);
       } else {
-        const vault = await VaultManager.createVault(tempPassword, walletData);
+        const vault = await VaultManager.createVault(vaultPassword, walletData);
         wallet = vault.wallets[0];
         console.log(
           '[import-ledger] handleSave — vault v2 created, wallet ID:',
@@ -298,12 +310,11 @@ export function ImportLedgerPage() {
     importedKey,
     accountIndex,
     accountName,
-    tempPassword,
+    requirePassword,
     setWallet,
     loadWallets,
     setHasVault,
     setIsAuthenticated,
-    navigate,
     toast,
     t,
   ]);
@@ -503,6 +514,19 @@ export function ImportLedgerPage() {
                 <p className="text-xs font-mono break-all">{importedKey}</p>
               </div>
             </div>
+
+            {!tempPassword && (
+              <PasswordInput
+                id="import-ledger-password"
+                label={t('wallets.vault_password', 'Vault Password')}
+                placeholder={t(
+                  'wallets.vault_password_placeholder',
+                  'Enter your password',
+                )}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            )}
 
             <Button className="w-full" onClick={handleSave} disabled={isSaving}>
               {isSaving ? (

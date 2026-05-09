@@ -27,6 +27,7 @@ import { useSessionStore } from '@/stores/session-store';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { AppMessage, ValidatePrivateKeyResponse } from '@/messages/types';
+import { PasswordInput } from '@/components/wallet/password-input';
 
 export interface AddWalletDialogProps {
   open: boolean;
@@ -51,6 +52,7 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
   const [walletName, setWalletName] = useState('');
   const [mnemonic, setMnemonic] = useState<string[]>([]);
   const [privateKey, setPrivateKey] = useState('');
+  const [password, setPassword] = useState('');
 
   // Check if user has a mnemonic wallet to derive from
   const hasMnemonicWallet = wallets.some((w) => w.type === 'mnemonic');
@@ -59,7 +61,24 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
     setWalletName('');
     setMnemonic([]);
     setPrivateKey('');
+    setPassword('');
     setMode('derive');
+  };
+
+  const resolvedPassword = tempPassword ?? password.trim();
+
+  const requirePassword = () => {
+    if (resolvedPassword) {
+      return resolvedPassword;
+    }
+
+    toast({
+      variant: 'destructive',
+      title: t('common.error', 'Error'),
+      description: t('wallets.errors.no_password', 'Password required'),
+    });
+
+    return null;
   };
 
   const handleClose = () => {
@@ -68,12 +87,8 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
   };
 
   const handleDeriveAccount = async () => {
-    if (!tempPassword) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error', 'Error'),
-        description: t('wallets.errors.no_password', 'Password required'),
-      });
+    const vaultPassword = requirePassword();
+    if (!vaultPassword) {
       return;
     }
 
@@ -87,7 +102,7 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
 
       // Derive new account
       const derived = await VaultManager.deriveNewAccount(
-        tempPassword,
+        vaultPassword,
         mnemonicWallet.id,
         walletName.trim() || undefined,
       );
@@ -117,12 +132,8 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
   };
 
   const handleImportMnemonic = async () => {
-    if (!tempPassword) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error', 'Error'),
-        description: t('wallets.errors.no_password', 'Password required'),
-      });
+    const vaultPassword = requirePassword();
+    if (!vaultPassword) {
       return;
     }
 
@@ -157,7 +168,7 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
 
       // Add wallet to vault
       await VaultManager.addWallet(
-        tempPassword,
+        vaultPassword,
         {
           name: walletName.trim() || `Imported Wallet`,
           secret: mnemonicString,
@@ -190,12 +201,8 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
   };
 
   const handleImportPrivateKey = async () => {
-    if (!tempPassword) {
-      toast({
-        variant: 'destructive',
-        title: t('common.error', 'Error'),
-        description: t('wallets.errors.no_password', 'Password required'),
-      });
+    const vaultPassword = requirePassword();
+    if (!vaultPassword) {
       return;
     }
 
@@ -231,7 +238,7 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
 
       // Add wallet to vault
       await VaultManager.addWallet(
-        tempPassword,
+        vaultPassword,
         {
           name: walletName.trim() || `Imported Wallet`,
           secret: trimmedKey,
@@ -487,6 +494,18 @@ export const AddWalletDialog: React.FC<AddWalletDialogProps> = ({
             </div>
           </TabsContent>
         </Tabs>
+
+        {mode !== 'ledger' && !tempPassword && (
+          <div className="px-4 pb-2">
+            <PasswordInput
+              id="add-wallet-password"
+              label={t('wallets.vault_password', 'Vault Password')}
+              placeholder={t('wallets.vault_password_placeholder', 'Enter your password')}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        )}
 
         {/* Footer Actions */}
         <div className="flex gap-2 p-4">
