@@ -7,11 +7,16 @@ import { useSessionStore } from '@/stores/session-store';
 import { CacheCleaner } from '@/components/cache-cleaner';
 import { QueryRestorationBoundary } from '@/components/query-restoration-boundary';
 import { DAPP_NETWORK_ID_STORAGE_KEY } from '@/lib/dapp';
+import {
+  APP_CUSTOM_NETWORKS_STORAGE_KEY,
+  DAPP_CUSTOM_NETWORKS_STORAGE_KEY,
+} from '@/lib/networks';
 import { storage } from '@/lib/storage';
 import { PopupRoutes } from './PopupRoutes';
 
 const App: React.FC = () => {
-  const { fetchNetworks } = useNetworkStore();
+  const { fetchNetworks, syncCustomNetworks } = useNetworkStore();
+  const setNetworkId = useSettingsStore((state) => state.setNetworkId);
   const { restoreSession } = useSessionStore();
   const networkId = useSettingsStore((state) => state.networkId);
   const [isRestored, setIsRestored] = useState(false);
@@ -22,12 +27,17 @@ const App: React.FC = () => {
     // Initialize cache and fetch networks
     const init = async () => {
       await restoreSession();
+      const storedNetworkId = await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY);
+      if (storedNetworkId) {
+        setNetworkId(storedNetworkId);
+      }
+      await syncCustomNetworks();
       await fetchNetworks();
       setIsRestored(true);
     };
 
     init();
-  }, []);
+  }, [fetchNetworks, restoreSession, setNetworkId, syncCustomNetworks]);
 
   // Listen for CLOSE_VIEW broadcast from the background service worker.
   // This is fired when the user switches UI modes (popup ↔ sidepanel) so that
@@ -54,6 +64,32 @@ const App: React.FC = () => {
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [fetchNetworks]);
+
+  useEffect(() => {
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ) => {
+      if (areaName !== 'local') {
+        return;
+      }
+
+      const networkChange = changes[DAPP_NETWORK_ID_STORAGE_KEY];
+      if (typeof networkChange?.newValue === 'string') {
+        setNetworkId(networkChange.newValue);
+      }
+
+      if (
+        changes[DAPP_CUSTOM_NETWORKS_STORAGE_KEY] ||
+        changes[APP_CUSTOM_NETWORKS_STORAGE_KEY]
+      ) {
+        void syncCustomNetworks();
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
+  }, [setNetworkId, syncCustomNetworks]);
 
   useEffect(() => {
     void storage.set(DAPP_NETWORK_ID_STORAGE_KEY, networkId).catch((error) => {

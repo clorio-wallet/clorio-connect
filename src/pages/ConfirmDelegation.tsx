@@ -19,6 +19,7 @@ import {
 import { HoldToConfirmButton } from '@/components/wallet/hold-to-confirm-button';
 import { ValidatorDetails } from '@/components/wallet/validator-details-sheet';
 import { useGetAccount } from '@/api/mina/mina';
+import { useSettingsStore } from '@/stores/settings-store';
 import { useWalletStore } from '@/stores/wallet-store';
 import { formatBalance, formatAddress, truncateMiddle } from '@/lib/utils';
 import { LoopingLottie } from '@/components/ui/looping-lottie';
@@ -110,6 +111,7 @@ export function ConfirmDelegationSheet({
   const { t } = useTranslation();
   const { publicKey } = useWalletStore();
   const isLedger = useWalletStore((s) => s.accountType === 'ledger');
+  const networkId = useSettingsStore((s) => s.networkId);
 
   const [step, setStep] = React.useState<'review' | 'confirm'>('review');
   const [password, setPassword] = React.useState('');
@@ -120,7 +122,10 @@ export function ConfirmDelegationSheet({
   );
 
   const { data: accountData } = useGetAccount(publicKey || '', {
-    query: { enabled: !!publicKey },
+    query: {
+      queryKey: ['account', publicKey, networkId],
+      enabled: !!publicKey,
+    },
   });
 
   const nonce = accountData?.nonce ?? 0;

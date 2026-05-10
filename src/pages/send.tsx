@@ -20,7 +20,7 @@ const SendPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { publicKey, accountType } = useWalletStore();
-  const { balancePollInterval } = useSettingsStore();
+  const { balancePollInterval, networkId } = useSettingsStore();
   const { toast } = useToast();
   const { sendTransaction, loading: sending } = useSendTransaction();
 
@@ -53,6 +53,7 @@ const SendPage: React.FC = () => {
     refetch: refetchAccount,
   } = useGetAccount(publicKey || '', {
     query: {
+      queryKey: ['account', publicKey, networkId],
       enabled: !!publicKey,
       refetchInterval: pollIntervalMs > 0 ? pollIntervalMs : false,
       refetchOnMount: 'always',

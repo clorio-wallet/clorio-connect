@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
+import { useSettingsStore } from '@/stores/settings-store';
 
 import { useGetAccount } from '@/api/mina/mina';
 import type { GetAccount } from '@/api/model/getAccount';
@@ -41,6 +42,7 @@ export function useStaking(): UseStakingReturn {
   const { toast } = useToast();
   const { delegateTransaction, loading: delegating } = useDelegateTransaction();
   const { publicKey, displayLoading, refetchAccount } = useDashboardData();
+  const networkId = useSettingsStore((state) => state.networkId);
 
   const {
     data: validators,
@@ -50,7 +52,10 @@ export function useStaking(): UseStakingReturn {
   } = useGetValidators({ staleTime: 600000 });
 
   const { data: accountData } = useGetAccount(publicKey || '', {
-    query: { enabled: !!publicKey },
+    query: {
+      queryKey: ['account', publicKey, networkId],
+      enabled: !!publicKey,
+    },
   });
 
   const [selectedValidator, setSelectedValidator] =

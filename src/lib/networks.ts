@@ -4,6 +4,7 @@ export interface NetworkConfig {
   label: string; // id, e.g., 'mainnet', 'devnet'
   epochUrl: string;
   explorerUrl: string;
+  apiUrl?: string;
 }
 
 export type NetworkId = string;
@@ -17,6 +18,7 @@ export interface CustomDappNetworkConfig extends NetworkConfig {
 }
 
 export const DAPP_CUSTOM_NETWORKS_STORAGE_KEY = 'clorio_dapp_custom_networks';
+export const APP_CUSTOM_NETWORKS_STORAGE_KEY = 'clorio_app_custom_networks';
 
 export const MINA_NETWORK_ID_MAP: Record<string, string> = {
   'mina:mainnet': 'mainnet',
@@ -39,6 +41,7 @@ export const DEFAULT_NETWORKS: NetworksMap = {
     label: 'mainnet',
     epochUrl: import.meta.env.VITE_MAINNET_EPOCH_URL || '',
     explorerUrl: import.meta.env.VITE_MAINNET_EXPLORER_URL || '',
+    apiUrl: import.meta.env.VITE_API_URL || '',
   },
   devnet: {
     name: 'Devnet',
@@ -46,6 +49,7 @@ export const DEFAULT_NETWORKS: NetworksMap = {
     label: 'devnet',
     epochUrl: import.meta.env.VITE_DEVNET_EPOCH_URL || '',
     explorerUrl: import.meta.env.VITE_DEVNET_EXPLORER_URL || '',
+    apiUrl: import.meta.env.VITE_API_URL || '',
   },
 };
 
@@ -93,6 +97,30 @@ export function minaIdToLabel(networkID: string): string | null {
 
 export function labelToMinaId(label: string): string {
   return CLORIO_TO_MINA_ID_MAP[label] ?? `custom:${label}`;
+}
+
+export function normalizeNetworkUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim();
+  const candidates = [trimmed];
+
+  try {
+    const decoded = decodeURIComponent(trimmed);
+    if (decoded !== trimmed) {
+      candidates.unshift(decoded);
+    }
+  } catch {
+    // Keep the original value if it was not URI-encoded.
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return new URL(candidate).toString();
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error('Invalid network URL');
 }
 
 export function toCustomNetworkLabel(name: string): string {

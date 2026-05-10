@@ -22,7 +22,7 @@ export const useBalanceStore = create<BalanceState>()((set) => ({
  */
 export const useBalance = () => {
   const publicKey = useWalletStore((s) => s.publicKey);
-  const { balancePollInterval } = useSettingsStore();
+  const { balancePollInterval, networkId } = useSettingsStore();
 
   const poll = balancePollInterval > 0 ? balancePollInterval * 60 * 1000 : 0;
 
@@ -33,6 +33,7 @@ export const useBalance = () => {
     refetch,
   } = useGetAccount(publicKey || '', {
     query: {
+      queryKey: ['account', publicKey, networkId],
       enabled: !!publicKey,
       refetchInterval: poll > 0 ? poll : false,
     },

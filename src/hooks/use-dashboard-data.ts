@@ -1,5 +1,6 @@
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useNetworkStore } from '@/stores/network-store';
 import { useGetAccount, useGetMinaInfo } from '@/api/mina/mina';
 import { useGetTicker } from '@/api/ticker/ticker';
 import { useGetHealth } from '@/api/health/health';
@@ -9,8 +10,9 @@ import { DEFAULT_NETWORKS } from '@/lib/networks';
 export const useDashboardData = () => {
   const { publicKey, activeWalletId, accountName } = useWalletStore();
   const { networkId, balancePollInterval } = useSettingsStore();
+  const network = useNetworkStore((state) => state.networks[networkId]);
 
-  const network = DEFAULT_NETWORKS[networkId] || DEFAULT_NETWORKS.mainnet;
+  const activeNetwork = network || DEFAULT_NETWORKS.mainnet;
   const pollIntervalMs =
     balancePollInterval > 0 ? balancePollInterval * 60 * 1000 : 0;
 
@@ -22,6 +24,7 @@ export const useDashboardData = () => {
     refetch: refetchAccount,
   } = useGetAccount(publicKey || '', {
     query: {
+      queryKey: ['account', publicKey, networkId],
       enabled: !!publicKey,
       refetchInterval: pollIntervalMs > 0 ? pollIntervalMs : false,
     },
@@ -35,6 +38,7 @@ export const useDashboardData = () => {
 
   const { data: minaInfo } = useGetMinaInfo({
     query: {
+      queryKey: ['mina-info', networkId],
       refetchInterval: 60000,
     },
   });
@@ -72,7 +76,7 @@ export const useDashboardData = () => {
 
   return {
     publicKey,
-    network,
+    network: activeNetwork,
     account,
     displayLoading,
     healthData,

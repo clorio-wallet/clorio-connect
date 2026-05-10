@@ -7,6 +7,7 @@ import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { useGetAccount } from '@/api/mina/mina';
 import { useGetValidators } from '@/api/mina/validators';
 import { SLOTS_PER_EPOCH } from '@/lib/const';
+import { useSettingsStore } from '@/stores/settings-store';
 
 interface StakingInfoCardProps {
   isLoadingOverride?: boolean;
@@ -17,6 +18,7 @@ export const StakingInfoCard: React.FC<StakingInfoCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { publicKey, minaInfo, displayLoading } = useDashboardData();
+  const networkId = useSettingsStore((state) => state.networkId);
 
   const {
     data: accountData,
@@ -24,6 +26,7 @@ export const StakingInfoCard: React.FC<StakingInfoCardProps> = ({
     isFetching: isAccountFetching,
   } = useGetAccount(publicKey || '', {
     query: {
+      queryKey: ['account', publicKey, networkId],
       enabled: !!publicKey,
     },
   });
