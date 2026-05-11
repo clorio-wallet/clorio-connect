@@ -119,9 +119,14 @@ class ClorioMinaProvider {
 
   async signMessage(
     params: DappSignMessageParams,
-  ): Promise<{ data: string; signature: { field: string; scalar: string } }> {
+  ): Promise<{
+    data: string;
+    publicKey: string;
+    signature: { field: string; scalar: string };
+  }> {
     return this.sendRequest('mina_signMessage', params) as Promise<{
       data: string;
+      publicKey: string;
       signature: { field: string; scalar: string };
     }>;
   }

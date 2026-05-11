@@ -37,6 +37,7 @@ import {
   CustomDappNetworkConfig,
   labelToMinaId,
   minaIdToLabel,
+  normalizeNetworkUrl,
   toCustomNetworkLabel,
 } from '@/lib/networks';
 import { sessionStorage, storage } from '@/lib/storage';
@@ -130,6 +131,20 @@ async function resolveNetworkLabel(requested: string): Promise<string | null> {
   return customMatch?.label ?? null;
 }
 
+async function resolveProviderNetworkId(networkLabel: string): Promise<string> {
+  const builtInNetworkId =
+    networkLabel === 'mainnet' || networkLabel === 'devnet'
+      ? labelToMinaId(networkLabel)
+      : null;
+
+  if (builtInNetworkId) {
+    return builtInNetworkId;
+  }
+
+  const customNetworks = await loadCustomNetworks();
+  return customNetworks[networkLabel]?.networkID ?? labelToMinaId(networkLabel);
+}
+
 async function getGraphqlEndpointForNetwork(networkId: string): Promise<string> {
   if (networkId === 'mainnet') {
     return GRAPHQL_ENDPOINTS.mainnet;
@@ -192,8 +207,9 @@ function normalizeAddChainParams(params: unknown): DappAddChainParams {
     );
   }
 
+  let normalizedUrl: string;
   try {
-    new URL(params.url);
+    normalizedUrl = normalizeNetworkUrl(params.url);
   } catch {
     throw createDappError(
       DAPP_ERROR_CODES.invalidParams,
@@ -202,7 +218,7 @@ function normalizeAddChainParams(params: unknown): DappAddChainParams {
   }
 
   return {
-    url: params.url,
+    url: normalizedUrl,
     name: params.name.trim(),
     networkID:
       typeof params.networkID === 'string'
@@ -361,6 +377,36 @@ export async function broadcastAccountsChangedToConnectedTabs(): Promise<void> {
   );
 }
 
+export async function broadcastChainChangedToConnectedTabs(): Promise<void> {
+  const networkID = await resolveProviderNetworkId(await getCurrentNetworkId());
+  const tabs = await chrome.tabs.query({});
+
+  await Promise.all(
+    tabs.map(async (tab) => {
+      if (!tab.id || !tab.url) {
+        return;
+      }
+
+      try {
+        const url = new URL(tab.url);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          return;
+        }
+      } catch {
+        return;
+      }
+
+      await chrome.tabs
+        .sendMessage(tab.id, {
+          type: DAPP_PROVIDER_EVENT_MESSAGE,
+          eventName: 'chainChanged',
+          params: { networkID },
+        })
+        .catch(() => undefined);
+    }),
+  );
+}
+
 type LastSignedMessage = {
   origin: string;
   publicKey: string;
@@ -462,11 +508,11 @@ function buildApprovalSummary(request: DappRpcPayload) {
   }
 
   if (request.method === 'mina_addChain') {
-    const params = request.params as DappAddChainParams | undefined;
+    const params = normalizeAddChainParams(request.params);
     return {
-      networkID: params?.networkID,
-      name: params?.name,
-      url: params?.url,
+      networkID: params.networkID,
+      name: params.name,
+      url: params.url,
     };
   }
 
@@ -587,6 +633,24 @@ function normalizeVerifyMessageParams(
   params: unknown,
   fallback?: { data?: string; publicKey?: string },
 ): DappVerifyMessageParams {
+  if (
+    isRecord(params) &&
+    typeof params.data === 'string' &&
+    typeof params.publicKey === 'string' &&
+    isRecord(params.signature) &&
+    typeof params.signature.field === 'string' &&
+    typeof params.signature.scalar === 'string'
+  ) {
+    return {
+      data: params.data,
+      publicKey: params.publicKey,
+      signature: {
+        field: params.signature.field,
+        scalar: params.signature.scalar,
+      },
+    };
+  }
+
   if (
     isRecord(params) &&
     typeof params.field === 'string' &&
@@ -1020,19 +1084,29 @@ async function performAddChain(
   );
 
   const label = existing?.label ?? toCustomNetworkLabel(params.name);
-  const networkID = params.networkID ?? labelToMinaId(label);
+  const networkID = params.networkID ?? existing?.networkID ?? labelToMinaId(label);
+  const networkFamily = networkID.toLowerCase().includes('mainnet')
+    ? 'mainnet'
+    : 'testnet';
 
-  if (!existing) {
-    customNetworks[label] = {
-      label,
-      name: params.name,
-      network: label === 'mainnet' ? 'mainnet' : 'testnet',
-      epochUrl: params.url,
-      explorerUrl: params.url,
-      networkID,
-      isCustom: true,
-      addedAt: Date.now(),
-    };
+  const nextNetwork: CustomDappNetworkConfig = {
+    label,
+    name: params.name,
+    network: networkFamily,
+    epochUrl: params.url,
+    explorerUrl: existing?.explorerUrl ?? params.url,
+    networkID,
+    isCustom: true,
+    addedAt: existing?.addedAt ?? Date.now(),
+  };
+
+  if (
+    !existing ||
+    existing.epochUrl !== nextNetwork.epochUrl ||
+    existing.name !== nextNetwork.name ||
+    existing.networkID !== nextNetwork.networkID
+  ) {
+    customNetworks[label] = nextNetwork;
     await saveCustomNetworks(customNetworks);
   }
 
@@ -1301,6 +1375,24 @@ async function performTransactionSignature(
       }
     }
   }
+
+  if (
+    isRecord(params) &&
+    typeof params.data === 'string' &&
+    isRecord(params.signature) &&
+    typeof params.signature.field === 'string' &&
+    typeof params.signature.scalar === 'string' &&
+    typeof fallback?.publicKey === 'string'
+  ) {
+    return {
+      data: params.data,
+      publicKey: fallback.publicKey,
+      signature: {
+        field: params.signature.field,
+        scalar: params.signature.scalar,
+      },
+    };
+  }
 }`;
 
   const response = await postJson<{
@@ -1394,7 +1486,7 @@ async function resolveApproval(
         const { networkID } = normalizeSwitchChainParams(pending.request.params);
         const label = (await resolveNetworkLabel(networkID)) ?? networkID;
         await setCurrentNetworkId(label);
-        result = { networkID: labelToMinaId(label) };
+        result = { networkID: await resolveProviderNetworkId(label) };
         break;
       }
       case 'mina_addChain': {
@@ -1447,7 +1539,9 @@ async function processDappRequest(
       return toResponse(await getConnectedAccounts(siteOrigin));
 
     case 'mina_requestNetwork':
-      return toResponse({ networkID: labelToMinaId(await getCurrentNetworkId()) });
+      return toResponse({
+        networkID: await resolveProviderNetworkId(await getCurrentNetworkId()),
+      });
 
     case 'mina_switchChain': {
       const wallet = await getActiveSoftwareWallet();
@@ -1496,7 +1590,7 @@ async function processDappRequest(
         name: 'Clorio Connect',
         slug: 'clorio-connect',
         version: chrome.runtime.getManifest().version,
-        networkID: labelToMinaId(await getCurrentNetworkId()),
+        networkID: await resolveProviderNetworkId(await getCurrentNetworkId()),
       });
 
     case 'wallet_revokePermissions':

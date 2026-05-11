@@ -32,11 +32,13 @@ import {
 } from './handlers/wallet';
 import {
   broadcastAccountsChangedToConnectedTabs,
+  broadcastChainChangedToConnectedTabs,
   handleDappRpcRequest,
   handleGetPendingDappApproval,
   handleResolveDappApproval,
   syncConnectedPermissionsToActiveWallet,
 } from './handlers/dapp';
+import { DAPP_NETWORK_ID_STORAGE_KEY } from '@/lib/dapp';
 import { VaultManager } from '@/lib/vault-manager';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
 import { VAULT_STORAGE_KEY, isVaultData, type VaultData } from '@/lib/types/vault';
@@ -356,6 +358,15 @@ function getActiveWalletPublicKey(vault: VaultData | null | undefined): string |
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== 'local') {
     return;
+  }
+
+  const networkChange = changes[DAPP_NETWORK_ID_STORAGE_KEY];
+  if (
+    networkChange &&
+    typeof networkChange.newValue === 'string' &&
+    networkChange.oldValue !== networkChange.newValue
+  ) {
+    void broadcastChainChangedToConnectedTabs();
   }
 
   const vaultChange = changes[VAULT_STORAGE_KEY];
