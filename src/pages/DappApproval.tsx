@@ -18,13 +18,17 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { useLedger } from '@/hooks/use-ledger';
+import { LedgerStatus } from '@/lib/ledger';
 import { PasswordInput } from '@/components/wallet/password-input';
 import { useSessionStore } from '@/stores/session-store';
 import { useWalletStore } from '@/stores/wallet-store';
+import { useNetworkStore } from '@/stores/network-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { VaultManager } from '@/lib/vault-manager';
 import { formatAddress } from '@/lib/utils';
 import { sessionStorage } from '@/lib/storage';
+import { getAccountNonce } from '@/api/mina/transactions';
 
 const DEFAULT_PAYMENT_FEE = '0.1';
 
@@ -34,6 +38,28 @@ function requiresApprovalPassword(method: DappRpcMethod): boolean {
     method !== 'mina_switchChain' &&
     method !== 'mina_addChain'
   );
+}
+
+function isLedgerSigningMethod(method: DappRpcMethod): boolean {
+  return method === 'mina_sendPayment' || method === 'mina_sendStakeDelegation';
+}
+
+function toLedgerNetworkId(networkLabel: string): 0x00 | 0x01 {
+  return networkLabel === 'mainnet' ? 0x01 : 0x00;
+}
+
+function decodeLedgerSignature(signatureHex: string): {
+  field: string;
+  scalar: string;
+} {
+  if (signatureHex.length !== 128) {
+    throw new Error('Invalid signature format from Ledger');
+  }
+
+  return {
+    field: signatureHex.slice(0, 64),
+    scalar: signatureHex.slice(64, 128),
+  };
 }
 
 function getRequestTitle(method: DappRpcMethod): string {
@@ -99,7 +125,16 @@ const DappApprovalPage: React.FC = () => {
     restoreSession,
   } = useSessionStore();
   const { loadWallets, publicKey } = useWalletStore();
+  const ledgerAccountIndex = useWalletStore((state) => state.ledgerAccountIndex);
   const networkId = useSettingsStore((state) => state.networkId);
+  const apiUrl = useNetworkStore((state) => state.networks[networkId]?.apiUrl);
+  const {
+    connect,
+    signPayment,
+    signDelegation,
+    isChecking: isLedgerChecking,
+    isSigning: isLedgerSigning,
+  } = useLedger();
 
   const [pendingRequest, setPendingRequest] =
     useState<DappPendingApproval | null>(null);
@@ -107,6 +142,7 @@ const DappApprovalPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isTabContext, setIsTabContext] = useState(false);
 
   const loadPendingRequest = useCallback(async () => {
     setIsLoading(true);
@@ -128,6 +164,21 @@ const DappApprovalPage: React.FC = () => {
   useEffect(() => {
     void loadPendingRequest();
   }, [loadPendingRequest]);
+
+  useEffect(() => {
+    chrome.tabs.getCurrent((tab) => {
+      setIsTabContext(Boolean(tab?.id));
+    });
+  }, []);
+
+  const isLedgerRequest =
+    pendingRequest?.account.type === 'ledger' &&
+    isLedgerSigningMethod(pendingRequest.method);
+
+  const requiresPassword =
+    !!pendingRequest &&
+    requiresApprovalPassword(pendingRequest.method) &&
+    !isLedgerRequest;
 
   const handleUnlock = useCallback(async () => {
     if (!password) {
@@ -179,9 +230,206 @@ const DappApprovalPage: React.FC = () => {
         return;
       }
 
+      if (approve && isLedgerRequest) {
+        if (!isTabContext) {
+          const approvalUrl = chrome.runtime.getURL(
+            'src/popup/index.html#/dapp/approval',
+          );
+          await chrome.tabs.create({ url: approvalUrl, active: true });
+          setErrorMessage('Continue the Ledger approval in the opened tab.');
+          return;
+        }
+
+        if (ledgerAccountIndex === null) {
+          setErrorMessage('No Ledger account index was found for this wallet.');
+          return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage(null);
+
+        try {
+          const connection = await connect();
+          if (connection.status !== LedgerStatus.READY || !connection.app) {
+            throw new Error(
+              connection.status === LedgerStatus.APP_NOT_OPEN
+                ? 'Open the Mina app on your Ledger and try again.'
+                : 'Ledger not found. Make sure the device is connected via USB.',
+            );
+          }
+
+          const nonceResult = await getAccountNonce(
+            pendingRequest.account.publicKey,
+          );
+          const nonce =
+            typeof pendingRequest.summary?.nonce === 'number'
+              ? pendingRequest.summary.nonce
+              : nonceResult.pendingNonce;
+
+          let result: unknown;
+
+          if (pendingRequest.method === 'mina_sendPayment') {
+            if (
+              !pendingRequest.summary?.to ||
+              pendingRequest.summary.amount === undefined
+            ) {
+              throw new Error('Incomplete payment request summary.');
+            }
+
+            const signed = await signPayment(
+              {
+                fromAddress: pendingRequest.account.publicKey,
+                toAddress: pendingRequest.summary.to,
+                amount: String(pendingRequest.summary.amount),
+                fee: String(pendingRequest.summary.fee ?? DEFAULT_PAYMENT_FEE),
+                nonce,
+                memo: pendingRequest.summary.memo ?? '',
+                networkId: toLedgerNetworkId(networkId),
+              },
+              ledgerAccountIndex,
+            );
+
+            if (signed.rejected) {
+              throw new Error('Operation rejected on device.');
+            }
+            if (!signed.signature) {
+              throw new Error(signed.error ?? 'Ledger signing failed.');
+            }
+
+            const signature = decodeLedgerSignature(signed.signature);
+
+            const response = await fetch(
+              `${apiUrl || import.meta.env.VITE_API_URL}/v1/mina/transaction`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'ngrok-skip-browser-warning': 'true',
+                },
+                body: JSON.stringify({
+                  input: {
+                    from: pendingRequest.account.publicKey,
+                    to: pendingRequest.summary.to,
+                    amount: String(signed.payload?.amount ?? ''),
+                    fee: String(signed.payload?.fee ?? ''),
+                    nonce: String(signed.payload?.nonce ?? nonce),
+                    memo: signed.payload?.memo ?? '',
+                    validUntil: String(signed.payload?.validUntil ?? 4294967295),
+                  },
+                  signature,
+                  rawSignature: signed.signature,
+                }),
+              },
+            );
+
+            if (!response.ok) {
+              throw new Error((await response.text()) || 'Broadcast failed');
+            }
+
+            const broadcast = (await response.json()) as {
+              hash?: string;
+              id?: string;
+            };
+
+            result = {
+              hash: broadcast.hash ?? broadcast.id,
+              id: broadcast.id ?? broadcast.hash,
+            };
+          } else {
+            if (
+              !pendingRequest.summary?.to ||
+              pendingRequest.summary.fee === undefined
+            ) {
+              throw new Error('Incomplete delegation request summary.');
+            }
+
+            const signed = await signDelegation(
+              {
+                fromAddress: pendingRequest.account.publicKey,
+                toAddress: pendingRequest.summary.to,
+                fee: String(pendingRequest.summary.fee),
+                nonce,
+                memo: pendingRequest.summary.memo ?? '',
+                networkId: toLedgerNetworkId(networkId),
+              },
+              ledgerAccountIndex,
+            );
+
+            if (signed.rejected) {
+              throw new Error('Operation rejected on device.');
+            }
+            if (!signed.signature) {
+              throw new Error(signed.error ?? 'Ledger signing failed.');
+            }
+
+            const signature = decodeLedgerSignature(signed.signature);
+
+            const response = await fetch(
+              `${apiUrl || import.meta.env.VITE_API_URL}/v1/mina/transaction/delegation`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'ngrok-skip-browser-warning': 'true',
+                },
+                body: JSON.stringify({
+                  input: {
+                    from: pendingRequest.account.publicKey,
+                    to: pendingRequest.summary.to,
+                    fee: String(signed.payload?.fee ?? ''),
+                    nonce: String(signed.payload?.nonce ?? nonce),
+                    memo: signed.payload?.memo ?? '',
+                    validUntil: String(signed.payload?.validUntil ?? 4294967295),
+                  },
+                  signature,
+                  rawSignature: signed.signature,
+                }),
+              },
+            );
+
+            if (!response.ok) {
+              throw new Error((await response.text()) || 'Broadcast failed');
+            }
+
+            const broadcast = (await response.json()) as {
+              hash?: string;
+              id?: string;
+            };
+
+            result = {
+              hash: broadcast.hash ?? broadcast.id,
+              id: broadcast.id ?? broadcast.hash,
+            };
+          }
+
+          const response = (await chrome.runtime.sendMessage({
+            type: 'DAPP_RESOLVE_PENDING_APPROVAL',
+            payload: {
+              requestId: pendingRequest.requestId,
+              approve: true,
+              result,
+            },
+          })) as DappResolvePendingApprovalResponse;
+
+          if (!response?.ok) {
+            throw new Error(response?.error || 'Failed to resolve the request.');
+          }
+
+          await loadPendingRequest();
+          setPassword('');
+        } catch (error) {
+          setErrorMessage(
+            error instanceof Error ? error.message : 'Failed to resolve request.',
+          );
+        } finally {
+          setIsSubmitting(false);
+        }
+        return;
+      }
+
       if (
         approve &&
-        requiresApprovalPassword(pendingRequest.method) &&
+        requiresPassword &&
         password.trim().length === 0
       ) {
         setErrorMessage('Enter your password to approve this request.');
@@ -197,10 +445,7 @@ const DappApprovalPage: React.FC = () => {
           payload: {
             requestId: pendingRequest.requestId,
             approve,
-            password:
-              approve && requiresApprovalPassword(pendingRequest.method)
-                ? password
-                : undefined,
+            password: approve && requiresPassword ? password : undefined,
           },
         })) as DappResolvePendingApprovalResponse;
 
@@ -218,7 +463,20 @@ const DappApprovalPage: React.FC = () => {
         setIsSubmitting(false);
       }
     },
-    [loadPendingRequest, password, pendingRequest],
+    [
+      connect,
+      isLedgerRequest,
+      isTabContext,
+      ledgerAccountIndex,
+      loadPendingRequest,
+      networkId,
+      apiUrl,
+      password,
+      pendingRequest,
+      requiresPassword,
+      signDelegation,
+      signPayment,
+    ],
   );
 
   const summaryLines = useMemo(() => {
@@ -437,7 +695,7 @@ const DappApprovalPage: React.FC = () => {
             <p className="text-sm text-destructive">{errorMessage}</p>
           )}
 
-          {requiresApprovalPassword(pendingRequest.method) && (
+          {requiresPassword && (
             <PasswordInput
               id="dapp-approval-confirm-password"
               label="Confirm password"
@@ -445,6 +703,14 @@ const DappApprovalPage: React.FC = () => {
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password to sign"
             />
+          )}
+
+          {isLedgerRequest && (
+            <p className="text-sm text-muted-foreground">
+              {isTabContext
+                ? 'Confirm this request on your Ledger device.'
+                : 'Open this approval in a browser tab to continue with Ledger.'}
+            </p>
           )}
 
           {publicKey && publicKey !== pendingRequest.account.publicKey && (
@@ -460,7 +726,7 @@ const DappApprovalPage: React.FC = () => {
             variant="outline"
             className="flex-1"
             onClick={() => void handleDecision(false)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLedgerChecking || isLedgerSigning}
           >
             Reject
           </Button>
@@ -469,10 +735,18 @@ const DappApprovalPage: React.FC = () => {
             onClick={() => void handleDecision(true)}
             disabled={
               isSubmitting ||
-              (requiresApprovalPassword(pendingRequest.method) && !password)
+              (requiresPassword && !password)
             }
           >
-            {isSubmitting ? 'Processing...' : 'Approve'}
+            {isSubmitting || isLedgerChecking || isLedgerSigning
+              ? isLedgerChecking
+                ? 'Connecting...'
+                : isLedgerSigning
+                  ? 'Awaiting Ledger...'
+                  : 'Processing...'
+              : isLedgerRequest && !isTabContext
+                ? 'Open in tab'
+                : 'Approve'}
           </Button>
         </CardFooter>
       </Card>

@@ -25,6 +25,10 @@ type PendingRequest = {
   reject: (reason?: unknown) => void;
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 class ClorioMinaProvider {
   public readonly isClorio = true;
   public readonly isAuro = true;
@@ -136,14 +140,32 @@ class ClorioMinaProvider {
     signature?: DappVerifyMessageParams['signature'],
     publicKey?: string,
   ): Promise<boolean> {
+    console.log('[clorio-provider] verifyMessage input:', {
+      dataOrParams,
+      signature,
+      publicKey,
+    });
+
+    const normalizedSignature =
+      isRecord(signature) && isRecord(signature.signature)
+        ? (signature.signature as DappVerifyMessageParams['signature'])
+        : signature;
+
+    const normalizedPublicKey =
+      isRecord(signature) && typeof signature.publicKey === 'string'
+        ? signature.publicKey
+        : publicKey;
+
     const params =
       typeof dataOrParams === 'string'
         ? {
             data: dataOrParams,
-            signature,
-            publicKey,
+            signature: normalizedSignature,
+            publicKey: normalizedPublicKey,
           }
         : dataOrParams;
+
+    console.log('[clorio-provider] verifyMessage normalized params:', params);
 
     return this.sendRequest('mina_verifyMessage', params) as Promise<boolean>;
   }

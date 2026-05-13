@@ -324,7 +324,7 @@ export async function syncConnectedPermissionsToActiveWallet(): Promise<void> {
   const activeWallet = await VaultManager.getActiveWallet();
   const permissions = await loadPermissions();
 
-  if (!activeWallet || activeWallet.type === 'ledger') {
+  if (!activeWallet) {
     if (Object.keys(permissions).length > 0) {
       await savePermissions({});
     }
@@ -633,6 +633,71 @@ function normalizeVerifyMessageParams(
   params: unknown,
   fallback?: { data?: string; publicKey?: string },
 ): DappVerifyMessageParams {
+  console.log('[dapp] normalizeVerifyMessageParams input:', {
+    params,
+    fallback,
+  });
+
+  const parseSignatureString = (
+    value: unknown,
+  ): { field: string; scalar: string } | null => {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(value);
+      if (
+        isRecord(parsed) &&
+        typeof parsed.field === 'string' &&
+        typeof parsed.scalar === 'string'
+      ) {
+        return {
+          field: parsed.field,
+          scalar: parsed.scalar,
+        };
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
+  };
+
+  if (
+    isRecord(params) &&
+    typeof params.data === 'string' &&
+    typeof params.publicKey === 'string'
+  ) {
+    const parsedSignature = parseSignatureString(params.signature);
+    if (parsedSignature) {
+      return {
+        data: params.data,
+        publicKey: params.publicKey,
+        signature: parsedSignature,
+      };
+    }
+  }
+
+  if (
+    isRecord(params) &&
+    isRecord(params.signedMessage) &&
+    typeof params.signedMessage.data === 'string' &&
+    typeof params.signedMessage.publicKey === 'string' &&
+    isRecord(params.signedMessage.signature) &&
+    typeof params.signedMessage.signature.field === 'string' &&
+    typeof params.signedMessage.signature.scalar === 'string'
+  ) {
+    return {
+      data: params.signedMessage.data,
+      publicKey: params.signedMessage.publicKey,
+      signature: {
+        field: params.signedMessage.signature.field,
+        scalar: params.signedMessage.signature.scalar,
+      },
+    };
+  }
+
   if (
     isRecord(params) &&
     typeof params.data === 'string' &&
@@ -694,6 +759,26 @@ function normalizeVerifyMessageParams(
     }
   }
 
+  if (
+    isRecord(params) &&
+    typeof params.data === 'string' &&
+    isRecord(params.signature) &&
+    typeof params.signature.data === 'string' &&
+    typeof params.signature.publicKey === 'string' &&
+    isRecord(params.signature.signature) &&
+    typeof params.signature.signature.field === 'string' &&
+    typeof params.signature.signature.scalar === 'string'
+  ) {
+    return {
+      data: params.data,
+      publicKey: params.signature.publicKey,
+      signature: {
+        field: params.signature.signature.field,
+        scalar: params.signature.signature.scalar,
+      },
+    };
+  }
+
   if (Array.isArray(params) && params.length >= 3) {
     const [data, signature, publicKey] = params;
     if (
@@ -722,13 +807,17 @@ function normalizeVerifyMessageParams(
     typeof params.signature.field !== 'string' ||
     typeof params.signature.scalar !== 'string'
   ) {
+    console.log('[dapp] normalizeVerifyMessageParams failed shape check:', {
+      params,
+      fallback,
+    });
     throw createDappError(
       DAPP_ERROR_CODES.invalidParams,
       'Expected signed message payload with data, publicKey, and signature.',
     );
   }
 
-  return {
+  const normalized = {
     data:
       typeof params.data === 'string'
         ? params.data
@@ -742,6 +831,9 @@ function normalizeVerifyMessageParams(
       scalar: params.signature.scalar,
     },
   };
+
+  console.log('[dapp] normalizeVerifyMessageParams normalized result:', normalized);
+  return normalized;
 }
 
 function normalizeSignFieldsParams(params: unknown): DappSignFieldsParams {
@@ -942,7 +1034,7 @@ async function performConnectApproval(
   request: DappRpcPayload,
 ): Promise<string[]> {
   const origin = normalizeOrigin(request.site.origin);
-  const wallet = await getActiveSoftwareWallet();
+  const wallet = await getActiveWallet();
   const permissions = await loadPermissions();
 
   permissions[origin] = {
@@ -997,12 +1089,23 @@ async function performMessageVerification(
   const origin = normalizeOrigin(request.site.origin);
   const permissions = await loadPermissions();
   const lastSigned = await loadLastSignedMessage();
+  console.log('[dapp] performMessageVerification request:', {
+    origin,
+    params: request.params,
+    permission: permissions[origin],
+    lastSigned,
+  });
   const params = normalizeVerifyMessageParams(request.params, {
     publicKey: permissions[origin]?.publicKey ?? lastSigned?.publicKey,
     data: lastSigned?.origin === origin ? lastSigned.data : undefined,
   });
   const client = await getSignerClient();
-  return client.verifyMessage(params);
+  const result = client.verifyMessage(params);
+  console.log('[dapp] performMessageVerification result:', {
+    normalizedParams: params,
+    result,
+  });
+  return result;
 }
 
 async function performFieldVerification(
@@ -1375,24 +1478,6 @@ async function performTransactionSignature(
       }
     }
   }
-
-  if (
-    isRecord(params) &&
-    typeof params.data === 'string' &&
-    isRecord(params.signature) &&
-    typeof params.signature.field === 'string' &&
-    typeof params.signature.scalar === 'string' &&
-    typeof fallback?.publicKey === 'string'
-  ) {
-    return {
-      data: params.data,
-      publicKey: fallback.publicKey,
-      signature: {
-        field: params.signature.field,
-        scalar: params.signature.scalar,
-      },
-    };
-  }
 }`;
 
   const response = await postJson<{
@@ -1435,6 +1520,7 @@ async function resolveApproval(
   requestId: string,
   approve: boolean,
   password?: string,
+  resultOverride?: unknown,
 ): Promise<void> {
   const pending = pendingRequests.get(requestId);
   if (!pending) {
@@ -1456,6 +1542,15 @@ async function resolveApproval(
 
   try {
     let result: unknown;
+
+    if (
+      resultOverride !== undefined &&
+      (pending.request.method === 'mina_sendPayment' ||
+        pending.request.method === 'mina_sendStakeDelegation')
+    ) {
+      finalizePendingRequest(requestId, toResponse(resultOverride));
+      return;
+    }
 
     switch (pending.request.method) {
       case 'mina_requestAccounts':
@@ -1510,7 +1605,7 @@ async function resolveApproval(
 
 async function getConnectedAccounts(origin: string): Promise<string[]> {
   const wallet = await VaultManager.getActiveWallet();
-  if (!wallet || wallet.type === 'ledger') {
+  if (!wallet) {
     return [];
   }
 
@@ -1544,7 +1639,7 @@ async function processDappRequest(
       });
 
     case 'mina_switchChain': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveWallet();
       const { networkID } = normalizeSwitchChainParams(request.params);
       const label = await resolveNetworkLabel(networkID);
       if (!label) {
@@ -1558,7 +1653,7 @@ async function processDappRequest(
     }
 
     case 'mina_addChain': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveWallet();
       normalizeAddChainParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
@@ -1603,7 +1698,7 @@ async function processDappRequest(
     }
 
     case 'mina_requestAccounts': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveWallet();
       const existingAccounts = await getConnectedAccounts(siteOrigin);
       if (existingAccounts.length > 0) {
         return toResponse(existingAccounts);
@@ -1612,14 +1707,14 @@ async function processDappRequest(
     }
 
     case 'mina_sendPayment': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveWallet();
       normalizeSendPaymentParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }
 
     case 'mina_sendStakeDelegation': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveWallet();
       normalizeStakeDelegationParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
@@ -1677,11 +1772,21 @@ export async function handleGetPendingDappApproval(
 }
 
 export async function handleResolveDappApproval(
-  payload: { requestId: string; approve: boolean; password?: string },
+  payload: {
+    requestId: string;
+    approve: boolean;
+    password?: string;
+    result?: unknown;
+  },
   sendResponse: (response: DappResolvePendingApprovalResponse) => void,
 ): Promise<void> {
   try {
-    await resolveApproval(payload.requestId, payload.approve, payload.password);
+    await resolveApproval(
+      payload.requestId,
+      payload.approve,
+      payload.password,
+      payload.result,
+    );
     sendResponse({ ok: true });
   } catch (error) {
     sendResponse({
