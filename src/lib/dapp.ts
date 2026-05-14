@@ -111,10 +111,12 @@ export interface DappVerifyFieldsParams {
   message?: Array<string | number>;
   data?: Array<string | number>;
   publicKey: string;
-  signature: {
-    field: string;
-    scalar: string;
-  };
+  signature:
+    | string
+    | {
+        field: string;
+        scalar: string;
+      };
 }
 
 export interface DappSignJsonMessageParams {

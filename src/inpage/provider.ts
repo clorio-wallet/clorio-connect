@@ -140,12 +140,6 @@ class ClorioMinaProvider {
     signature?: DappVerifyMessageParams['signature'],
     publicKey?: string,
   ): Promise<boolean> {
-    console.log('[clorio-provider] verifyMessage input:', {
-      dataOrParams,
-      signature,
-      publicKey,
-    });
-
     const normalizedSignature =
       isRecord(signature) && isRecord(signature.signature)
         ? (signature.signature as DappVerifyMessageParams['signature'])
@@ -165,8 +159,6 @@ class ClorioMinaProvider {
           }
         : dataOrParams;
 
-    console.log('[clorio-provider] verifyMessage normalized params:', params);
-
     return this.sendRequest('mina_verifyMessage', params) as Promise<boolean>;
   }
 
@@ -182,7 +174,27 @@ class ClorioMinaProvider {
     }>;
   }
 
-  async verifyFields(params: DappVerifyFieldsParams): Promise<boolean> {
+  async verifyFields(
+    dataOrParams:
+      | DappVerifyFieldsParams
+      | Array<string | number>
+      | {
+          data?: Array<string | number>;
+          publicKey?: string;
+          signature?: string;
+        },
+    signature?: string | { data?: Array<string | number>; publicKey?: string; signature?: string },
+    publicKey?: string,
+  ): Promise<boolean> {
+    const params =
+      Array.isArray(dataOrParams)
+        ? {
+            data: dataOrParams,
+            signature,
+            publicKey,
+          }
+        : dataOrParams;
+
     return this.sendRequest('mina_verifyFields', params) as Promise<boolean>;
   }
 

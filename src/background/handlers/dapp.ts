@@ -633,11 +633,6 @@ function normalizeVerifyMessageParams(
   params: unknown,
   fallback?: { data?: string; publicKey?: string },
 ): DappVerifyMessageParams {
-  console.log('[dapp] normalizeVerifyMessageParams input:', {
-    params,
-    fallback,
-  });
-
   const parseSignatureString = (
     value: unknown,
   ): { field: string; scalar: string } | null => {
@@ -807,17 +802,13 @@ function normalizeVerifyMessageParams(
     typeof params.signature.field !== 'string' ||
     typeof params.signature.scalar !== 'string'
   ) {
-    console.log('[dapp] normalizeVerifyMessageParams failed shape check:', {
-      params,
-      fallback,
-    });
     throw createDappError(
       DAPP_ERROR_CODES.invalidParams,
       'Expected signed message payload with data, publicKey, and signature.',
     );
   }
 
-  const normalized = {
+  return {
     data:
       typeof params.data === 'string'
         ? params.data
@@ -831,9 +822,6 @@ function normalizeVerifyMessageParams(
       scalar: params.signature.scalar,
     },
   };
-
-  console.log('[dapp] normalizeVerifyMessageParams normalized result:', normalized);
-  return normalized;
 }
 
 function normalizeSignFieldsParams(params: unknown): DappSignFieldsParams {
@@ -853,6 +841,28 @@ function normalizeSignFieldsParams(params: unknown): DappSignFieldsParams {
 }
 
 function normalizeVerifyFieldsParams(params: unknown): DappVerifyFieldsParams {
+  const parseFieldSignatureString = (value: unknown): string | null => {
+    return typeof value === 'string' && value.trim().length > 0 ? value : null;
+  };
+
+  if (Array.isArray(params) && params.length >= 3) {
+    const [data, signature, publicKey] = params;
+    if (
+      Array.isArray(data) &&
+      typeof publicKey === 'string' &&
+      typeof signature === 'string'
+    ) {
+      return {
+        data: data.filter(
+          (value): value is string | number =>
+            typeof value === 'string' || typeof value === 'number',
+        ),
+        publicKey,
+        signature,
+      } as DappVerifyFieldsParams;
+    }
+  }
+
   if (!isRecord(params)) {
     throw createDappError(
       DAPP_ERROR_CODES.invalidParams,
@@ -865,6 +875,35 @@ function normalizeVerifyFieldsParams(params: unknown): DappVerifyFieldsParams {
     : Array.isArray(params.data)
       ? params.data
       : null;
+
+  const stringSignature = parseFieldSignatureString(params.signature);
+
+  if (messageSource && typeof params.publicKey === 'string' && stringSignature) {
+    return {
+      data: messageSource.filter(
+        (value): value is string | number =>
+          typeof value === 'string' || typeof value === 'number',
+      ),
+      publicKey: params.publicKey,
+      signature: stringSignature,
+    } as DappVerifyFieldsParams;
+  }
+
+  if (
+    isRecord(params.signature) &&
+    Array.isArray(params.signature.data) &&
+    typeof params.signature.publicKey === 'string' &&
+    typeof params.signature.signature === 'string'
+  ) {
+    return {
+      data: params.signature.data.filter(
+        (value): value is string | number =>
+          typeof value === 'string' || typeof value === 'number',
+      ),
+      publicKey: params.signature.publicKey,
+      signature: params.signature.signature,
+    } as DappVerifyFieldsParams;
+  }
 
   if (
     !messageSource ||
@@ -1089,23 +1128,12 @@ async function performMessageVerification(
   const origin = normalizeOrigin(request.site.origin);
   const permissions = await loadPermissions();
   const lastSigned = await loadLastSignedMessage();
-  console.log('[dapp] performMessageVerification request:', {
-    origin,
-    params: request.params,
-    permission: permissions[origin],
-    lastSigned,
-  });
   const params = normalizeVerifyMessageParams(request.params, {
     publicKey: permissions[origin]?.publicKey ?? lastSigned?.publicKey,
     data: lastSigned?.origin === origin ? lastSigned.data : undefined,
   });
   const client = await getSignerClient();
-  const result = client.verifyMessage(params);
-  console.log('[dapp] performMessageVerification result:', {
-    normalizedParams: params,
-    result,
-  });
-  return result;
+  return client.verifyMessage(params);
 }
 
 async function performFieldVerification(
@@ -1113,11 +1141,12 @@ async function performFieldVerification(
 ): Promise<boolean> {
   const params = normalizeVerifyFieldsParams(request.params);
   const client = await getSignerClient();
-  return client.verifyFields({
+  const payload = {
     data: (params.data ?? []).map((value) => BigInt(value)),
     publicKey: params.publicKey,
     signature: params.signature,
-  });
+  };
+  return client.verifyFields(payload);
 }
 
 async function performFieldSignature(
@@ -1126,7 +1155,21 @@ async function performFieldSignature(
 ): Promise<unknown> {
   const { privateKey, client } = await getUnlockedWalletContext(request, password);
   const { message } = normalizeSignFieldsParams(request.params);
-  return client.signFields(message.map((value) => BigInt(value)), privateKey);
+
+  const signed = client.signFields(
+    message.map((value) => BigInt(value)),
+    privateKey,
+  ) as {
+    signature: string;
+    publicKey: string;
+    data: bigint[];
+  };
+
+  const normalized = {
+    ...signed,
+    data: signed.data.map((value) => value.toString()),
+  };
+  return normalized;
 }
 
 async function performJsonMessageSignature(
