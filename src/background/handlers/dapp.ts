@@ -12,6 +12,7 @@ import {
   DAPP_PENDING_APPROVAL_STORAGE_KEY,
   DAPP_PERMISSIONS_STORAGE_KEY,
   DAPP_PROVIDER_EVENT_MESSAGE,
+  STORED_CREDENTIALS_KEY,
   createDappError,
   DappAddChainParams,
   DappCreateNullifierParams,
@@ -25,6 +26,8 @@ import {
   DappSendStakeDelegationParams,
   DappSendTransactionParams,
   DappSignMessageParams,
+  DappRequestPresentationParams,
+  DappStorePrivateCredentialParams,
   DappSwitchChainParams,
   DappVerifyFieldsParams,
   DappVerifyMessageParams,
@@ -68,6 +71,15 @@ type PendingRequestState = {
   preview: DappPendingApproval;
   resolve: (response: DappRpcResponse) => void;
   timeoutId: ReturnType<typeof setTimeout>;
+};
+
+type StoredPrivateCredential = {
+  id: string;
+  walletId: string;
+  origin: string;
+  storedAt: number;
+  version: 1;
+  credential: unknown;
 };
 
 const pendingRequests = new Map<string, PendingRequestState>();
@@ -299,12 +311,33 @@ async function getActiveWallet(): Promise<WalletEntry> {
   return wallet;
 }
 
-async function getActiveSoftwareWallet(): Promise<WalletEntry> {
+function getLedgerUnsupportedMethodMessage(method: DappRpcMethod): string {
+  switch (method) {
+    case 'mina_signMessage':
+      return 'The current Mina Ledger app does not support message signing.';
+    case 'mina_signJsonMessage':
+      return 'The current Mina Ledger app does not support JSON message signing.';
+    case 'mina_signFields':
+      return 'The current Mina Ledger app does not support field signing.';
+    case 'mina_createNullifier':
+      return 'The current Mina Ledger app does not support nullifier creation.';
+    case 'mina_sendTransaction':
+      return 'The current Mina Ledger app does not support zkApp transaction signing.';
+    case 'mina_requestPresentation':
+      return 'Anonymous credential presentations are not supported on Ledger yet.';
+    default:
+      return 'Switch to a software wallet to use this zkApp method.';
+  }
+}
+
+async function getActiveSoftwareWallet(
+  method: DappRpcMethod,
+): Promise<WalletEntry> {
   const wallet = await getActiveWallet();
   if (wallet.type === 'ledger') {
     throw createDappError(
       DAPP_ERROR_CODES.unsupportedMethod,
-      'Switch to a software wallet to use zkApp signing in the MVP.',
+      getLedgerUnsupportedMethodMessage(method),
     );
   }
   return wallet;
@@ -500,6 +533,61 @@ function buildApprovalSummary(request: DappRpcPayload) {
     const params = request.params as DappSignJsonMessageParams | undefined;
     const message = Array.isArray(params?.message) ? params.message : [];
     return { entries: message.slice(0, 5) };
+  }
+
+  if (request.method === 'mina_storePrivateCredential') {
+    const params = normalizeStorePrivateCredentialParams(request.params);
+    const serialized = JSON.stringify(params.credential);
+    const preview =
+      isRecord(params.credential) && isRecord(params.credential.sourceData)
+        ? params.credential.sourceData
+        : params.credential;
+    const credentialJson =
+      isRecord(params.credential) && typeof params.credential.credential === 'string'
+        ? params.credential.credential
+        : null;
+    let owner: string | undefined;
+
+    if (credentialJson) {
+      try {
+        const parsed = JSON.parse(credentialJson);
+        if (
+          isRecord(parsed) &&
+          isRecord(parsed.credential) &&
+          isRecord(parsed.credential.owner) &&
+          typeof parsed.credential.owner.value === 'string'
+        ) {
+          owner = parsed.credential.owner.value;
+        }
+      } catch {
+        owner = undefined;
+      }
+    }
+
+    return {
+      message: JSON.stringify(preview, null, 2),
+      entries: [
+        { label: 'size', value: `${serialized.length} bytes` },
+        { label: 'owner', value: owner },
+      ].filter((entry) => entry.value !== undefined),
+    };
+  }
+
+  if (request.method === 'mina_requestPresentation') {
+    const params = normalizeRequestPresentationParams(request.params);
+    return {
+      entries: [
+        {
+          label: 'requestType',
+          value:
+            isRecord(params.presentation.presentationRequest) &&
+            typeof params.presentation.presentationRequest.type === 'string'
+              ? params.presentation.presentationRequest.type
+              : 'unknown',
+        },
+      ],
+      presentationRequest: params.presentation.presentationRequest,
+    };
   }
 
   if (request.method === 'mina_switchChain') {
@@ -961,6 +1049,70 @@ function normalizeSignJsonMessageParams(
   };
 }
 
+function normalizeStorePrivateCredentialParams(
+  params: unknown,
+): DappStorePrivateCredentialParams {
+  if (!isRecord(params) || !('credential' in params)) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected a credential payload to store.',
+    );
+  }
+
+  try {
+    const serialized = JSON.stringify(params.credential);
+    if (!serialized || serialized.length > 256 * 1024) {
+      throw new Error('Credential payload is too large.');
+    }
+  } catch (error) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      error instanceof Error
+        ? error.message
+        : 'Credential payload must be serializable.',
+    );
+  }
+
+  return {
+    credential: params.credential,
+  };
+}
+
+function normalizeRequestPresentationParams(
+  params: unknown,
+): DappRequestPresentationParams {
+  if (
+    !isRecord(params) ||
+    !isRecord(params.presentation) ||
+    !('presentationRequest' in params.presentation)
+  ) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      'Expected a presentation request payload.',
+    );
+  }
+
+  try {
+    const serialized = JSON.stringify(params.presentation.presentationRequest);
+    if (!serialized || serialized.length > 256 * 1024) {
+      throw new Error('Presentation request is too large.');
+    }
+  } catch (error) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      error instanceof Error
+        ? error.message
+        : 'Presentation request must be serializable.',
+    );
+  }
+
+  return {
+    presentation: {
+      presentationRequest: params.presentation.presentationRequest,
+    },
+  };
+}
+
 function normalizeSendPaymentParams(params: unknown): DappSendPaymentParams {
   if (!isRecord(params) || typeof params.to !== 'string') {
     throw createDappError(
@@ -1093,7 +1245,7 @@ async function performMessageSignature(
   password?: string,
 ): Promise<unknown> {
   const origin = normalizeOrigin(request.site.origin);
-  const wallet = await getActiveSoftwareWallet();
+  const wallet = await getActiveSoftwareWallet(request.method);
   await ensureApprovedOrigin(origin, wallet);
 
   if (!password) {
@@ -1207,6 +1359,33 @@ async function performCreateNullifier(
   );
 }
 
+async function performStorePrivateCredential(
+  request: DappRpcPayload,
+): Promise<{ id: string; storedAt: number; credential: unknown }> {
+  const origin = normalizeOrigin(request.site.origin);
+  const wallet = await getActiveWallet();
+  await ensureApprovedOrigin(origin, wallet);
+  const { credential } = normalizeStorePrivateCredentialParams(request.params);
+
+  const credentials =
+    (await storage.get<StoredPrivateCredential[]>(STORED_CREDENTIALS_KEY)) ?? [];
+
+  const id = crypto.randomUUID();
+  const storedAt = Date.now();
+
+  credentials.push({
+    id,
+    walletId: wallet.id,
+    origin,
+    storedAt,
+    version: 1,
+    credential,
+  });
+
+  await storage.set(STORED_CREDENTIALS_KEY, credentials);
+  return { id, storedAt, credential };
+}
+
 async function performAddChain(
   request: DappRpcPayload,
 ): Promise<{ networkID: string; name: string }> {
@@ -1269,7 +1448,7 @@ async function getUnlockedWalletContext(
   password?: string,
 ) {
   const origin = normalizeOrigin(request.site.origin);
-  const wallet = await getActiveSoftwareWallet();
+  const wallet = await getActiveSoftwareWallet(request.method);
   await ensureApprovedOrigin(origin, wallet);
 
   if (!password) {
@@ -1589,7 +1768,8 @@ async function resolveApproval(
     if (
       resultOverride !== undefined &&
       (pending.request.method === 'mina_sendPayment' ||
-        pending.request.method === 'mina_sendStakeDelegation')
+        pending.request.method === 'mina_sendStakeDelegation' ||
+        pending.request.method === 'mina_requestPresentation')
     ) {
       finalizePendingRequest(requestId, toResponse(resultOverride));
       return;
@@ -1617,6 +1797,14 @@ async function resolveApproval(
       case 'mina_createNullifier':
         result = await performCreateNullifier(pending.request, password);
         break;
+      case 'mina_storePrivateCredential':
+        result = await performStorePrivateCredential(pending.request);
+        break;
+      case 'mina_requestPresentation':
+        throw createDappError(
+          DAPP_ERROR_CODES.unsupportedMethod,
+          'Presentation generation must be completed in the approval UI.',
+        );
       case 'mina_sendTransaction':
         result = await performTransactionSignature(pending.request, password);
         break;
@@ -1709,14 +1897,14 @@ async function processDappRequest(
       return toResponse(await performFieldVerification(request));
 
     case 'mina_signFields': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveSoftwareWallet(request.method);
       normalizeSignFieldsParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }
 
     case 'mina_signJsonMessage': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveSoftwareWallet(request.method);
       normalizeSignJsonMessageParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
@@ -1764,21 +1952,35 @@ async function processDappRequest(
     }
 
     case 'mina_signMessage': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveSoftwareWallet(request.method);
       normalizeSignMessageParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }
 
     case 'mina_createNullifier': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveSoftwareWallet(request.method);
       normalizeCreateNullifierParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }
 
+    case 'mina_storePrivateCredential': {
+      const wallet = await getActiveWallet();
+      normalizeStorePrivateCredentialParams(request.params);
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
+
+    case 'mina_requestPresentation': {
+      const wallet = await getActiveSoftwareWallet(request.method);
+      normalizeRequestPresentationParams(request.params);
+      await ensureApprovedOrigin(siteOrigin, wallet);
+      return enqueueApproval(request, wallet);
+    }
+
     case 'mina_sendTransaction': {
-      const wallet = await getActiveSoftwareWallet();
+      const wallet = await getActiveSoftwareWallet(request.method);
       normalizeSendTransactionParams(request.params);
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);

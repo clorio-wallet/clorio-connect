@@ -2,6 +2,7 @@ export const DAPP_BRIDGE_CHANNEL = 'clorio:mina';
 export const DAPP_PENDING_APPROVAL_STORAGE_KEY = 'clorio_dapp_pending_approval';
 export const DAPP_PERMISSIONS_STORAGE_KEY = 'clorio_dapp_permissions';
 export const DAPP_NETWORK_ID_STORAGE_KEY = 'clorio_dapp_network_id';
+export const STORED_CREDENTIALS_KEY = 'clorio_stored_credentials';
 export const DAPP_APPROVAL_REQUESTED_MESSAGE = 'DAPP_APPROVAL_REQUESTED';
 export const DAPP_PROVIDER_EVENT_MESSAGE = 'DAPP_PROVIDER_EVENT';
 
@@ -23,6 +24,8 @@ export type DappRpcMethod =
   | 'mina_signMessage'
   | 'mina_sendTransaction'
   | 'mina_createNullifier'
+  | 'mina_storePrivateCredential'
+  | 'mina_requestPresentation'
   | 'mina_getWalletInfo'
   | 'mina_revokePermissions'
   | 'wallet_info'
@@ -71,6 +74,7 @@ export interface DappApprovalSummary {
   networkID?: string;
   name?: string;
   url?: string;
+  presentationRequest?: unknown;
 }
 
 export interface DappApprovalAccount {
@@ -168,6 +172,16 @@ export interface DappCreateNullifierParams {
   message: Array<string | number>;
 }
 
+export interface DappStorePrivateCredentialParams {
+  credential: unknown;
+}
+
+export interface DappRequestPresentationParams {
+  presentation: {
+    presentationRequest: unknown;
+  };
+}
+
 export interface DappBridgeRequest {
   channel: typeof DAPP_BRIDGE_CHANNEL;
   direction: 'request';
@@ -241,6 +255,10 @@ export function getDappMethodLabel(method: DappRpcMethod): string {
       return 'Sign zkApp transaction';
     case 'mina_createNullifier':
       return 'Create nullifier';
+    case 'mina_storePrivateCredential':
+      return 'Store credential';
+    case 'mina_requestPresentation':
+      return 'Request presentation';
     case 'mina_getWalletInfo':
       return 'Read wallet info';
     case 'mina_revokePermissions':

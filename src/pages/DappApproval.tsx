@@ -5,6 +5,7 @@ import { Globe, PenSquare, ShieldCheck, Wallet } from 'lucide-react';
 import type { DappPendingApproval, DappRpcMethod } from '@/lib/dapp';
 import type {
   DappGetPendingApprovalResponse,
+  GetPrivateKeyResponse,
   DappResolvePendingApprovalResponse,
 } from '@/messages/types';
 
@@ -27,8 +28,9 @@ import { useNetworkStore } from '@/stores/network-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { VaultManager } from '@/lib/vault-manager';
 import { formatAddress } from '@/lib/utils';
-import { sessionStorage } from '@/lib/storage';
+import { sessionStorage, storage } from '@/lib/storage';
 import { getAccountNonce } from '@/api/mina/transactions';
+import { STORED_CREDENTIALS_KEY } from '@/lib/dapp';
 
 const DEFAULT_PAYMENT_FEE = '0.1';
 
@@ -36,7 +38,8 @@ function requiresApprovalPassword(method: DappRpcMethod): boolean {
   return (
     method !== 'mina_requestAccounts' &&
     method !== 'mina_switchChain' &&
-    method !== 'mina_addChain'
+    method !== 'mina_addChain' &&
+    method !== 'mina_storePrivateCredential'
   );
 }
 
@@ -84,6 +87,10 @@ function getRequestTitle(method: DappRpcMethod): string {
       return 'Approve network switch';
     case 'mina_addChain':
       return 'Approve add network';
+    case 'mina_storePrivateCredential':
+      return 'Approve credential storage';
+    case 'mina_requestPresentation':
+      return 'Approve anonymous login';
     default:
       return 'Approve zkApp request';
   }
@@ -98,19 +105,23 @@ function getRequestDescription(method: DappRpcMethod): string {
     case 'mina_sendStakeDelegation':
       return 'Review the delegation before Clorio signs and broadcasts it in the background service.';
     case 'mina_signMessage':
-      return 'Review the message before allowing the site to use your wallet.';
+      return 'Review the message before allowing the site to use your wallet. Ledger is not supported for this method yet.';
     case 'mina_sendTransaction':
-      return 'Review the zkApp transaction summary before signing it in the background service.';
+      return 'Review the zkApp transaction summary before signing it in the background service. Ledger is not supported for this method yet.';
     case 'mina_signFields':
-      return 'This site wants to sign an array of fields with your private key. Review the data before approving.';
+      return 'This site wants to sign an array of fields with your private key. Ledger is not supported for this method yet.';
     case 'mina_createNullifier':
-      return 'This site wants to create a nullifier from your private key and the provided fields. Review the data before approving.';
+      return 'This site wants to create a nullifier from your private key and the provided fields. Ledger is not supported for this method yet.';
     case 'mina_signJsonMessage':
-      return 'This site wants to sign a JSON message with your private key. Review the data before approving.';
+      return 'This site wants to sign a JSON message with your private key. Ledger is not supported for this method yet.';
     case 'mina_switchChain':
       return 'This site wants to switch your active network. Confirm the target network before approving.';
     case 'mina_addChain':
       return 'This site wants to add a custom network and switch your active network.';
+    case 'mina_storePrivateCredential':
+      return 'This site wants to store a credential in your wallet for the active account.';
+    case 'mina_requestPresentation':
+      return 'This site wants to generate a presentation from a stored credential. Ledger is not supported for this method yet.';
     default:
       return 'Review the request details before continuing.';
   }
@@ -427,6 +438,114 @@ const DappApprovalPage: React.FC = () => {
         return;
       }
 
+      if (approve && pendingRequest.method === 'mina_requestPresentation') {
+        if (!password.trim()) {
+          setErrorMessage('Enter your password to approve this request.');
+          return;
+        }
+
+        if (!pendingRequest.summary?.presentationRequest) {
+          setErrorMessage('Missing presentation request payload.');
+          return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage(null);
+
+        try {
+          const storedCredentials =
+            (await storage.get<
+              Array<{
+                id: string;
+                walletId: string;
+                origin: string;
+                storedAt: number;
+                version: 1;
+                credential: unknown;
+              }>
+            >(STORED_CREDENTIALS_KEY)) ?? [];
+
+          const matchingCredentials = storedCredentials.filter(
+            (credential) =>
+              credential.walletId === pendingRequest.account.walletId &&
+              credential.origin === pendingRequest.site.origin,
+          );
+
+          if (matchingCredentials.length === 0) {
+            throw new Error('No stored credential was found for this site and wallet.');
+          }
+
+          const privateKeyResponse = (await chrome.runtime.sendMessage({
+            type: 'GET_PRIVATE_KEY',
+            payload: {
+              password,
+              walletId: pendingRequest.account.walletId,
+            },
+          })) as GetPrivateKeyResponse;
+
+          if (!privateKeyResponse?.privateKey) {
+            throw new Error(privateKeyResponse?.error || 'Failed to load private key.');
+          }
+
+          const [{ Credential, Presentation, PresentationRequest }, { PrivateKey }] =
+            await Promise.all([
+              import('mina-attestations'),
+              import('o1js'),
+            ]);
+
+          const requestType =
+            typeof (pendingRequest.summary.presentationRequest as { type?: unknown })
+              ?.type === 'string'
+              ? ((pendingRequest.summary.presentationRequest as { type: 'https' | 'zk-app' | 'no-context' }).type)
+              : 'https';
+
+          const request = PresentationRequest.fromJSON(
+            requestType,
+            JSON.stringify(pendingRequest.summary.presentationRequest),
+          );
+
+          const credentials = await Promise.all(
+            matchingCredentials.map(async (entry) =>
+              Credential.fromJSON(JSON.stringify(entry.credential)),
+            ),
+          );
+
+          const presentation = await Presentation.create(
+            PrivateKey.fromBase58(privateKeyResponse.privateKey),
+            {
+              request,
+              credentials,
+              context: { verifierIdentity: pendingRequest.site.origin },
+            },
+          );
+
+          const response = (await chrome.runtime.sendMessage({
+            type: 'DAPP_RESOLVE_PENDING_APPROVAL',
+            payload: {
+              requestId: pendingRequest.requestId,
+              approve: true,
+              result: {
+                presentation: Presentation.toJSON(presentation),
+              },
+            },
+          })) as DappResolvePendingApprovalResponse;
+
+          if (!response?.ok) {
+            throw new Error(response?.error || 'Failed to resolve the request.');
+          }
+
+          await loadPendingRequest();
+          setPassword('');
+        } catch (error) {
+          setErrorMessage(
+            error instanceof Error ? error.message : 'Failed to resolve request.',
+          );
+        } finally {
+          setIsSubmitting(false);
+        }
+        return;
+      }
+
       if (
         approve &&
         requiresPassword &&
@@ -474,6 +593,7 @@ const DappApprovalPage: React.FC = () => {
       password,
       pendingRequest,
       requiresPassword,
+      storage,
       signDelegation,
       signPayment,
     ],
@@ -526,6 +646,14 @@ const DappApprovalPage: React.FC = () => {
 
     if (Array.isArray(pendingRequest.summary.fields)) {
       lines.push(`fields: ${pendingRequest.summary.fields.join(', ')}`);
+    }
+
+    if (Array.isArray(pendingRequest.summary.entries)) {
+      pendingRequest.summary.entries.forEach((entry) => {
+        if (entry.label && entry.value) {
+          lines.push(`${entry.label}: ${entry.value}`);
+        }
+      });
     }
 
     return lines;

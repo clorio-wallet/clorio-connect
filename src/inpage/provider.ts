@@ -12,6 +12,8 @@ import type {
   DappSignFieldsParams,
   DappSignJsonMessageParams,
   DappSignMessageParams,
+  DappRequestPresentationParams,
+  DappStorePrivateCredentialParams,
   DappSwitchChainParams,
   DappVerifyFieldsParams,
   DappVerifyMessageParams,
@@ -226,6 +228,28 @@ class ClorioMinaProvider {
 
   async createNullifier(params: DappCreateNullifierParams): Promise<unknown> {
     return this.sendRequest('mina_createNullifier', params);
+  }
+
+  async storePrivateCredential(
+    params: DappStorePrivateCredentialParams,
+  ): Promise<{ id: string; storedAt: number; credential: unknown }> {
+    const result = (await this.sendRequest(
+      'mina_storePrivateCredential',
+      params,
+    )) as {
+      id: string;
+      storedAt: number;
+      credential: unknown;
+    };
+    return result;
+  }
+
+  async requestPresentation(
+    params: DappRequestPresentationParams,
+  ): Promise<{ presentation: string }> {
+    return this.sendRequest('mina_requestPresentation', params) as Promise<{
+      presentation: string;
+    }>;
   }
 
   async getWalletInfo(): Promise<unknown> {
