@@ -569,6 +569,13 @@ const DappApprovalPage: React.FC = () => {
         })) as DappResolvePendingApprovalResponse;
 
         if (!response?.ok) {
+          if (response?.isRetryable) {
+            setErrorMessage(
+              response.error || 'Incorrect password. Please try again.',
+            );
+            setIsSubmitting(false);
+            return;
+          }
           throw new Error(response?.error || 'Failed to resolve the request.');
         }
 

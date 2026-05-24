@@ -257,4 +257,5 @@ export interface DappGetPendingApprovalResponse {
 export interface DappResolvePendingApprovalResponse {
   ok: boolean;
   error?: string;
+  isRetryable?: boolean;
 }

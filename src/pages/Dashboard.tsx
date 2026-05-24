@@ -44,7 +44,7 @@ const DashboardPage: React.FC = () => {
         />
         <WalletActions
           onReceiveClick={() => setIsReceiveSheetOpen(true)}
-          disabled={displayLoading || !publicKey}
+          disabled={!publicKey}
         />
       </div>
 

@@ -1829,6 +1829,14 @@ async function resolveApproval(
     finalizePendingRequest(requestId, toResponse(result));
   } catch (error) {
     const dappError = asDappError(error);
+
+    if (
+      dappError.code === DAPP_ERROR_CODES.walletLocked ||
+      dappError.message.includes('incorrect password')
+    ) {
+      throw error;
+    }
+
     finalizePendingRequest(requestId, toErrorResponse(dappError));
     throw new Error(dappError.message);
   }
@@ -2034,10 +2042,16 @@ export async function handleResolveDappApproval(
     );
     sendResponse({ ok: true });
   } catch (error) {
+    const isRetryable =
+      error instanceof Error &&
+      (error.message.includes('incorrect password') ||
+        error.message.includes('Failed to decrypt wallet'));
+
     sendResponse({
       ok: false,
       error:
         error instanceof Error ? error.message : 'Failed to resolve request.',
+      isRetryable,
     });
   }
 }
