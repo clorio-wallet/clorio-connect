@@ -221,8 +221,6 @@ async function openSidePanel(): Promise<void> {
 }
 
 async function switchMode(next: UiMode): Promise<void> {
-  console.log(`[sidepanel] Switching to mode: ${next}`);
-
   await storeMode(next);
   await new Promise((resolve) => setTimeout(resolve, 50));
   await broadcastCloseView();
@@ -233,8 +231,6 @@ async function switchMode(next: UiMode): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     await openSidePanel();
   }
-
-  console.log(`[sidepanel] Mode switch complete: ${next}`);
 }
 
 chrome.runtime.onInstalled.addListener(async (details) => {

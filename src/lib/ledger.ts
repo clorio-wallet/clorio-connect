@@ -211,7 +211,6 @@ async function getTransport(): Promise<Transport | null> {
 
     // Listen for disconnect so we can clean up our singletons.
     transport.on('disconnect', () => {
-      console.log('[ledger] Transport disconnected');
       _transport = null;
       _app = null;
     });
@@ -335,15 +334,11 @@ async function getApp(): Promise<{
 export async function requestLedgerPermission(): Promise<boolean> {
   if (_transport !== null) return true;
 
-  console.log('[ledger] Requesting USB permission (TransportWebUSB.create)...');
-
   const transport = await getTransport();
   if (!transport) {
     console.warn('[ledger] USB permission not granted or device not found');
     return false;
   }
-
-  console.log('[ledger] USB permission granted, transport ready');
   return true;
 }
 
@@ -356,13 +351,6 @@ export async function requestLedgerPermission(): Promise<boolean> {
  * if the user hasn't granted access yet.
  */
 export async function checkLedgerStatus(): Promise<LedgerConnectionResult> {
-  console.log(
-    '[ledger] checkLedgerStatus — transport:',
-    _transport ? 'present' : 'null',
-    '| app:',
-    _app ? 'present' : 'null',
-  );
-
   // If we already have a healthy transport + app, ping to confirm liveness.
   if (_transport !== null && _app !== null) {
     try {
@@ -384,7 +372,6 @@ export async function checkLedgerStatus(): Promise<LedgerConnectionResult> {
       if (timer) clearTimeout(timer);
 
       if (!ping.timeout && isSuccess(ping.returnCode) && ping.name === 'Mina') {
-        console.log('[ledger] checkLedgerStatus → READY (existing app OK)');
         return { status: LedgerStatus.READY, app: _app };
       }
 
@@ -417,7 +404,6 @@ export async function checkLedgerStatus(): Promise<LedgerConnectionResult> {
   const { app } = await getApp();
 
   if (app) {
-    console.log('[ledger] checkLedgerStatus → READY');
     return { status: LedgerStatus.READY, app };
   }
 
@@ -441,17 +427,9 @@ export async function getLedgerAddress(
   app: MinaLedgerJS,
   accountIndex: number,
 ): Promise<LedgerAddressResult> {
-  console.log('[ledger] getLedgerAddress — accountIndex:', accountIndex);
   try {
     const { publicKey, returnCode, statusText } =
       await app.getAddress(accountIndex);
-
-    console.log(
-      '[ledger] getLedgerAddress — returnCode:',
-      returnCode,
-      '| publicKey:',
-      publicKey ? publicKey.slice(0, 12) + '…' : 'null',
-    );
 
     if (returnCode === ReturnCode.USER_REJECTED) {
       return {
@@ -673,6 +651,5 @@ export async function signLedgerDelegation(
  * all Ledger operations.
  */
 export async function disconnectLedger(): Promise<void> {
-  console.log('[ledger] disconnectLedger — cleaning up');
   await resetConnection();
 }

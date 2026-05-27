@@ -46,7 +46,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleMessage = (message: { type?: string }) => {
       if (message?.type === 'CLOSE_VIEW' && !isClosingRef.current) {
-        console.log('[App] CLOSE_VIEW received — closing window');
         isClosingRef.current = true;
         window.close();
       }

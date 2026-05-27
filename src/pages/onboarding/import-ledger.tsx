@@ -24,6 +24,7 @@ import { VaultManager } from '@/lib/vault-manager';
 import { sessionStorage } from '@/lib/storage';
 import { useSettingsStore } from '@/stores/settings-store';
 import { BIP44Service } from '@/lib/bip44';
+import { captureEvent, captureException, identifyUser } from '@/lib/analytics';
 
 type Step = 'connect' | 'confirm' | 'done';
 
@@ -74,23 +75,12 @@ export function ImportLedgerPage() {
   }, [resolvedPassword, t, toast]);
 
   const handleConnect = React.useCallback(async () => {
-    console.log('[import-ledger] handleConnect — START');
     try {
       const result = await connect();
-      console.log(
-        '[import-ledger] handleConnect — connect() returned:',
-        result.status,
-        '| app:',
-        result.app ? 'present' : 'null',
-      );
       if (result.status === LedgerStatus.READY) {
-        console.log(
-          '[import-ledger] handleConnect — status is READY, transitioning to "confirm" step',
-        );
         setStep('confirm');
 
         // Reopen the extension after successful connection
-        console.log('[import-ledger] handleConnect — reopening extension');
         await new Promise<void>((resolve) => {
           chrome.runtime.sendMessage({ type: 'OPEN_EXTENSION' }, () =>
             resolve(),
@@ -108,10 +98,8 @@ export function ImportLedgerPage() {
   }, [connect]);
 
   const handleCheckStatus = React.useCallback(async () => {
-    console.log('[import-ledger] handleCheckStatus — START');
     try {
       const result = await checkStatus();
-      console.log('[import-ledger] handleCheckStatus — result:', result.status);
       if (result.status === LedgerStatus.READY) {
         setStep('confirm');
       }
@@ -122,19 +110,11 @@ export function ImportLedgerPage() {
 
   const handleImport = React.useCallback(async () => {
     const index = Math.max(0, Math.floor(accountIndex));
-    console.log('[import-ledger] handleImport — START, accountIndex:', index);
     setImportError(null);
 
     let result: Awaited<ReturnType<typeof importAddress>>;
     try {
       result = await importAddress(index);
-      console.log('[import-ledger] handleImport — importAddress returned:', {
-        publicKey: result.publicKey
-          ? result.publicKey.slice(0, 12) + '…'
-          : 'null',
-        rejected: result.rejected,
-        error: result.error,
-      });
     } catch (err) {
       console.error('[import-ledger] handleImport — importAddress threw:', err);
       setImportError(
@@ -165,11 +145,6 @@ export function ImportLedgerPage() {
       );
       return;
     }
-
-    console.log(
-      '[import-ledger] handleImport — SUCCESS, publicKey:',
-      result.publicKey!.slice(0, 12) + '…',
-    );
     setImportedKey(result.publicKey);
     setStep('done');
   }, [accountIndex, importAddress, t]);
@@ -181,12 +156,6 @@ export function ImportLedgerPage() {
   }, []);
 
   const handleSave = React.useCallback(async () => {
-    console.log(
-      '[import-ledger] handleSave — START, importedKey:',
-      importedKey ? importedKey.slice(0, 12) + '…' : 'null',
-      '| tempPassword:',
-      tempPassword ? 'present' : 'null',
-    );
     if (!importedKey) {
       console.warn('[import-ledger] handleSave — no importedKey, aborting');
       return;
@@ -200,12 +169,6 @@ export function ImportLedgerPage() {
 
     try {
       const finalAccountName = accountName.trim() || DEFAULT_ACCOUNT_NAME;
-      console.log(
-        '[import-ledger] handleSave — creating vault v2 for:',
-        finalAccountName,
-        '| accountIndex:',
-        accountIndex,
-      );
 
       const derivationPath = BIP44Service.getDerivationPath(accountIndex);
       const walletData = {
@@ -227,19 +190,11 @@ export function ImportLedgerPage() {
             setAsActive: true,
           },
         );
-        console.log(
-          '[import-ledger] handleSave — wallet added to existing vault, wallet ID:',
-          walletId,
-        );
         await loadWallets();
         wallet = await VaultManager.getWalletById(walletId);
       } else {
         const vault = await VaultManager.createVault(vaultPassword, walletData);
         wallet = vault.wallets[0];
-        console.log(
-          '[import-ledger] handleSave — vault v2 created, wallet ID:',
-          wallet.id,
-        );
         await loadWallets();
       }
 
@@ -266,7 +221,10 @@ export function ImportLedgerPage() {
         });
       }
 
-      console.log('[import-ledger] handleSave — wallet saved successfully');
+      identifyUser(wallet.publicKey, { wallet_type: 'ledger' });
+      captureEvent(wallet.publicKey, 'ledger wallet imported', {
+        account_index: accountIndex,
+      });
 
       toast({
         variant: 'success',
@@ -282,10 +240,8 @@ export function ImportLedgerPage() {
           await chrome.sidePanel.open({
             windowId: chrome.windows.WINDOW_ID_CURRENT,
           });
-          console.log('[import-ledger] handleSave — sidePanel opened');
         } else if (chrome.action?.openPopup) {
           await chrome.action.openPopup();
-          console.log('[import-ledger] handleSave — popup opened');
         }
       } catch (err) {
         console.warn(
@@ -296,6 +252,7 @@ export function ImportLedgerPage() {
       }
       window.close();
     } catch (err) {
+      captureException(err, 'anonymous');
       console.error('[import-ledger] handleSave — FAILED:', err);
       toast({
         variant: 'destructive',

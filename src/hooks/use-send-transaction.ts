@@ -15,6 +15,7 @@ import {
   NetworkId,
 } from '@/lib/ledger';
 import type { SignPaymentMessage, SignPaymentResponse } from '@/messages/types';
+import { captureEvent, captureException } from '@/lib/analytics';
 
 export interface BroadcastResult {
   kind: 'broadcast';
@@ -204,15 +205,9 @@ export function useSendTransaction() {
 
     const signatureObj = (response as SignPaymentResponse).signature;
 
-    console.log('[useSendTransaction] Received signature:', {
-      field: signatureObj.field,
-      scalar: signatureObj.scalar,
-    });
-
     if (FEATURES.DRY_RUN_SEND_TX) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const mockTx = mockBroadcastResult(payment.fee, payment.amount);
-      console.log('[useSendTransaction] [DRY RUN] Mock tx hash:', mockTx.hash);
       toast({
         variant: 'success',
         title: t('common.success'),
@@ -271,10 +266,21 @@ export function useSendTransaction() {
   ): Promise<SendTransactionResult> => {
     setLoading(true);
     try {
-      if (accountType === 'ledger') {
-        return await sendWithLedger(formData);
+      const result =
+        accountType === 'ledger'
+          ? await sendWithLedger(formData)
+          : await sendWithSoftware(formData, password);
+      if (publicKey) {
+        captureEvent(publicKey, 'transaction sent', {
+          wallet_type: accountType,
+          fee: result.fee,
+          amount: result.amount,
+        });
       }
-      return await sendWithSoftware(formData, password);
+      return result;
+    } catch (err) {
+      if (publicKey) captureException(err, publicKey);
+      throw err;
     } finally {
       setLoading(false);
     }

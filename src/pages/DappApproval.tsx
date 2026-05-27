@@ -31,6 +31,7 @@ import { formatAddress } from '@/lib/utils';
 import { sessionStorage, storage } from '@/lib/storage';
 import { getAccountNonce } from '@/api/mina/transactions';
 import { STORED_CREDENTIALS_KEY } from '@/lib/dapp';
+import { captureEvent } from '@/lib/analytics';
 
 const DEFAULT_PAYMENT_FEE = '0.1';
 
@@ -63,6 +64,26 @@ function decodeLedgerSignature(signatureHex: string): {
     field: signatureHex.slice(0, 64),
     scalar: signatureHex.slice(64, 128),
   };
+}
+
+function getSafeSiteIconUrl(
+  iconUrl: string | undefined,
+  siteOrigin: string,
+): string | null {
+  if (!iconUrl) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(iconUrl, siteOrigin);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return null;
+    }
+
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 function getRequestTitle(method: DappRpcMethod): string {
@@ -129,14 +150,12 @@ function getRequestDescription(method: DappRpcMethod): string {
 
 const DappApprovalPage: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    isAuthenticated,
-    setHasVault,
-    setIsAuthenticated,
-    restoreSession,
-  } = useSessionStore();
+  const { isAuthenticated, setHasVault, setIsAuthenticated, restoreSession } =
+    useSessionStore();
   const { loadWallets, publicKey } = useWalletStore();
-  const ledgerAccountIndex = useWalletStore((state) => state.ledgerAccountIndex);
+  const ledgerAccountIndex = useWalletStore(
+    (state) => state.ledgerAccountIndex,
+  );
   const networkId = useSettingsStore((state) => state.networkId);
   const apiUrl = useNetworkStore((state) => state.networks[networkId]?.apiUrl);
   const {
@@ -325,7 +344,9 @@ const DappApprovalPage: React.FC = () => {
                     fee: String(signed.payload?.fee ?? ''),
                     nonce: String(signed.payload?.nonce ?? nonce),
                     memo: signed.payload?.memo ?? '',
-                    validUntil: String(signed.payload?.validUntil ?? 4294967295),
+                    validUntil: String(
+                      signed.payload?.validUntil ?? 4294967295,
+                    ),
                   },
                   signature,
                   rawSignature: signed.signature,
@@ -390,7 +411,9 @@ const DappApprovalPage: React.FC = () => {
                     fee: String(signed.payload?.fee ?? ''),
                     nonce: String(signed.payload?.nonce ?? nonce),
                     memo: signed.payload?.memo ?? '',
-                    validUntil: String(signed.payload?.validUntil ?? 4294967295),
+                    validUntil: String(
+                      signed.payload?.validUntil ?? 4294967295,
+                    ),
                   },
                   signature,
                   rawSignature: signed.signature,
@@ -423,14 +446,27 @@ const DappApprovalPage: React.FC = () => {
           })) as DappResolvePendingApprovalResponse;
 
           if (!response?.ok) {
-            throw new Error(response?.error || 'Failed to resolve the request.');
+            throw new Error(
+              response?.error || 'Failed to resolve the request.',
+            );
           }
+
+          captureEvent(
+            pendingRequest.account.publicKey,
+            'dapp request approved',
+            {
+              method: pendingRequest.method,
+              site_origin: pendingRequest.site.origin,
+            },
+          );
 
           await loadPendingRequest();
           setPassword('');
         } catch (error) {
           setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to resolve request.',
+            error instanceof Error
+              ? error.message
+              : 'Failed to resolve request.',
           );
         } finally {
           setIsSubmitting(false);
@@ -472,7 +508,9 @@ const DappApprovalPage: React.FC = () => {
           );
 
           if (matchingCredentials.length === 0) {
-            throw new Error('No stored credential was found for this site and wallet.');
+            throw new Error(
+              'No stored credential was found for this site and wallet.',
+            );
           }
 
           const privateKeyResponse = (await chrome.runtime.sendMessage({
@@ -484,19 +522,25 @@ const DappApprovalPage: React.FC = () => {
           })) as GetPrivateKeyResponse;
 
           if (!privateKeyResponse?.privateKey) {
-            throw new Error(privateKeyResponse?.error || 'Failed to load private key.');
+            throw new Error(
+              privateKeyResponse?.error || 'Failed to load private key.',
+            );
           }
 
-          const [{ Credential, Presentation, PresentationRequest }, { PrivateKey }] =
-            await Promise.all([
-              import('mina-attestations'),
-              import('o1js'),
-            ]);
+          const [
+            { Credential, Presentation, PresentationRequest },
+            { PrivateKey },
+          ] = await Promise.all([import('mina-attestations'), import('o1js')]);
 
           const requestType =
-            typeof (pendingRequest.summary.presentationRequest as { type?: unknown })
-              ?.type === 'string'
-              ? ((pendingRequest.summary.presentationRequest as { type: 'https' | 'zk-app' | 'no-context' }).type)
+            typeof (
+              pendingRequest.summary.presentationRequest as { type?: unknown }
+            )?.type === 'string'
+              ? (
+                  pendingRequest.summary.presentationRequest as {
+                    type: 'https' | 'zk-app' | 'no-context';
+                  }
+                ).type
               : 'https';
 
           const request = PresentationRequest.fromJSON(
@@ -531,14 +575,27 @@ const DappApprovalPage: React.FC = () => {
           })) as DappResolvePendingApprovalResponse;
 
           if (!response?.ok) {
-            throw new Error(response?.error || 'Failed to resolve the request.');
+            throw new Error(
+              response?.error || 'Failed to resolve the request.',
+            );
           }
+
+          captureEvent(
+            pendingRequest.account.publicKey,
+            'dapp request approved',
+            {
+              method: pendingRequest.method,
+              site_origin: pendingRequest.site.origin,
+            },
+          );
 
           await loadPendingRequest();
           setPassword('');
         } catch (error) {
           setErrorMessage(
-            error instanceof Error ? error.message : 'Failed to resolve request.',
+            error instanceof Error
+              ? error.message
+              : 'Failed to resolve request.',
           );
         } finally {
           setIsSubmitting(false);
@@ -546,11 +603,7 @@ const DappApprovalPage: React.FC = () => {
         return;
       }
 
-      if (
-        approve &&
-        requiresPassword &&
-        password.trim().length === 0
-      ) {
+      if (approve && requiresPassword && password.trim().length === 0) {
         setErrorMessage('Enter your password to approve this request.');
         return;
       }
@@ -578,6 +631,15 @@ const DappApprovalPage: React.FC = () => {
           }
           throw new Error(response?.error || 'Failed to resolve the request.');
         }
+
+        captureEvent(
+          pendingRequest.account.publicKey,
+          approve ? 'dapp request approved' : 'dapp request rejected',
+          {
+            method: pendingRequest.method,
+            site_origin: pendingRequest.site.origin,
+          },
+        );
 
         await loadPendingRequest();
         setPassword('');
@@ -614,7 +676,8 @@ const DappApprovalPage: React.FC = () => {
     const lines: string[] = [];
     const fallbackFee =
       pendingRequest.method === 'mina_sendPayment' &&
-      (pendingRequest.summary.fee === undefined || pendingRequest.summary.fee === null)
+      (pendingRequest.summary.fee === undefined ||
+        pendingRequest.summary.fee === null)
         ? DEFAULT_PAYMENT_FEE
         : pendingRequest.summary.fee;
 
@@ -665,6 +728,17 @@ const DappApprovalPage: React.FC = () => {
 
     return lines;
   }, [pendingRequest]);
+
+  const safeSiteIconUrl = useMemo(
+    () =>
+      pendingRequest
+        ? getSafeSiteIconUrl(
+            pendingRequest.site.iconUrl,
+            pendingRequest.site.origin,
+          )
+        : null,
+    [pendingRequest],
+  );
 
   if (isLoading) {
     return (
@@ -751,9 +825,9 @@ const DappApprovalPage: React.FC = () => {
       <Card className="w-full max-w-xl shadow-lg">
         <CardHeader>
           <div className="flex items-start gap-3">
-            {pendingRequest.site.iconUrl ? (
+            {safeSiteIconUrl ? (
               <img
-                src={pendingRequest.site.iconUrl}
+                src={safeSiteIconUrl}
                 alt=""
                 className="mt-1 h-10 w-10 rounded-lg border bg-background object-contain p-1"
               />
@@ -868,10 +942,7 @@ const DappApprovalPage: React.FC = () => {
           <Button
             className="flex-1"
             onClick={() => void handleDecision(true)}
-            disabled={
-              isSubmitting ||
-              (requiresPassword && !password)
-            }
+            disabled={isSubmitting || (requiresPassword && !password)}
           >
             {isSubmitting || isLedgerChecking || isLedgerSigning
               ? isLedgerChecking

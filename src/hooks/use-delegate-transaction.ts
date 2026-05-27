@@ -20,6 +20,7 @@ import type {
   SignDelegationMessage,
   SignDelegationResponse,
 } from '@/messages/types';
+import { captureEvent, captureException } from '@/lib/analytics';
 
 const DELEGATION_FEE_MINA = '0.012';
 
@@ -165,14 +166,6 @@ export function useDelegateTransaction() {
       memo: '',
     };
 
-    console.log('[useDelegateTransaction] Preparing stake delegation:', {
-      from: delegation.from,
-      to: delegation.to,
-      fee: delegation.fee,
-      nonce: delegation.nonce,
-      memo: delegation.memo,
-    });
-
     const message: SignDelegationMessage = {
       type: 'SIGN_DELEGATION',
       payload: { delegation, password },
@@ -194,11 +187,6 @@ export function useDelegateTransaction() {
 
     const signatureObj = (response as SignDelegationResponse).signature;
 
-    console.log('[useDelegateTransaction] Received signature:', {
-      field: signatureObj.field,
-      scalar: signatureObj.scalar,
-    });
-
     if (FEATURES.DRY_RUN_SEND_TX) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const mockHash =
@@ -207,7 +195,6 @@ export function useDelegateTransaction() {
           .fill(0)
           .map(() => Math.floor(Math.random() * 16).toString(16))
           .join('');
-      console.log('[useDelegateTransaction] [DRY RUN] Mock tx hash:', mockHash);
       toast({
         variant: 'success',
         title: t('common.success'),
@@ -256,10 +243,20 @@ export function useDelegateTransaction() {
   ): Promise<DelegateTransactionResult> => {
     setLoading(true);
     try {
-      if (accountType === 'ledger') {
-        return await delegateWithLedger(validatorPublicKey);
+      const result =
+        accountType === 'ledger'
+          ? await delegateWithLedger(validatorPublicKey)
+          : await delegateWithSoftware(validatorPublicKey, password);
+      if (publicKey) {
+        captureEvent(publicKey, 'delegation updated', {
+          wallet_type: accountType,
+          validator: validatorPublicKey,
+        });
       }
-      return await delegateWithSoftware(validatorPublicKey, password);
+      return result;
+    } catch (err) {
+      if (publicKey) captureException(err, publicKey);
+      throw err;
     } finally {
       setLoading(false);
     }

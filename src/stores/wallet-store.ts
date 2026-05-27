@@ -126,16 +126,6 @@ export const useWalletStore = create<WalletState>()(
       // Update wallet name
       updateWalletName: async (walletId: string, name: string) => {
         try {
-          console.log('[wallet-store] updateWalletName called with:', {
-            walletId,
-            name,
-            activeWalletId: get().activeWalletId,
-            walletsInStore: get().wallets.map((w) => ({
-              id: w.id,
-              name: w.name,
-            })),
-          });
-
           await VaultManager.updateWalletName(walletId, name);
 
           // Update in cache
@@ -149,8 +139,6 @@ export const useWalletStore = create<WalletState>()(
           if (get().activeWalletId === walletId) {
             set({ accountName: name });
           }
-
-          console.log('[wallet-store] Wallet name updated successfully');
         } catch (error) {
           console.error('[wallet-store] Failed to update wallet name:', error);
           console.error('[wallet-store] WalletId that failed:', walletId);

@@ -74,7 +74,6 @@ export function useLedger() {
    */
   const keepalive = useCallback(
     (action: 'LEDGER_KEEPALIVE_START' | 'LEDGER_KEEPALIVE_END') => {
-      console.log(`${TAG} keepalive → ${action}`);
       try {
         chrome.runtime.sendMessage({ type: action });
       } catch {
@@ -95,12 +94,10 @@ export function useLedger() {
    * Returns the connection result with status and app instance.
    */
   const connect = useCallback(async (): Promise<LedgerConnectionResult> => {
-    console.log(`${TAG} connect() — START`);
     setState((s) => ({ ...s, isChecking: true }));
 
     // Step 1: Ensure USB permission / transport.
     const granted = await requestLedgerPermission();
-    console.log(`${TAG} connect() — permission granted:`, granted);
 
     if (!granted) {
       console.warn(`${TAG} connect() — permission not granted`);
@@ -112,13 +109,6 @@ export function useLedger() {
     // Step 2: Check if the Mina app is open.
     try {
       const result = await checkLedgerStatus();
-      console.log(
-        `${TAG} connect() — status:`,
-        result.status,
-        '| app:',
-        result.app ? 'present' : 'null',
-      );
-
       appRef.current = result.app;
       setState((s) => ({
         ...s,
@@ -141,11 +131,9 @@ export function useLedger() {
    */
   const checkStatus =
     useCallback(async (): Promise<LedgerConnectionResult> => {
-      console.log(`${TAG} checkStatus() — START`);
       setState((s) => ({ ...s, isChecking: true }));
       try {
         const result = await checkLedgerStatus();
-        console.log(`${TAG} checkStatus() — result:`, result.status);
         appRef.current = result.app;
         setState((s) => ({
           ...s,
@@ -170,8 +158,6 @@ export function useLedger() {
    */
   const importAddress = useCallback(
     async (accountIndex: number): Promise<LedgerAddressResult> => {
-      console.log(`${TAG} importAddress(${accountIndex}) — START`);
-
       let app = appRef.current;
 
       // Auto-reconnect if the app instance was lost.
@@ -181,13 +167,6 @@ export function useLedger() {
         );
         try {
           const res = await checkLedgerStatus();
-          console.log(
-            `${TAG} importAddress — re-check:`,
-            res.status,
-            '| app:',
-            res.app ? 'present' : 'null',
-          );
-
           if (res.status !== LedgerStatus.READY || !res.app) {
             const errMsg =
               res.status === LedgerStatus.APP_NOT_OPEN
@@ -217,13 +196,6 @@ export function useLedger() {
 
       try {
         const result = await getLedgerAddress(app, accountIndex);
-        console.log(`${TAG} importAddress — result:`, {
-          publicKey: result.publicKey
-            ? result.publicKey.slice(0, 12) + '…'
-            : 'null',
-          rejected: result.rejected,
-          error: result.error,
-        });
         return result;
       } catch (err) {
         console.error(`${TAG} importAddress — threw:`, err);
@@ -250,8 +222,6 @@ export function useLedger() {
       params: PaymentParams,
       accountIndex: number,
     ): Promise<LedgerSignResult> => {
-      console.log(`${TAG} signPayment — START, accountIndex:`, accountIndex);
-
       let app = appRef.current;
 
       if (!app) {
@@ -292,9 +262,6 @@ export function useLedger() {
 
       try {
         const result = await signLedgerPayment(app, params, accountIndex);
-        console.log(
-          `${TAG} signPayment — rejected=${result.rejected}, error=${result.error}, hasSig=${!!result.signature}`,
-        );
         return result;
       } catch (err) {
         console.error(`${TAG} signPayment — threw:`, err);
@@ -322,11 +289,6 @@ export function useLedger() {
       params: DelegationParams,
       accountIndex: number,
     ): Promise<LedgerSignResult> => {
-      console.log(
-        `${TAG} signDelegation — START, accountIndex:`,
-        accountIndex,
-      );
-
       let app = appRef.current;
 
       if (!app) {
@@ -367,9 +329,6 @@ export function useLedger() {
 
       try {
         const result = await signLedgerDelegation(app, params, accountIndex);
-        console.log(
-          `${TAG} signDelegation — rejected=${result.rejected}, error=${result.error}, hasSig=${!!result.signature}`,
-        );
         return result;
       } catch (err) {
         console.error(`${TAG} signDelegation — threw:`, err);

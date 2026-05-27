@@ -13,11 +13,14 @@ import { useTranslation } from 'react-i18next';
 import { VaultManager } from '@/lib/vault-manager';
 import { BIP44Service } from '@/lib/bip44';
 import { DEFAULT_WALLET_NAME_PREFIX } from '@/lib/types/vault';
+import { captureEvent, captureException, identifyUser } from '@/lib/analytics';
+
 export const ImportWalletPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { tempPassword, setHasVault, setIsAuthenticated, setTempPassword } = useSessionStore();
+  const { tempPassword, setHasVault, setIsAuthenticated, setTempPassword } =
+    useSessionStore();
   const { setWallet } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'mnemonic' | 'privateKey'>(
     'mnemonic',
@@ -139,6 +142,11 @@ export const ImportWalletPage: React.FC = () => {
         accountName: firstWallet.name,
       });
 
+      identifyUser(firstWallet.publicKey, { wallet_type: walletType });
+      captureEvent(firstWallet.publicKey, 'wallet imported', {
+        wallet_type: walletType,
+      });
+
       toast({
         title: t('onboarding.import.success_title'),
         description: t('onboarding.import.success_desc'),
@@ -146,6 +154,7 @@ export const ImportWalletPage: React.FC = () => {
 
       navigate('/dashboard');
     } catch (error) {
+      captureException(error, 'anonymous');
       console.error('Failed to import wallet:', error);
       toast({
         variant: 'destructive',

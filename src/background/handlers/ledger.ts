@@ -61,7 +61,6 @@ export async function handleImportAccount(
     };
 
     await storage.set('clorio_ledger_account', account);
-    console.log('[ledger] Account saved:', account);
 
     sendResponse({ success: true, account });
   } catch (error) {
@@ -90,17 +89,6 @@ export async function handleSubmitPayment(
   try {
     const { signature, from, to, amount, fee, nonce, memo, validUntil } =
       payload;
-
-    console.log('[ledger] LEDGER_SUBMIT_PAYMENT broadcasting:', {
-      from,
-      to,
-      amount,
-      fee,
-      nonce,
-      memo,
-      validUntil,
-      signature,
-    });
 
     const result = await restPost<{ hash: string }>('/v1/mina/transaction', {
       input: {
@@ -141,16 +129,6 @@ export async function handleSubmitDelegation(
 ): Promise<void> {
   try {
     const { signature, from, to, fee, nonce, memo, validUntil } = payload;
-
-    console.log('[ledger] LEDGER_SUBMIT_DELEGATION broadcasting:', {
-      from,
-      to,
-      fee,
-      nonce,
-      memo,
-      validUntil,
-      signature,
-    });
 
     const result = await restPost<{ hash: string }>(
       '/v1/mina/transaction/delegation',

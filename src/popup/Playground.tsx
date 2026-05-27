@@ -765,7 +765,7 @@ const PlaygroundPage: React.FC = () => {
                       balance={1500.5}
                       price={1.25}
                       change24h={5.4}
-                      onClick={() => console.log('Asset clicked')}
+                      onClick={() => {}}
                     />
                   </div>
 
@@ -777,7 +777,7 @@ const PlaygroundPage: React.FC = () => {
                       stake={50000000}
                       fee={5}
                       isDelegated={true}
-                      onDelegate={() => console.log('Delegate clicked')}
+                      onDelegate={() => {}}
                     />
                   </div>
                 </div>
@@ -789,7 +789,7 @@ const PlaygroundPage: React.FC = () => {
                       balance="1000"
                       symbol="MINA"
                       price={1.23}
-                      onSubmit={async (data) => console.log(data)}
+                      onSubmit={async () => {}}
                     />
                   </Card>
                 </div>
@@ -804,7 +804,7 @@ const PlaygroundPage: React.FC = () => {
                         { id: '1', name: 'Validator 1', apy: 12 },
                         { id: '2', name: 'Validator 2', apy: 10 },
                       ]}
-                      onSubmit={async (data) => console.log(data)}
+                      onSubmit={async () => {}}
                     />
                   </Card>
                 </div>

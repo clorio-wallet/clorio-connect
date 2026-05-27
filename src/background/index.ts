@@ -333,14 +333,6 @@ function route(
   return entry.async;
 }
 
-console.log(
-  '[background] Service Worker running (mina-signer will load on first use)',
-);
-
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('[background] Extension installed/updated');
-});
-
 chrome.runtime.onMessage.addListener(
   (message: AppMessage, sender, sendResponse) =>
     route(message, sender, sendResponse),
