@@ -31,7 +31,7 @@ import { formatAddress } from '@/lib/utils';
 import { sessionStorage, storage } from '@/lib/storage';
 import { getAccountNonce } from '@/api/mina/transactions';
 import { STORED_CREDENTIALS_KEY } from '@/lib/dapp';
-import { captureEvent } from '@/lib/analytics';
+import { captureApiFailure } from '@/lib/analytics';
 
 const DEFAULT_PAYMENT_FEE = '0.1';
 
@@ -91,7 +91,7 @@ function getRequestTitle(method: DappRpcMethod): string {
     case 'mina_requestAccounts':
       return 'Approve connection';
     case 'mina_sendPayment':
-      return 'Approve payment';
+      return 'Approve transaction';
     case 'mina_sendStakeDelegation':
       return 'Approve delegation';
     case 'mina_signMessage':
@@ -355,7 +355,14 @@ const DappApprovalPage: React.FC = () => {
             );
 
             if (!response.ok) {
-              throw new Error((await response.text()) || 'Broadcast failed');
+              captureApiFailure({
+                endpoint_group: 'mina_transaction',
+                method: 'POST',
+                status_code: response.status,
+                failure_class: 'http_error',
+                runtime_area: 'approval_ui',
+              });
+              throw new Error('Broadcast failed');
             }
 
             const broadcast = (await response.json()) as {
@@ -422,7 +429,14 @@ const DappApprovalPage: React.FC = () => {
             );
 
             if (!response.ok) {
-              throw new Error((await response.text()) || 'Broadcast failed');
+              captureApiFailure({
+                endpoint_group: 'mina_transaction_delegation',
+                method: 'POST',
+                status_code: response.status,
+                failure_class: 'http_error',
+                runtime_area: 'approval_ui',
+              });
+              throw new Error('Broadcast failed');
             }
 
             const broadcast = (await response.json()) as {
@@ -450,15 +464,6 @@ const DappApprovalPage: React.FC = () => {
               response?.error || 'Failed to resolve the request.',
             );
           }
-
-          captureEvent(
-            pendingRequest.account.publicKey,
-            'dapp request approved',
-            {
-              method: pendingRequest.method,
-              site_origin: pendingRequest.site.origin,
-            },
-          );
 
           await loadPendingRequest();
           setPassword('');
@@ -580,15 +585,6 @@ const DappApprovalPage: React.FC = () => {
             );
           }
 
-          captureEvent(
-            pendingRequest.account.publicKey,
-            'dapp request approved',
-            {
-              method: pendingRequest.method,
-              site_origin: pendingRequest.site.origin,
-            },
-          );
-
           await loadPendingRequest();
           setPassword('');
         } catch (error) {
@@ -631,15 +627,6 @@ const DappApprovalPage: React.FC = () => {
           }
           throw new Error(response?.error || 'Failed to resolve the request.');
         }
-
-        captureEvent(
-          pendingRequest.account.publicKey,
-          approve ? 'dapp request approved' : 'dapp request rejected',
-          {
-            method: pendingRequest.method,
-            site_origin: pendingRequest.site.origin,
-          },
-        );
 
         await loadPendingRequest();
         setPassword('');

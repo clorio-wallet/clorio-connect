@@ -24,7 +24,6 @@ import { VaultManager } from '@/lib/vault-manager';
 import { sessionStorage } from '@/lib/storage';
 import { useSettingsStore } from '@/stores/settings-store';
 import { BIP44Service } from '@/lib/bip44';
-import { captureEvent, captureException, identifyUser } from '@/lib/analytics';
 
 type Step = 'connect' | 'confirm' | 'done';
 
@@ -221,11 +220,6 @@ export function ImportLedgerPage() {
         });
       }
 
-      identifyUser(wallet.publicKey, { wallet_type: 'ledger' });
-      captureEvent(wallet.publicKey, 'ledger wallet imported', {
-        account_index: accountIndex,
-      });
-
       toast({
         variant: 'success',
         title: t('common.success'),
@@ -252,7 +246,6 @@ export function ImportLedgerPage() {
       }
       window.close();
     } catch (err) {
-      captureException(err, 'anonymous');
       console.error('[import-ledger] handleSave — FAILED:', err);
       toast({
         variant: 'destructive',

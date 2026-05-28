@@ -20,6 +20,7 @@ import {
   DAPP_PROVIDER_EVENT_MESSAGE,
 } from '@/lib/dapp';
 import type { DappRpcResponse } from '@/messages/types';
+import { captureBackgroundUnavailable } from '@/lib/analytics';
 
 // Inject inpage script
 const script = document.createElement('script');
@@ -110,6 +111,10 @@ window.addEventListener(
         error: response?.error,
       });
     } catch (error) {
+      captureBackgroundUnavailable({
+        runtime_area: 'popup',
+      });
+
       postResponse({
         channel: DAPP_BRIDGE_CHANNEL,
         direction: 'response',

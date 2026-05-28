@@ -11,7 +11,6 @@ import { BIP44Service } from '@/lib/bip44';
 import { DEFAULT_WALLET_NAME_PREFIX } from '@/lib/types/vault';
 
 import { useTranslation } from 'react-i18next';
-import { captureEvent, captureException, identifyUser } from '@/lib/analytics';
 
 export const VerifyMnemonicPage: React.FC = () => {
   const { t } = useTranslation();
@@ -95,11 +94,6 @@ export const VerifyMnemonicPage: React.FC = () => {
         accountName: firstWallet.name,
       });
 
-      identifyUser(firstWallet.publicKey, { wallet_type: 'mnemonic' });
-      captureEvent(firstWallet.publicKey, 'wallet created', {
-        wallet_type: 'mnemonic',
-      });
-
       toast({
         title: t('onboarding.verify.success_title'),
         description: t('onboarding.verify.success_desc'),
@@ -107,7 +101,6 @@ export const VerifyMnemonicPage: React.FC = () => {
 
       setTimeout(() => navigate('/'), 100);
     } catch (error) {
-      captureException(error, 'anonymous');
       console.error('Failed to create wallet:', error);
       toast({
         variant: 'destructive',

@@ -12,6 +12,7 @@ import {
   DAPP_CUSTOM_NETWORKS_STORAGE_KEY,
 } from '@/lib/networks';
 import { storage } from '@/lib/storage';
+import { captureDiagnosticHeartbeat } from '@/lib/analytics';
 import { PopupRoutes } from './PopupRoutes';
 
 const App: React.FC = () => {
@@ -33,6 +34,7 @@ const App: React.FC = () => {
       }
       await syncCustomNetworks();
       await fetchNetworks();
+      captureDiagnosticHeartbeat({ runtime_area: 'popup' });
       setIsRestored(true);
     };
 

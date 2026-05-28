@@ -1,6 +1,7 @@
 
 
 import { storage } from '@/lib/storage';
+import { captureApiFailure } from '@/lib/analytics';
 import type {
   LedgerImportAccountResponse,
   LedgerSubmitTxResponse,
@@ -9,6 +10,21 @@ import type {
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) ?? '';
 
+function getTrackedMinaEndpointGroup(path: string):
+  | 'mina_transaction'
+  | 'mina_transaction_delegation'
+  | null {
+  if (path === '/v1/mina/transaction/delegation') {
+    return 'mina_transaction_delegation';
+  }
+
+  if (path === '/v1/mina/transaction') {
+    return 'mina_transaction';
+  }
+
+  return null;
+}
+
 async function restPost<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
@@ -16,8 +32,17 @@ async function restPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(text || `HTTP ${response.status}`);
+    const endpointGroup = getTrackedMinaEndpointGroup(path);
+    if (endpointGroup) {
+      captureApiFailure({
+        endpoint_group: endpointGroup,
+        method: 'POST',
+        status_code: response.status,
+        failure_class: 'http_error',
+        runtime_area: 'background',
+      });
+    }
+    throw new Error(`HTTP ${response.status}`);
   }
   return response.json() as Promise<T>;
 }

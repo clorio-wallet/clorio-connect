@@ -43,6 +43,7 @@ import {
   normalizeNetworkUrl,
   toCustomNetworkLabel,
 } from '@/lib/networks';
+import { captureApiFailure } from '@/lib/analytics';
 import { sessionStorage, storage } from '@/lib/storage';
 import { toNano } from '@/lib/utils';
 import { VaultManager } from '@/lib/vault-manager';
@@ -65,6 +66,21 @@ const GRAPHQL_ENDPOINTS: Record<DappNetworkId, string> = {
 const REST_API_BASE = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.replace(/\/$/, '');
+
+function getTrackedMinaEndpointGroup(url: string):
+  | 'mina_transaction'
+  | 'mina_transaction_delegation'
+  | null {
+  if (url.includes('/v1/mina/transaction/delegation')) {
+    return 'mina_transaction_delegation';
+  }
+
+  if (url.includes('/v1/mina/transaction')) {
+    return 'mina_transaction';
+  }
+
+  return null;
+}
 
 type PendingRequestState = {
   request: DappRpcPayload;
@@ -256,8 +272,17 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed with ${response.status}`);
+    const endpointGroup = getTrackedMinaEndpointGroup(url);
+    if (endpointGroup) {
+      captureApiFailure({
+        endpoint_group: endpointGroup,
+        method: 'POST',
+        status_code: response.status,
+        failure_class: 'http_error',
+        runtime_area: 'background',
+      });
+    }
+    throw new Error(`Request failed with ${response.status}`);
   }
 
   return (await response.json()) as T;

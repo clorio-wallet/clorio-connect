@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <BottomSheet open={true} onOpenChange={() => {}}>
           {/* We render a background div to ensure the sheet has something to sit over if the app is blank */}
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
-          
+
           <BottomSheetContent className="z-[100]">
             <BottomSheetHeader>
               <div className="flex items-center justify-center mb-4">
@@ -68,7 +68,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 {i18n.t('error.title', 'Something went wrong')}
               </BottomSheetTitle>
               <BottomSheetDescription className="text-center">
-                {i18n.t('error.description', 'An unexpected error occurred. Please try again.')}
+                {i18n.t(
+                  'error.description',
+                  'An unexpected error occurred. Please try again.',
+                )}
               </BottomSheetDescription>
             </BottomSheetHeader>
 
@@ -79,7 +82,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   {this.state.error.message}
                 </div>
               )}
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="outline" onClick={this.handleGoBack}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
