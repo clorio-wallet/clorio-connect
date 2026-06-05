@@ -34,7 +34,6 @@ import {
 
 import { LoopingLottie } from '@/components/ui/looping-lottie';
 import lockAnimation from '../animations/lock.json';
-import { captureEvent, captureException, identifyUser } from '@/lib/analytics';
 
 interface VaultData {
   encryptedSeed: string;
@@ -97,18 +96,6 @@ const WalletUnlockPage: React.FC = () => {
 
         setIsAuthenticated(true);
         setHasVault(true);
-
-        const activeWallet = vaultV2.wallets.find(
-          (w) => w.id === vaultV2.activeWalletId,
-        );
-        if (activeWallet?.publicKey) {
-          identifyUser(activeWallet.publicKey, {
-            wallet_type: activeWallet.type,
-          });
-          captureEvent(activeWallet.publicKey, 'wallet unlocked', {
-            wallet_type: activeWallet.type,
-          });
-        }
 
         const { autoLockTimeout } = useSettingsStore.getState();
         if (autoLockTimeout !== 0) {
@@ -174,7 +161,6 @@ const WalletUnlockPage: React.FC = () => {
       navigate(pendingDapp ? '/dapp/approval' : '/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
-      captureException(error, 'anonymous');
       toast({
         variant: 'destructive',
         title: t('wallet_unlock.error_incorrect_password_title'),
@@ -190,7 +176,6 @@ const WalletUnlockPage: React.FC = () => {
     try {
       await resetWallet();
       setShowResetDialog(false);
-      captureEvent('anonymous', 'wallet reset');
       toast({
         title: t('settings.reset_sheet.success_title'),
         description: t('settings.reset_sheet.success_desc'),

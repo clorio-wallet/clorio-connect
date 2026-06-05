@@ -15,7 +15,6 @@ import {
   NetworkId,
 } from '@/lib/ledger';
 import type { SignPaymentMessage, SignPaymentResponse } from '@/messages/types';
-import { captureEvent, captureException } from '@/lib/analytics';
 
 export interface BroadcastResult {
   kind: 'broadcast';
@@ -270,16 +269,8 @@ export function useSendTransaction() {
         accountType === 'ledger'
           ? await sendWithLedger(formData)
           : await sendWithSoftware(formData, password);
-      if (publicKey) {
-        captureEvent(publicKey, 'transaction sent', {
-          wallet_type: accountType,
-          fee: result.fee,
-          amount: result.amount,
-        });
-      }
       return result;
     } catch (err) {
-      if (publicKey) captureException(err, publicKey);
       throw err;
     } finally {
       setLoading(false);

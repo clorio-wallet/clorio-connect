@@ -2,6 +2,8 @@
  * Storage wrapper for chrome.storage.local
  */
 
+import { captureStorageFailure } from '@/lib/analytics';
+
 export interface StorageArea {
   get<T>(key: string): Promise<T | undefined>;
   set(key: string, value: unknown): Promise<void>;
@@ -16,6 +18,11 @@ export const storage: StorageArea = {
       return result[key] as T;
     } catch (error) {
       console.error(`Error getting key ${key} from storage:`, error);
+      captureStorageFailure({
+        storage_area: 'local',
+        operation: 'get',
+        failure_class: 'unknown',
+      });
       return undefined;
     }
   },
@@ -25,6 +32,11 @@ export const storage: StorageArea = {
       await chrome.storage.local.set({ [key]: value });
     } catch (error) {
       console.error(`Error setting key ${key} in storage:`, error);
+      captureStorageFailure({
+        storage_area: 'local',
+        operation: 'set',
+        failure_class: 'unknown',
+      });
       throw error;
     }
   },
@@ -34,6 +46,11 @@ export const storage: StorageArea = {
       await chrome.storage.local.remove(key);
     } catch (error) {
       console.error(`Error removing key ${key} from storage:`, error);
+      captureStorageFailure({
+        storage_area: 'local',
+        operation: 'remove',
+        failure_class: 'unknown',
+      });
       throw error;
     }
   },
@@ -43,6 +60,11 @@ export const storage: StorageArea = {
       await chrome.storage.local.clear();
     } catch (error) {
       console.error('Error clearing storage:', error);
+      captureStorageFailure({
+        storage_area: 'local',
+        operation: 'clear',
+        failure_class: 'unknown',
+      });
       throw error;
     }
   },
@@ -57,6 +79,11 @@ export const sessionStorage: StorageArea = {
       return result[key] as T;
     } catch (error) {
       console.error(`Error getting key ${key} from session storage:`, error);
+      captureStorageFailure({
+        storage_area: 'session',
+        operation: 'get',
+        failure_class: 'unknown',
+      });
       return undefined;
     }
   },
@@ -67,6 +94,11 @@ export const sessionStorage: StorageArea = {
       await chrome.storage.session.set({ [key]: value });
     } catch (error) {
       console.error(`Error setting key ${key} in session storage:`, error);
+      captureStorageFailure({
+        storage_area: 'session',
+        operation: 'set',
+        failure_class: 'unknown',
+      });
       throw error;
     }
   },
@@ -77,6 +109,11 @@ export const sessionStorage: StorageArea = {
       await chrome.storage.session.remove(key);
     } catch (error) {
       console.error(`Error removing key ${key} from session storage:`, error);
+      captureStorageFailure({
+        storage_area: 'session',
+        operation: 'remove',
+        failure_class: 'unknown',
+      });
       throw error;
     }
   },
@@ -87,6 +124,11 @@ export const sessionStorage: StorageArea = {
       await chrome.storage.session.clear();
     } catch (error) {
       console.error('Error clearing session storage:', error);
+      captureStorageFailure({
+        storage_area: 'session',
+        operation: 'clear',
+        failure_class: 'unknown',
+      });
       throw error;
     }
   },

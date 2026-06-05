@@ -20,7 +20,6 @@ import type {
   SignDelegationMessage,
   SignDelegationResponse,
 } from '@/messages/types';
-import { captureEvent, captureException } from '@/lib/analytics';
 
 const DELEGATION_FEE_MINA = '0.012';
 
@@ -247,15 +246,8 @@ export function useDelegateTransaction() {
         accountType === 'ledger'
           ? await delegateWithLedger(validatorPublicKey)
           : await delegateWithSoftware(validatorPublicKey, password);
-      if (publicKey) {
-        captureEvent(publicKey, 'delegation updated', {
-          wallet_type: accountType,
-          validator: validatorPublicKey,
-        });
-      }
       return result;
     } catch (err) {
-      if (publicKey) captureException(err, publicKey);
       throw err;
     } finally {
       setLoading(false);

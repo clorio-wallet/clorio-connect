@@ -10,12 +10,23 @@ import {
   normalizeNetworkUrl,
   toCustomNetworkLabel,
 } from '@/lib/networks';
+import { captureNetworkConfigFailure } from '@/lib/analytics';
 import { storage } from '@/lib/storage';
 
 interface AddCustomNetworkInput {
   name: string;
   url: string;
   networkID?: string;
+}
+
+class NetworkConfigFetchError extends Error {
+  constructor(
+    message: string,
+    public readonly failureClass: 'http_error' | 'network_error' | 'unknown',
+  ) {
+    super(message);
+    this.name = 'NetworkConfigFetchError';
+  }
 }
 
 interface NetworkState {
@@ -90,7 +101,16 @@ export const useNetworkStore = create<NetworkState>()(
           });
 
           if (!response.ok) {
-            throw new Error(`Failed to fetch networks: ${response.statusText}`);
+            captureNetworkConfigFailure({
+              failure_class: 'http_error',
+              runtime_area: 'popup',
+              status_code: response.status,
+              config_source: 'remote',
+            });
+            throw new NetworkConfigFetchError(
+              `Failed to fetch networks: ${response.statusText}`,
+              'http_error',
+            );
           }
 
           const data: NetworksMap = await response.json();
@@ -100,6 +120,13 @@ export const useNetworkStore = create<NetworkState>()(
           });
         } catch (error) {
           console.error('Error fetching networks:', error);
+          if (!(error instanceof NetworkConfigFetchError)) {
+            captureNetworkConfigFailure({
+              failure_class: error instanceof Error ? 'network_error' : 'unknown',
+              runtime_area: 'popup',
+              config_source: 'remote',
+            });
+          }
           const customNetworks = await loadCustomNetworks();
           set({
             error: error instanceof Error ? error.message : 'Unknown error',
