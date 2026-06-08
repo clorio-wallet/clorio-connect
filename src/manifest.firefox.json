@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Clorio Connect",
+  "version": "1.0.0",
+  "description": "Your gateway to Mina Protocol. Store, send, and stake with complete control over your assets.",
+  "permissions": ["storage", "tabs", "notifications"],
+  "host_permissions": ["https://*/*", "http://*/*"],
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "background": {
+    "page": "src/background.html",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png"
+    }
+  },
+  "sidebar_action": {
+    "default_panel": "src/popup/index.html",
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/inpage/index.ts"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none';"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "wallet@clorio",
+      "strict_min_version": "109.0"
+    }
+  }
+}

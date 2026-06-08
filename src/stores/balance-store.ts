@@ -47,7 +47,7 @@ export const useBalance = () => {
 
   const amount = useBalanceStore((s) => s.amount);
 
-  const balanceString = amount.toLocaleString(undefined, {
+  const balanceString = amount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 6,
   });

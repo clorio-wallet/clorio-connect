@@ -57,7 +57,7 @@ export const useDashboardData = () => {
   const balanceRaw = accountData?.balance || 0;
   const balanceMina = Number(balanceRaw) / 1e9;
   const tickerPrice = Number(tickerData?.mina?.USDMINA || 0);
-  const fiatValue = (balanceMina * tickerPrice).toLocaleString(undefined, {
+  const fiatValue = (balanceMina * tickerPrice).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -66,7 +66,7 @@ export const useDashboardData = () => {
     id: activeWalletId || '',
     name: accountName || 'Mina Wallet',
     address: publicKey || '',
-    balance: balanceMina.toLocaleString(undefined, {
+    balance: balanceMina.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }),
