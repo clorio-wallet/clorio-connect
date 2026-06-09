@@ -14,7 +14,7 @@ export function formatAddress(address: string, start = 6, end = 4): string {
 export function formatBalance(balance: string | number, decimals = 9): string {
   if (!balance) return '0';
   const num = typeof balance === 'string' ? parseFloat(balance) : balance;
-  return (num / Math.pow(10, decimals)).toLocaleString(undefined, {
+  return (num / Math.pow(10, decimals)).toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 4,
   });

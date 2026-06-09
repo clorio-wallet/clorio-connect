@@ -34,14 +34,14 @@ export function AnimatedNumber({
   }, [motionValue, value, duration]);
 
   const display = useTransform(motionValue, (current) =>
-    current.toLocaleString(undefined, {
+    current.toLocaleString('en-US', {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }),
   );
 
   const separator = React.useMemo(() => {
-    const sep = (1.1).toLocaleString(undefined).replace(/\d/g, '');
+    const sep = (1.1).toLocaleString('en-US').replace(/\d/g, '');
     return sep || '.';
   }, []);
 
