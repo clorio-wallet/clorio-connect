@@ -212,7 +212,14 @@
       "your_private_key": "Ihr privater Schlüssel",
       "mnemonic_words": "{{count}} Wörter",
       "security_notice": "Schreiben Sie dies auf und bewahren Sie es an einem sicheren, Offline-Ort auf. Speichern Sie es niemals digital oder teilen Sie es online.",
-      "done": "Fertig"
+      "done": "Fertig",
+      "print_pdf": "Drucken / PDF",
+      "paper_title": "Mina-Paper-Wallet",
+      "public_address": "Öffentliche Adresse",
+      "public_address_hint": "Verwenden Sie diese Adresse, um MINA zu empfangen. Sie kann sicher geteilt werden.",
+      "secret_hint": "Scannen oder geben Sie dieses Geheimnis ein, um die Wallet wiederherzustellen.",
+      "fold_line": "Hier falten",
+      "paper_warning": "Jeder mit diesem Geheimnis kann Ihre Gelder kontrollieren. Bewahren Sie das Papier privat, offline und geschützt auf. Speichern Sie PDFs nur auf einem verschlüsselten Offline-Laufwerk und löschen Sie zusätzliche Kopien."
     }
   },
   "welcome": {

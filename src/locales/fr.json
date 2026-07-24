@@ -212,7 +212,14 @@
       "your_private_key": "Votre clé privée",
       "mnemonic_words": "{{count}} mots",
       "security_notice": "Notez ceci et conservez-le dans un lieu sûr, hors ligne. Ne le stockez jamais numériquement ou ne le partagez en ligne.",
-      "done": "Terminé"
+      "done": "Terminé",
+      "print_pdf": "Imprimer / PDF",
+      "paper_title": "Portefeuille papier Mina",
+      "public_address": "Adresse publique",
+      "public_address_hint": "Utilisez cette adresse pour recevoir des MINA. Elle peut être partagée.",
+      "secret_hint": "Scannez ou saisissez ce secret pour restaurer le portefeuille.",
+      "fold_line": "Plier ici",
+      "paper_warning": "Toute personne possédant ce secret peut contrôler vos fonds. Gardez ce papier privé, hors ligne et protégé. Si vous enregistrez un PDF, utilisez un disque hors ligne chiffré et supprimez les copies supplémentaires."
     }
   },
   "welcome": {
