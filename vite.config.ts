@@ -14,7 +14,7 @@ const manifestPath = resolve(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as any;
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react(), crx({ manifest }), nodePolyfills()],
   resolve: {
     alias: isFirefox
@@ -42,18 +42,21 @@ export default defineConfig({
         : {
             popup: 'src/popup/index.html',
           },
-      output: {
-        manualChunks: {
-          'vendor-crypto': ['mina-signer', '@scure/bip39', '@scure/bip32', '@noble/curves', '@noble/hashes'],
-          'vendor-ledger': ['@ledgerhq/hw-transport-webusb', '@ledgerhq/devices', 'mina-ledger-js'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
-          'vendor-react': ['react', 'react-dom', 'react-router-dom', 'react-hook-form'],
-          'vendor-query': ['@tanstack/react-query', '@tanstack/react-query-persist-client'],
-          'vendor-other': ['zustand', 'i18next', 'framer-motion', 'lottie-react'],
-        },
-      },
+      output:
+        command === 'build'
+          ? {
+              manualChunks: {
+                'vendor-crypto': ['mina-signer', '@scure/bip39', '@scure/bip32', '@noble/curves', '@noble/hashes'],
+                'vendor-ledger': ['@ledgerhq/hw-transport-webusb', '@ledgerhq/devices', 'mina-ledger-js'],
+                'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+                'vendor-react': ['react', 'react-dom', 'react-router-dom', 'react-hook-form'],
+                'vendor-query': ['@tanstack/react-query', '@tanstack/react-query-persist-client'],
+                'vendor-other': ['zustand', 'i18next', 'framer-motion', 'lottie-react'],
+              },
+            }
+          : undefined,
     },
     chunkSizeWarningLimit: 1000,
   },
   publicDir: 'public',
-});
+}));
