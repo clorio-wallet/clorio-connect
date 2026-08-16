@@ -180,8 +180,8 @@ export interface DappResolvePendingApprovalMessage extends BaseMessage {
 export interface PaperWalletPayload {
   name: string;
   publicKey: string;
-  secret: string;
-  secretType: 'mnemonic' | 'privateKey';
+  mnemonic?: string;
+  privateKey?: string;
 }
 
 export interface StorePaperWalletMessage extends BaseMessage {
