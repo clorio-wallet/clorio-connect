@@ -19,7 +19,10 @@ function normalizePayload(value: unknown): PaperWalletPayload | null {
   const name = typeof data.name === 'string' ? data.name.trim() : '';
   const publicKey =
     typeof data.publicKey === 'string' ? data.publicKey.trim() : '';
-  const secret = typeof data.secret === 'string' ? data.secret.trim() : '';
+  const mnemonic =
+    typeof data.mnemonic === 'string' ? data.mnemonic.trim() : '';
+  const privateKey =
+    typeof data.privateKey === 'string' ? data.privateKey.trim() : '';
 
   if (
     !name ||
@@ -32,29 +35,36 @@ function normalizePayload(value: unknown): PaperWalletPayload | null {
     publicKey.length < 50 ||
     publicKey.length > 60 ||
     !BASE58_PATTERN.test(publicKey) ||
-    !secret ||
-    secret.length > 256
+    (!mnemonic && !privateKey) ||
+    mnemonic.length > 256 ||
+    privateKey.length > 256
   ) {
     return null;
   }
 
-  if (data.secretType === 'mnemonic') {
-    const words = secret.split(/\s+/);
+  if (mnemonic) {
+    const words = mnemonic.split(/\s+/);
     if (
       ![12, 15, 18, 21, 24].includes(words.length) ||
       words.some((word) => !/^[a-z]+$/.test(word))
     ) {
       return null;
     }
-  } else if (
-    data.secretType !== 'privateKey' ||
-    !secret.startsWith('EK') ||
-    !BASE58_PATTERN.test(secret)
+  }
+
+  if (
+    privateKey &&
+    (!privateKey.startsWith('EK') || !BASE58_PATTERN.test(privateKey))
   ) {
     return null;
   }
 
-  return { name, publicKey, secret, secretType: data.secretType };
+  return {
+    name,
+    publicKey,
+    ...(mnemonic ? { mnemonic } : {}),
+    ...(privateKey ? { privateKey } : {}),
+  };
 }
 
 function removeExpired(now: number): void {

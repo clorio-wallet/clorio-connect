@@ -77,8 +77,8 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
       await openPaperWallet({
         name: `${DEFAULT_WALLET_NAME_PREFIX}1`,
         publicKey: keys.publicKey,
-        secret: mnemonic.join(' '),
-        secretType: 'mnemonic',
+        mnemonic: mnemonic.join(' '),
+        privateKey: keys.privateKey,
       });
     } catch (error) {
       console.error('[WalletKeysSheet] Failed to open paper wallet:', error);
@@ -210,8 +210,9 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
         </BottomSheetContent>
       </BottomSheet>
       <Button
-        variant="outline"
-        className="w-full"
+        variant="ghost"
+        size="sm"
+        className="w-full text-muted-foreground hover:text-foreground"
         onClick={handlePrint}
         disabled={isDeriving || mnemonic.length === 0}
       >

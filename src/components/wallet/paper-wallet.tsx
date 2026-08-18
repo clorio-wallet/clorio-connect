@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { CustomQRCode } from '@/components/ui/custom-qr-code';
-import clorioWalletLogo from '@/assets/clorio-logo-wallet.svg';
+import clorioConnectLogo from '@/assets/clorio-connect-logo.svg';
 import type { PaperWalletPayload } from '@/messages/types';
 
 export function PaperWallet({
   name,
   publicKey,
-  secret,
-  secretType,
+  mnemonic,
+  privateKey,
 }: PaperWalletPayload) {
   const { t } = useTranslation();
-  const words = secretType === 'mnemonic' ? secret.split(' ') : [];
+  const words = mnemonic ? mnemonic.split(/\s+/) : [];
 
   return (
     <section className="paper-wallet-print" aria-hidden="true">
@@ -18,9 +18,8 @@ export function PaperWallet({
         <div>
           <div className="paper-wallet-brand">
             <span className="paper-wallet-logo">
-              <img src={clorioWalletLogo} alt="" />
+              <img src={clorioConnectLogo} alt="Clorio" />
             </span>
-            <span>CLORIO</span>
           </div>
           <h1>{t('security.backup.paper_title')}</h1>
         </div>
@@ -47,30 +46,34 @@ export function PaperWallet({
         {t('security.backup.fold_line')}
       </div>
 
-      <div className="paper-wallet-section paper-wallet-secret">
-        <div className="paper-wallet-copy">
-          <p className="paper-wallet-label">
-            {secretType === 'mnemonic'
-              ? t('security.backup.title_mnemonic')
-              : t('security.backup.title_private_key')}
-          </p>
-          <p>{t('security.backup.secret_hint')}</p>
-          {secretType === 'mnemonic' ? (
-            <ol className="paper-wallet-words">
-              {words.map((word, index) => (
-                <li key={`${word}-${index}`}>{word}</li>
-              ))}
-            </ol>
-          ) : (
-            <code>{secret}</code>
-          )}
-        </div>
-        <CustomQRCode
-          value={secret}
-          size={180}
-          color="#18231d"
-          backgroundColor="#ffffff"
-        />
+      <div className="paper-wallet-section paper-wallet-secrets">
+        {mnemonic && (
+          <div className="paper-wallet-secret-block">
+            <div className="paper-wallet-copy">
+              <p className="paper-wallet-label">
+                {t('security.backup.title_mnemonic')}
+              </p>
+              <p>{t('security.backup.secret_hint')}</p>
+              <ol className="paper-wallet-words">
+                {words.map((word, index) => (
+                  <li key={`${word}-${index}`}>{word}</li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        )}
+
+        {privateKey && (
+          <div className="paper-wallet-secret-block">
+            <div className="paper-wallet-copy">
+              <p className="paper-wallet-label">
+                {t('security.backup.title_private_key')}
+              </p>
+              <p>{t('security.backup.secret_hint')}</p>
+              <code>{privateKey}</code>
+            </div>
+          </div>
+        )}
       </div>
 
       <footer className="paper-wallet-warning">

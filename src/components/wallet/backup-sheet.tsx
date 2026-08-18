@@ -46,7 +46,6 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
 
   useEffect(() => {
     if (open) {
-
       if (wallets.length === 0) {
         loadWallets().catch((err) => {
           console.error('[BackupSheet] Failed to load wallets:', err);
@@ -144,8 +143,9 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
       await openPaperWallet({
         name: activeWallet.name,
         publicKey: activeWallet.publicKey,
-        secret: backupData,
-        secretType: backupType,
+        ...(backupType === 'mnemonic'
+          ? { mnemonic: backupData }
+          : { privateKey: backupData }),
       });
       handleOpenChange(false);
     } catch (error) {
@@ -358,7 +358,6 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
             </div>
           )}
         </BottomSheetFooter>
-
       </BottomSheetContent>
     </BottomSheet>
   );

@@ -8,7 +8,8 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html,
+body {
   width: 100%;
   min-height: 750px;
   margin: 0;
@@ -19,14 +20,14 @@ html, body {
 @layer base {
   :root {
     /* === BRAND COLORS === */
-    --color-slate-blue: 210 24% 53%;      /* #6A89A7 - Primary */
-    --color-ice-blue: 210 89% 87%;        /* #BDDDFC - Light */
-    --color-sky-blue: 210 83% 74%;        /* #88BDF2 - Accent */
-    --color-deep-navy: 210 24% 28%;       /* #384959 - Dark */
+    --color-slate-blue: 210 24% 53%; /* #6A89A7 - Primary */
+    --color-ice-blue: 210 89% 87%; /* #BDDDFC - Light */
+    --color-sky-blue: 210 83% 74%; /* #88BDF2 - Accent */
+    --color-deep-navy: 210 24% 28%; /* #384959 - Dark */
 
     /* === SEMANTIC TOKENS (Light Mode) === */
-    --background: 210 20% 98%;            /* Slight blue tint */
-    --foreground: 210 24% 15%;            /* Near black with blue */
+    --background: 210 20% 98%; /* Slight blue tint */
+    --foreground: 210 24% 15%; /* Near black with blue */
 
     --card: 0 0% 100%;
     --card-foreground: 210 24% 15%;
@@ -34,13 +35,13 @@ html, body {
     --popover: 0 0% 100%;
     --popover-foreground: 210 24% 15%;
 
-    --primary: 154 44% 37%;               /* #358763 */
+    --primary: 154 44% 37%; /* #358763 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 89% 87%;             /* #BDDDFC */
+    --secondary: 210 89% 87%; /* #BDDDFC */
     --secondary-foreground: 210 24% 28%;
 
-    --accent: 210 83% 74%;                /* #88BDF2 */
+    --accent: 210 83% 74%; /* #88BDF2 */
     --accent-foreground: 210 24% 20%;
 
     --muted: 210 20% 95%;
@@ -57,9 +58,9 @@ html, body {
 
     --border: 210 20% 90%;
     --input: 210 20% 90%;
-    --ring: 210 24% 53%;                  /* Focus ring = primary */
+    --ring: 210 24% 53%; /* Focus ring = primary */
 
-    --radius: 0.625rem;                   /* 10px - slightly rounded */
+    --radius: 0.625rem; /* 10px - slightly rounded */
   }
 
   .dark {
@@ -72,13 +73,13 @@ html, body {
     --popover: 210 24% 13%;
     --popover-foreground: 210 20% 95%;
 
-    --primary: 154 44% 37%;               /* #358763 in dark mode */
+    --primary: 154 44% 37%; /* #358763 in dark mode */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 24% 20%;
     --secondary-foreground: 210 89% 87%;
 
-    --accent: 210 24% 53%;                /* #6A89A7 */
+    --accent: 210 24% 53%; /* #6A89A7 */
     --accent-foreground: 0 0% 100%;
 
     --muted: 210 24% 18%;
@@ -95,7 +96,7 @@ html, body {
   }
 
   /* === GREEN PALETTE === */
-  [data-theme="green"] {
+  [data-theme='green'] {
     --primary: 142 71% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 142 70% 95%;
@@ -105,7 +106,7 @@ html, body {
     --ring: 142 71% 45%;
   }
 
-  [data-theme="green"].dark {
+  [data-theme='green'].dark {
     --primary: 142 70% 50%;
     --primary-foreground: 0 0% 0%;
     --secondary: 142 30% 20%;
@@ -116,7 +117,7 @@ html, body {
   }
 
   /* === VIOLET PALETTE === */
-  [data-theme="violet"] {
+  [data-theme='violet'] {
     --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
     --secondary: 262 70% 95%;
@@ -126,7 +127,7 @@ html, body {
     --ring: 262 83% 58%;
   }
 
-  [data-theme="violet"].dark {
+  [data-theme='violet'].dark {
     --primary: 262 83% 74%;
     --primary-foreground: 262 83% 10%;
     --secondary: 262 30% 20%;
@@ -137,7 +138,7 @@ html, body {
   }
 
   /* === ORANGE PALETTE === */
-  [data-theme="orange"] {
+  [data-theme='orange'] {
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
     --secondary: 24 70% 95%;
@@ -147,7 +148,7 @@ html, body {
     --ring: 24 95% 53%;
   }
 
-  [data-theme="orange"].dark {
+  [data-theme='orange'].dark {
     --primary: 24 95% 65%;
     --primary-foreground: 24 95% 10%;
     --secondary: 24 30% 20%;
@@ -236,19 +237,23 @@ html, body {
 
   .paper-wallet-logo {
     display: grid;
-    width: 12mm;
-    height: 12mm;
+    width: 38mm;
+    padding: 3mm;
     place-items: center;
     border-radius: 3mm;
     background: #2d7253;
   }
 
   .paper-wallet-logo img {
-    width: 8mm;
+    display: block;
+    width: 32mm;
     height: auto;
   }
 
-  .paper-wallet-brand,
+  .paper-wallet-brand {
+    margin: 0;
+  }
+
   .paper-wallet-label {
     margin: 0;
     color: #2d7253;
@@ -283,7 +288,7 @@ html, body {
 
   .paper-wallet-copy code {
     display: block;
-    font-family: "JetBrains Mono", monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 9pt;
     line-height: 1.6;
     overflow-wrap: anywhere;
@@ -300,7 +305,7 @@ html, body {
 
   .paper-wallet-cut::before,
   .paper-wallet-cut::after {
-    content: "";
+    content: '';
     position: absolute;
     top: 50%;
     width: 38%;
@@ -315,8 +320,17 @@ html, body {
     right: 0;
   }
 
-  .paper-wallet-secret {
+  .paper-wallet-secrets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    min-height: 58mm;
+    gap: 12mm;
     border-bottom: 1px solid #b8c2bb;
+  }
+
+  .paper-wallet-secret-block {
+    min-width: 0;
   }
 
   .paper-wallet-words {
@@ -325,7 +339,7 @@ html, body {
     gap: 2mm 6mm;
     margin: 0;
     padding-left: 7mm;
-    font-family: "JetBrains Mono", monospace;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 10pt;
     line-height: 1.4;
   }
