@@ -8,9 +8,8 @@ import type { PaperWalletPayload } from '../../src/messages/types';
 const data: PaperWalletPayload = {
   name: 'Wallet #1',
   publicKey: `B62${'1'.repeat(52)}`,
-  secret:
+  mnemonic:
     'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-  secretType: 'mnemonic',
 };
 
 describe('paper wallet transfer', () => {
@@ -21,6 +20,19 @@ describe('paper wallet transfer', () => {
     expect(takePaperWalletTransfer(token, 3)).toBeUndefined();
   });
 
+  it('transfers both recovery phrase and private key', () => {
+    const token = '00000000-0000-4000-8000-000000000004';
+    const bothCredentials = {
+      name: 'Wallet #1',
+      publicKey: `B62${'1'.repeat(52)}`,
+      mnemonic: data.mnemonic,
+      privateKey: `EK${'1'.repeat(50)}`,
+    };
+
+    expect(storePaperWalletTransfer(token, bothCredentials, 1)).toBe(true);
+    expect(takePaperWalletTransfer(token, 2)).toEqual(bothCredentials);
+  });
+
   it('rejects expired and malformed transfers', () => {
     const token = '00000000-0000-4000-8000-000000000002';
     expect(storePaperWalletTransfer(token, data, 1)).toBe(true);
@@ -29,7 +41,7 @@ describe('paper wallet transfer', () => {
     expect(
       storePaperWalletTransfer('00000000-0000-4000-8000-000000000003', {
         ...data,
-        secret: '<script>steal()</script>',
+        mnemonic: '<script>steal()</script>',
       }),
     ).toBe(false);
   });
