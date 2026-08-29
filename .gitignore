@@ -41,3 +41,4 @@ docs/gitbook/
 .github
 scripts
 dist*
+.claude

@@ -28,9 +28,12 @@ import { useNetworkStore } from '@/stores/network-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { VaultManager } from '@/lib/vault-manager';
 import { formatAddress } from '@/lib/utils';
-import { sessionStorage, storage } from '@/lib/storage';
+import { sessionStorage } from '@/lib/storage';
+import {
+  decryptCredential,
+  findMatchingCredentialRecords,
+} from '@/lib/credentials';
 import { getAccountNonce } from '@/api/mina/transactions';
-import { STORED_CREDENTIALS_KEY } from '@/lib/dapp';
 import { captureApiFailure } from '@/lib/analytics';
 
 const DEFAULT_PAYMENT_FEE = '0.1';
@@ -39,8 +42,7 @@ function requiresApprovalPassword(method: DappRpcMethod): boolean {
   return (
     method !== 'mina_requestAccounts' &&
     method !== 'mina_switchChain' &&
-    method !== 'mina_addChain' &&
-    method !== 'mina_storePrivateCredential'
+    method !== 'mina_addChain'
   );
 }
 
@@ -494,30 +496,6 @@ const DappApprovalPage: React.FC = () => {
         setErrorMessage(null);
 
         try {
-          const storedCredentials =
-            (await storage.get<
-              Array<{
-                id: string;
-                walletId: string;
-                origin: string;
-                storedAt: number;
-                version: 1;
-                credential: unknown;
-              }>
-            >(STORED_CREDENTIALS_KEY)) ?? [];
-
-          const matchingCredentials = storedCredentials.filter(
-            (credential) =>
-              credential.walletId === pendingRequest.account.walletId &&
-              credential.origin === pendingRequest.site.origin,
-          );
-
-          if (matchingCredentials.length === 0) {
-            throw new Error(
-              'No stored credential was found for this site and wallet.',
-            );
-          }
-
           const privateKeyResponse = (await chrome.runtime.sendMessage({
             type: 'GET_PRIVATE_KEY',
             payload: {
@@ -532,10 +510,31 @@ const DappApprovalPage: React.FC = () => {
             );
           }
 
+          const privateKey = privateKeyResponse.privateKey;
+          const matchingCredentials = await findMatchingCredentialRecords(
+            pendingRequest.account.walletId,
+            pendingRequest.account.publicKey,
+            pendingRequest.site.origin,
+          );
+          if (matchingCredentials.length === 0) {
+            throw new Error(
+              'No stored credential was found for this site and wallet.',
+            );
+          }
+
           const [
             { Credential, Presentation, PresentationRequest },
             { PrivateKey },
-          ] = await Promise.all([import('mina-attestations'), import('o1js')]);
+            credentials,
+          ] = await Promise.all([
+            import('mina-attestations'),
+            import('o1js'),
+            Promise.all(
+              matchingCredentials.map((entry) =>
+                decryptCredential(entry, privateKey),
+              ),
+            ),
+          ]);
 
           const requestType =
             typeof (
@@ -553,17 +552,17 @@ const DappApprovalPage: React.FC = () => {
             JSON.stringify(pendingRequest.summary.presentationRequest),
           );
 
-          const credentials = await Promise.all(
-            matchingCredentials.map(async (entry) =>
-              Credential.fromJSON(JSON.stringify(entry.credential)),
+          const parsedCredentials = await Promise.all(
+            credentials.map((credential) =>
+              Credential.fromJSON(JSON.stringify(credential)),
             ),
           );
 
           const presentation = await Presentation.create(
-            PrivateKey.fromBase58(privateKeyResponse.privateKey),
+            PrivateKey.fromBase58(privateKey),
             {
               request,
-              credentials,
+              credentials: parsedCredentials,
               context: { verifierIdentity: pendingRequest.site.origin },
             },
           );
@@ -649,7 +648,6 @@ const DappApprovalPage: React.FC = () => {
       password,
       pendingRequest,
       requiresPassword,
-      storage,
       signDelegation,
       signPayment,
     ],

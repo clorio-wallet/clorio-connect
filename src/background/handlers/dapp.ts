@@ -12,13 +12,13 @@ import {
   DAPP_PENDING_APPROVAL_STORAGE_KEY,
   DAPP_PERMISSIONS_STORAGE_KEY,
   DAPP_PROVIDER_EVENT_MESSAGE,
-  STORED_CREDENTIALS_KEY,
   createDappError,
   DappAddChainParams,
   DappCreateNullifierParams,
   DappPendingApproval,
   DappPermissions,
   DappProviderError,
+  DappRpcMethod,
   DappRpcPayload,
   DappSignFieldsParams,
   DappSignJsonMessageParams,
@@ -44,6 +44,11 @@ import {
   toCustomNetworkLabel,
 } from '@/lib/networks';
 import { captureApiFailure } from '@/lib/analytics';
+import {
+  getCredentialPreview,
+  storePrivateCredential,
+  validateCredentialPayload,
+} from '@/lib/credentials';
 import { sessionStorage, storage } from '@/lib/storage';
 import { toNano } from '@/lib/utils';
 import { VaultManager } from '@/lib/vault-manager';
@@ -87,15 +92,6 @@ type PendingRequestState = {
   preview: DappPendingApproval;
   resolve: (response: DappRpcResponse) => void;
   timeoutId: ReturnType<typeof setTimeout>;
-};
-
-type StoredPrivateCredential = {
-  id: string;
-  walletId: string;
-  origin: string;
-  storedAt: number;
-  version: 1;
-  credential: unknown;
 };
 
 const pendingRequests = new Map<string, PendingRequestState>();
@@ -562,38 +558,12 @@ function buildApprovalSummary(request: DappRpcPayload) {
 
   if (request.method === 'mina_storePrivateCredential') {
     const params = normalizeStorePrivateCredentialParams(request.params);
-    const serialized = JSON.stringify(params.credential);
-    const preview =
-      isRecord(params.credential) && isRecord(params.credential.sourceData)
-        ? params.credential.sourceData
-        : params.credential;
-    const credentialJson =
-      isRecord(params.credential) && typeof params.credential.credential === 'string'
-        ? params.credential.credential
-        : null;
-    let owner: string | undefined;
-
-    if (credentialJson) {
-      try {
-        const parsed = JSON.parse(credentialJson);
-        if (
-          isRecord(parsed) &&
-          isRecord(parsed.credential) &&
-          isRecord(parsed.credential.owner) &&
-          typeof parsed.credential.owner.value === 'string'
-        ) {
-          owner = parsed.credential.owner.value;
-        }
-      } catch {
-        owner = undefined;
-      }
-    }
-
+    const preview = getCredentialPreview(params.credential);
     return {
-      message: JSON.stringify(preview, null, 2),
+      message: JSON.stringify(params.credential, null, 2),
       entries: [
-        { label: 'size', value: `${serialized.length} bytes` },
-        { label: 'owner', value: owner },
+        { label: 'size', value: `${preview.size} bytes` },
+        { label: 'owner', value: preview.owner },
       ].filter((entry) => entry.value !== undefined),
     };
   }
@@ -1085,10 +1055,7 @@ function normalizeStorePrivateCredentialParams(
   }
 
   try {
-    const serialized = JSON.stringify(params.credential);
-    if (!serialized || serialized.length > 256 * 1024) {
-      throw new Error('Credential payload is too large.');
-    }
+    validateCredentialPayload(params.credential);
   } catch (error) {
     throw createDappError(
       DAPP_ERROR_CODES.invalidParams,
@@ -1386,29 +1353,35 @@ async function performCreateNullifier(
 
 async function performStorePrivateCredential(
   request: DappRpcPayload,
-): Promise<{ id: string; storedAt: number; credential: unknown }> {
+  password?: string,
+): Promise<{ id: string; storedAt: number; credential: string }> {
   const origin = normalizeOrigin(request.site.origin);
-  const wallet = await getActiveWallet();
+  const wallet = await getActiveSoftwareWallet(request.method);
   await ensureApprovedOrigin(origin, wallet);
+  if (!password) {
+    throw createDappError(
+      DAPP_ERROR_CODES.walletLocked,
+      'Unlock Clorio Connect before storing a credential.',
+    );
+  }
+
   const { credential } = normalizeStorePrivateCredentialParams(request.params);
+  try {
+    validateCredentialPayload(credential, wallet.publicKey);
+  } catch (error) {
+    throw createDappError(
+      DAPP_ERROR_CODES.invalidParams,
+      error instanceof Error ? error.message : 'Invalid credential payload.',
+    );
+  }
 
-  const credentials =
-    (await storage.get<StoredPrivateCredential[]>(STORED_CREDENTIALS_KEY)) ?? [];
-
-  const id = crypto.randomUUID();
-  const storedAt = Date.now();
-
-  credentials.push({
-    id,
-    walletId: wallet.id,
-    origin,
-    storedAt,
-    version: 1,
+  return storePrivateCredential({
     credential,
+    walletId: wallet.id,
+    accountPublicKey: wallet.publicKey,
+    sourceOrigin: origin,
+    walletSecret: await getPrivateKeyFromVault(password, wallet.id),
   });
-
-  await storage.set(STORED_CREDENTIALS_KEY, credentials);
-  return { id, storedAt, credential };
 }
 
 async function performAddChain(
@@ -1823,7 +1796,7 @@ async function resolveApproval(
         result = await performCreateNullifier(pending.request, password);
         break;
       case 'mina_storePrivateCredential':
-        result = await performStorePrivateCredential(pending.request);
+        result = await performStorePrivateCredential(pending.request, password);
         break;
       case 'mina_requestPresentation':
         throw createDappError(
@@ -1999,8 +1972,16 @@ async function processDappRequest(
     }
 
     case 'mina_storePrivateCredential': {
-      const wallet = await getActiveWallet();
-      normalizeStorePrivateCredentialParams(request.params);
+      const wallet = await getActiveSoftwareWallet(request.method);
+      const { credential } = normalizeStorePrivateCredentialParams(request.params);
+      try {
+        validateCredentialPayload(credential, wallet.publicKey);
+      } catch (error) {
+        throw createDappError(
+          DAPP_ERROR_CODES.invalidParams,
+          error instanceof Error ? error.message : 'Invalid credential payload.',
+        );
+      }
       await ensureApprovedOrigin(siteOrigin, wallet);
       return enqueueApproval(request, wallet);
     }

@@ -232,14 +232,14 @@ class ClorioMinaProvider {
 
   async storePrivateCredential(
     params: DappStorePrivateCredentialParams,
-  ): Promise<{ id: string; storedAt: number; credential: unknown }> {
+  ): Promise<{ id: string; storedAt: number; credential: string }> {
     const result = (await this.sendRequest(
       'mina_storePrivateCredential',
       params,
     )) as {
       id: string;
       storedAt: number;
-      credential: unknown;
+      credential: string;
     };
     return result;
   }
