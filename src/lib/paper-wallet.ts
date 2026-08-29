@@ -1,4 +1,12 @@
 import PDFDocument from 'pdfkit';
+import * as PdfKit from 'pdfkit';
+// pdfkit exposes these font data modules without TypeScript declarations.
+// @ts-expect-error pdfkit package export has no matching declaration
+import Courier from 'pdfkit/standard-fonts/Courier';
+// @ts-expect-error pdfkit package export has no matching declaration
+import Helvetica from 'pdfkit/standard-fonts/Helvetica';
+// @ts-expect-error pdfkit package export has no matching declaration
+import HelveticaBold from 'pdfkit/standard-fonts/HelveticaBold';
 import QRCode from 'qrcode';
 import ClorioLogoB64 from '@/assets/ClorioLogoB64.json';
 import type {
@@ -21,6 +29,12 @@ const COLORS = {
 };
 
 const mm = (value: number) => value * MM;
+const registerStandardFonts = (
+  PdfKit as unknown as {
+    registerStdFonts?: (...fontData: unknown[]) => void;
+  }
+).registerStdFonts;
+registerStandardFonts?.(Courier, Helvetica, HelveticaBold);
 
 export function isValidPaperWalletPdfPassword(password: string): boolean {
   return password.length >= PDF_PASSWORD_MIN_LENGTH;
