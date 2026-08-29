@@ -23,7 +23,9 @@ export type MessageType =
   | 'OPEN_EXTENSION'
   | 'DAPP_RPC_REQUEST'
   | 'DAPP_GET_PENDING_APPROVAL'
-  | 'DAPP_RESOLVE_PENDING_APPROVAL';
+  | 'DAPP_RESOLVE_PENDING_APPROVAL'
+  | 'STORE_PAPER_WALLET'
+  | 'TAKE_PAPER_WALLET';
 
 export interface BaseMessage {
   type: MessageType;
@@ -175,6 +177,23 @@ export interface DappResolvePendingApprovalMessage extends BaseMessage {
   };
 }
 
+export interface PaperWalletPayload {
+  name: string;
+  publicKey: string;
+  mnemonic?: string;
+  privateKey?: string;
+}
+
+export interface StorePaperWalletMessage extends BaseMessage {
+  type: 'STORE_PAPER_WALLET';
+  payload: { token: string; data: PaperWalletPayload };
+}
+
+export interface TakePaperWalletMessage extends BaseMessage {
+  type: 'TAKE_PAPER_WALLET';
+  payload: { token: string };
+}
+
 export type AppMessage =
   | DeriveKeysMessage
   | ValidatePrivateKeyMessage
@@ -191,7 +210,9 @@ export type AppMessage =
   | OpenExtensionMessage
   | DappRpcRequestMessage
   | DappGetPendingApprovalMessage
-  | DappResolvePendingApprovalMessage;
+  | DappResolvePendingApprovalMessage
+  | StorePaperWalletMessage
+  | TakePaperWalletMessage;
 
 export interface DeriveKeysResponse {
   publicKey: string;
@@ -258,4 +279,14 @@ export interface DappResolvePendingApprovalResponse {
   ok: boolean;
   error?: string;
   isRetryable?: boolean;
+}
+
+export interface StorePaperWalletResponse {
+  ok: boolean;
+  error?: string;
+}
+
+export interface TakePaperWalletResponse {
+  data?: PaperWalletPayload;
+  error?: string;
 }

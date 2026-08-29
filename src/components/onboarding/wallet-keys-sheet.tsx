@@ -11,9 +11,11 @@ import {
   BottomSheetDescription,
   BottomSheetTrigger,
 } from '@/components/ui/bottom-sheet';
-import { Copy, Eye, EyeOff } from 'lucide-react';
+import { Copy, Eye, EyeOff, Printer } from 'lucide-react';
 import { AppMessage, DeriveKeysResponse } from '@/messages/types';
 import { useTranslation } from 'react-i18next';
+import { openPaperWallet } from '@/lib/paper-wallet';
+import { DEFAULT_WALLET_NAME_PREFIX } from '@/lib/types/vault';
 
 interface WalletKeysSheetProps {
   mnemonic: string[];
@@ -32,7 +34,7 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
   const [isDeriving, setIsDeriving] = useState(false);
 
   const deriveKeys = async () => {
-    if (keyPair) return;
+    if (keyPair) return keyPair;
 
     setIsDeriving(true);
     try {
@@ -49,10 +51,12 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
         throw new Error(response.error);
       }
 
-      setKeyPair({
+      const keys = {
         privateKey: response.privateKey,
         publicKey: response.publicKey,
-      });
+      };
+      setKeyPair(keys);
+      return keys;
     } catch (err) {
       console.error('Failed to derive keys:', err);
       toast({
@@ -65,104 +69,156 @@ export const WalletKeysSheet: React.FC<WalletKeysSheetProps> = ({
     }
   };
 
+  const handlePrint = async () => {
+    if (mnemonic.length === 0) return;
+    const keys = await deriveKeys();
+    if (!keys) return;
+    try {
+      await openPaperWallet({
+        name: `${DEFAULT_WALLET_NAME_PREFIX}1`,
+        publicKey: keys.publicKey,
+        mnemonic: mnemonic.join(' '),
+        privateKey: keys.privateKey,
+      });
+    } catch (error) {
+      console.error('[WalletKeysSheet] Failed to open paper wallet:', error);
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description:
+          error instanceof Error
+            ? error.message
+            : t('security.backup.retrieval_failed'),
+      });
+    }
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
       title: t('onboarding.wallet_keys_sheet.copied_title') || 'Copied',
-      description: t('onboarding.wallet_keys_sheet.copied_desc', { label }) || `${label} copied to clipboard`,
+      description:
+        t('onboarding.wallet_keys_sheet.copied_desc', { label }) ||
+        `${label} copied to clipboard`,
     });
   };
 
   return (
-    <BottomSheet
-      onOpenChange={(open) => {
-        if (open) deriveKeys();
-      }}
-    >
-      <BottomSheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-muted-foreground hover:text-foreground "
-        >
-          {t('onboarding.wallet_keys_sheet.show_key_button')}
-        </Button>
-      </BottomSheetTrigger>
-      <BottomSheetContent>
-        <BottomSheetHeader>
-          <BottomSheetTitle>{t('onboarding.wallet_keys_sheet.title')}</BottomSheetTitle>
-          <BottomSheetDescription>
-            {t('onboarding.wallet_keys_sheet.desc')}
-          </BottomSheetDescription>
-        </BottomSheetHeader>
-        <div className="p-4 space-y-4 pb-8">
-          {isDeriving ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
-              <p className="text-sm">{t('onboarding.wallet_keys_sheet.deriving')}</p>
-            </div>
-          ) : keyPair ? (
-            <>
-              <div className="space-y-2">
-                <Label>{t('onboarding.wallet_keys_sheet.public_key_label')}</Label>
-                <div className="flex gap-2">
-                  <Input
-                    readOnly
-                    value={keyPair.publicKey}
-                    className="font-mono text-xs"
-                  />
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() =>
-                      copyToClipboard(keyPair.publicKey, t('onboarding.wallet_keys_sheet.public_key_label'))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
+    <div className="space-y-2">
+      <BottomSheet
+        onOpenChange={(open) => {
+          if (open) deriveKeys();
+        }}
+      >
+        <BottomSheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground hover:text-foreground "
+          >
+            {t('onboarding.wallet_keys_sheet.show_key_button')}
+          </Button>
+        </BottomSheetTrigger>
+        <BottomSheetContent>
+          <BottomSheetHeader>
+            <BottomSheetTitle>
+              {t('onboarding.wallet_keys_sheet.title')}
+            </BottomSheetTitle>
+            <BottomSheetDescription>
+              {t('onboarding.wallet_keys_sheet.desc')}
+            </BottomSheetDescription>
+          </BottomSheetHeader>
+          <div className="p-4 space-y-4 pb-8">
+            {isDeriving ? (
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mb-2" />
+                <p className="text-sm">
+                  {t('onboarding.wallet_keys_sheet.deriving')}
+                </p>
               </div>
-
-              <div className="space-y-2">
-                <Label>{t('onboarding.wallet_keys_sheet.private_key_label')}</Label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
+            ) : keyPair ? (
+              <>
+                <div className="space-y-2">
+                  <Label>
+                    {t('onboarding.wallet_keys_sheet.public_key_label')}
+                  </Label>
+                  <div className="flex gap-2">
                     <Input
                       readOnly
-                      type={showPrivateKey ? 'text' : 'password'}
-                      value={keyPair.privateKey}
-                      className="font-mono text-xs pr-10"
+                      value={keyPair.publicKey}
+                      className="font-mono text-xs"
                     />
-                    <button
-                      onClick={() => setShowPrivateKey(!showPrivateKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() =>
+                        copyToClipboard(
+                          keyPair.publicKey,
+                          t('onboarding.wallet_keys_sheet.public_key_label'),
+                        )
+                      }
                     >
-                      {showPrivateKey ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() =>
-                      copyToClipboard(keyPair.privateKey, t('onboarding.wallet_keys_sheet.private_key_label'))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
                 </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    {t('onboarding.wallet_keys_sheet.private_key_label')}
+                  </Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        readOnly
+                        type={showPrivateKey ? 'text' : 'password'}
+                        value={keyPair.privateKey}
+                        className="font-mono text-xs pr-10"
+                      />
+                      <button
+                        onClick={() => setShowPrivateKey(!showPrivateKey)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPrivateKey ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() =>
+                        copyToClipboard(
+                          keyPair.privateKey,
+                          t('onboarding.wallet_keys_sheet.private_key_label'),
+                        )
+                      }
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground text-sm">
+                {t('onboarding.wallet_keys_sheet.failed_derive')}
               </div>
-            </>
-          ) : (
-            <div className="py-8 text-center text-muted-foreground text-sm">
-              {t('onboarding.wallet_keys_sheet.failed_derive')}
-            </div>
-          )}
-        </div>
-      </BottomSheetContent>
-    </BottomSheet>
+            )}
+          </div>
+        </BottomSheetContent>
+      </BottomSheet>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="w-full text-muted-foreground hover:text-foreground"
+        onClick={handlePrint}
+        disabled={isDeriving || mnemonic.length === 0}
+      >
+        <Printer className="h-4 w-4 mr-2" />
+        {t('security.backup.print_pdf')}
+      </Button>
+    </div>
   );
 };

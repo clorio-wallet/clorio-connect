@@ -33,7 +33,7 @@ export function SeedPhraseDisplay({
       </div>
       {showCopy && (
         <Button
-          variant="outline"
+          variant="default"
           className="w-full gap-2"
           onClick={() => copy(mnemonic.join(' '))}
         >

@@ -212,7 +212,14 @@
       "your_private_key": "Tu clave privada",
       "mnemonic_words": "{{count}} palabras",
       "security_notice": "Escribe esto y guárdalo en un lugar seguro, fuera de línea. Nunca lo almacenes digitalmente ni lo compartas en línea.",
-      "done": "Hecho"
+      "done": "Hecho",
+      "print_pdf": "Imprimir / PDF",
+      "paper_title": "Billetera de papel Mina",
+      "public_address": "Dirección pública",
+      "public_address_hint": "Usa esta dirección para recibir MINA. Es seguro compartirla.",
+      "secret_hint": "Escanea o ingresa este secreto para restaurar la billetera.",
+      "fold_line": "Doblar aquí",
+      "paper_warning": "Cualquier persona con este secreto puede controlar tus fondos. Guarda este papel en privado, fuera de línea y protegido. Si guardas un PDF, usa una unidad cifrada sin conexión y elimina las copias adicionales."
     }
   },
   "welcome": {

@@ -12,6 +12,8 @@ import type {
   DappRpcResponse,
   DappGetPendingApprovalResponse,
   DappResolvePendingApprovalResponse,
+  StorePaperWalletResponse,
+  TakePaperWalletResponse,
 } from '@/messages/types';
 
 import { handleSetUiMode, openExtension } from './sidepanel';
@@ -42,6 +44,10 @@ import { DAPP_NETWORK_ID_STORAGE_KEY } from '@/lib/dapp';
 import { VaultManager } from '@/lib/vault-manager';
 import { deriveMinaPrivateKey } from '@/lib/mina-utils';
 import { VAULT_STORAGE_KEY, isVaultData, type VaultData } from '@/lib/types/vault';
+import {
+  storePaperWalletTransfer,
+  takePaperWalletTransfer,
+} from './paper-wallet-transfer';
 
 type AnyResponse =
   | DeriveKeysResponse
@@ -55,6 +61,8 @@ type AnyResponse =
   | DappRpcResponse
   | DappGetPendingApprovalResponse
   | DappResolvePendingApprovalResponse
+  | StorePaperWalletResponse
+  | TakePaperWalletResponse
   | { ok: true }
   | { error: string }
   | { result?: unknown; error?: { code: number; message: string } };
@@ -75,6 +83,12 @@ type HandlerEntry<T extends AppMessage['type'], R extends AnyResponse> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RouterMap = { [T in AppMessage['type']]?: HandlerEntry<T, any> };
+
+function isTrustedExtensionPage(
+  sender: chrome.runtime.MessageSender,
+): boolean {
+  return sender.url?.startsWith(chrome.runtime.getURL('')) === true;
+}
 
 const handlers: RouterMap = {
   LEDGER_KEEPALIVE_START: {
@@ -238,6 +252,30 @@ const handlers: RouterMap = {
     ) => handleSignDelegation(msg.payload, sendResponse),
   },
 
+  STORE_PAPER_WALLET: {
+    async: false,
+    handle: (msg, sender, sendResponse: (r: StorePaperWalletResponse) => void) => {
+      if (!isTrustedExtensionPage(sender)) {
+        sendResponse({ ok: false, error: 'Invalid request origin.' });
+        return;
+      }
+      const ok = storePaperWalletTransfer(msg.payload.token, msg.payload.data);
+      sendResponse(ok ? { ok: true } : { ok: false, error: 'Invalid transfer.' });
+    },
+  },
+
+  TAKE_PAPER_WALLET: {
+    async: false,
+    handle: (msg, sender, sendResponse: (r: TakePaperWalletResponse) => void) => {
+      if (!isTrustedExtensionPage(sender)) {
+        sendResponse({ error: 'Invalid request origin.' });
+        return;
+      }
+      const data = takePaperWalletTransfer(msg.payload.token);
+      sendResponse(data ? { data } : { error: 'Transfer unavailable.' });
+    },
+  },
+
   CLOSE_VIEW: {
     async: false,
     handle: () => {},
@@ -317,6 +355,14 @@ function route(
   sender: chrome.runtime.MessageSender,
   sendResponse: (r: AnyResponse) => void,
 ): boolean {
+  if (
+    message.type !== 'DAPP_RPC_REQUEST' &&
+    !isTrustedExtensionPage(sender)
+  ) {
+    sendResponse({ error: 'Invalid request origin.' });
+    return false;
+  }
+
   const entry = handlers[message.type];
 
   if (!entry) {

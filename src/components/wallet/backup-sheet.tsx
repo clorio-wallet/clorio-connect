@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Copy } from 'lucide-react';
+import { Copy, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   BottomSheet,
@@ -15,6 +15,7 @@ import {
 import { PasswordInput } from '@/components/wallet/password-input';
 import { SeedPhraseDisplay } from '@/components/wallet/seed-phrase-display';
 import { useWalletStore } from '@/stores/wallet-store';
+import { openPaperWallet } from '@/lib/paper-wallet';
 
 interface BackupSheetProps {
   open: boolean;
@@ -45,7 +46,6 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
 
   useEffect(() => {
     if (open) {
-
       if (wallets.length === 0) {
         loadWallets().catch((err) => {
           console.error('[BackupSheet] Failed to load wallets:', err);
@@ -54,8 +54,8 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
     }
   }, [open, activeWalletId, wallets, activeWallet, loadWallets]);
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
       setStep('warning');
       setPassword('');
       setError('');
@@ -63,7 +63,8 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
       setBackupType(null);
       setIsLoading(false);
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  };
 
   const handleVerifyPassword = async () => {
     if (!password) {
@@ -135,6 +136,31 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
     }
   };
 
+  const handlePrint = async () => {
+    if (!activeWallet || !backupData || !backupType) return;
+
+    try {
+      await openPaperWallet({
+        name: activeWallet.name,
+        publicKey: activeWallet.publicKey,
+        ...(backupType === 'mnemonic'
+          ? { mnemonic: backupData }
+          : { privateKey: backupData }),
+      });
+      handleOpenChange(false);
+    } catch (error) {
+      console.error('[BackupSheet] Failed to open paper wallet:', error);
+      toast({
+        variant: 'destructive',
+        title: t('common.error'),
+        description:
+          error instanceof Error
+            ? error.message
+            : t('security.backup.retrieval_failed'),
+      });
+    }
+  };
+
   const getTitle = () => {
     if (step === 'warning') return t('security.backup.title_warning');
     if (step === 'password') return t('security.backup.title_password');
@@ -153,7 +179,7 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
 
   if (!activeWallet || activeWallet.type === 'ledger') {
     return (
-      <BottomSheet open={open} onOpenChange={onOpenChange}>
+      <BottomSheet open={open} onOpenChange={handleOpenChange}>
         <BottomSheetContent>
           <BottomSheetHeader>
             <BottomSheetTitle>
@@ -176,7 +202,7 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
   }
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange}>
+    <BottomSheet open={open} onOpenChange={handleOpenChange}>
       <BottomSheetContent>
         <BottomSheetHeader>
           <BottomSheetTitle>{getTitle()}</BottomSheetTitle>
@@ -313,12 +339,20 @@ export const BackupSheet: React.FC<BackupSheetProps> = ({
           )}
 
           {step === 'display' && (
-            <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1" onClick={handleCopy}>
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <Button variant="outline" onClick={handleCopy}>
                 <Copy className="h-4 w-4 mr-2" />
                 {t('common.copy')}
               </Button>
-              <Button className="flex-1" onClick={() => onOpenChange(false)}>
+              <Button onClick={handlePrint}>
+                <Printer className="h-4 w-4 mr-2" />
+                {t('security.backup.print_pdf')}
+              </Button>
+              <Button
+                variant="ghost"
+                className="col-span-2"
+                onClick={() => onOpenChange(false)}
+              >
                 {t('security.backup.done')}
               </Button>
             </div>
