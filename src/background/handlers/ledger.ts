@@ -2,13 +2,24 @@
 
 import { storage } from '@/lib/storage';
 import { captureApiFailure } from '@/lib/analytics';
+import {
+  DEFAULT_NETWORKS,
+  getNetworkApiBaseUrl,
+} from '@/lib/networks';
+import { DAPP_NETWORK_ID_STORAGE_KEY } from '@/lib/dapp';
 import type {
   LedgerImportAccountResponse,
   LedgerSubmitTxResponse,
 } from '@/messages/types';
 
 
-const API_BASE = (import.meta.env.VITE_API_URL as string) ?? '';
+const DEFAULT_API_BASE = (import.meta.env.VITE_API_URL as string) ?? '';
+
+async function getActiveApiBase(): Promise<string> {
+  const networkId = await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY);
+  const network = DEFAULT_NETWORKS[networkId || 'mainnet'];
+  return (network && getNetworkApiBaseUrl(network)) || DEFAULT_API_BASE;
+}
 
 function getTrackedMinaEndpointGroup(path: string):
   | 'mina_transaction'
@@ -26,7 +37,7 @@ function getTrackedMinaEndpointGroup(path: string):
 }
 
 async function restPost<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${await getActiveApiBase()}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

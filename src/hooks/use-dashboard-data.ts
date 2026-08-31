@@ -32,6 +32,7 @@ export const useDashboardData = () => {
 
   const { data: tickerData } = useGetTicker({
     query: {
+      queryKey: ['ticker', networkId],
       refetchInterval: 60000, // Update ticker every minute
     },
   });
@@ -45,6 +46,7 @@ export const useDashboardData = () => {
 
   const { data: healthData } = useGetHealth({
     query: {
+      queryKey: ['health', networkId],
       refetchInterval: 300000,
     },
   });

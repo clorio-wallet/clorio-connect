@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { useNetworkStore } from '@/stores/network-store';
 import { useSettingsStore } from '@/stores/settings-store';
+import { getNetworkApiBaseUrl } from '@/lib/networks';
 import { captureApiFailure } from '@/lib/analytics';
 
 export const AXIOS_INSTANCE = axios.create({
@@ -87,7 +88,9 @@ function getActiveApiBaseUrl(): string | undefined {
   const networkId = useSettingsStore.getState().networkId;
   const network = useNetworkStore.getState().networks[networkId];
 
-  return network?.apiUrl || import.meta.env.VITE_API_URL;
+  return (
+    (network && getNetworkApiBaseUrl(network)) || import.meta.env.VITE_API_URL
+  );
 }
 
 export const customInstance = <T>(

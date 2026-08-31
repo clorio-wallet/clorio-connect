@@ -5,6 +5,7 @@ export interface NetworkConfig {
   epochUrl: string;
   explorerUrl: string;
   apiUrl?: string;
+  url?: string;
 }
 
 export type NetworkId = string;
@@ -49,11 +50,31 @@ export const DEFAULT_NETWORKS: NetworksMap = {
     label: 'devnet',
     epochUrl: import.meta.env.VITE_DEVNET_EPOCH_URL || '',
     explorerUrl: import.meta.env.VITE_DEVNET_EXPLORER_URL || '',
-    apiUrl: import.meta.env.VITE_API_URL || '',
+    url:
+      import.meta.env.VITE_DEVNET_GRAPHQL_URL ||
+      'https://devnet.clor.io/graphql',
   },
 };
 
 export const DEFAULT_NETWORK_ID: NetworkId = 'mainnet';
+
+export function getNetworkApiBaseUrl(
+  network: NetworkConfig,
+): string | undefined {
+  if (network.apiUrl) {
+    return network.apiUrl;
+  }
+
+  if (!network.url) {
+    return undefined;
+  }
+
+  try {
+    return new URL(network.url).origin;
+  } catch {
+    return undefined;
+  }
+}
 
 export function normalizeToCanonicalNetworkLabel(networkID: string): 'mainnet' | 'devnet' {
   const normalized = networkID.trim().toLowerCase();

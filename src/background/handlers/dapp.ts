@@ -38,6 +38,7 @@ import {
   DEFAULT_NETWORKS,
   DAPP_CUSTOM_NETWORKS_STORAGE_KEY,
   CustomDappNetworkConfig,
+  getNetworkApiBaseUrl,
   labelToMinaId,
   minaIdToLabel,
   normalizeNetworkUrl,
@@ -68,7 +69,7 @@ const GRAPHQL_ENDPOINTS: Record<DappNetworkId, string> = {
     import.meta.env.VITE_DEVNET_GRAPHQL_URL ||
     'https://api.minascan.io/node/devnet/v1/graphql',
 };
-const REST_API_BASE = (
+const DEFAULT_REST_API_BASE = (
   import.meta.env.VITE_API_URL as string | undefined
 )?.replace(/\/$/, '');
 
@@ -132,6 +133,20 @@ async function loadCustomNetworks(): Promise<Record<string, CustomDappNetworkCon
     (await storage.get<Record<string, CustomDappNetworkConfig>>(
       DAPP_CUSTOM_NETWORKS_STORAGE_KEY,
     )) ?? {}
+  );
+}
+
+async function getActiveRestApiBase(): Promise<string | undefined> {
+  const networkId = await getCurrentNetworkId();
+  const builtInNetwork = DEFAULT_NETWORKS[networkId];
+  if (builtInNetwork) {
+    return getNetworkApiBaseUrl(builtInNetwork) || DEFAULT_REST_API_BASE;
+  }
+
+  const customNetwork = (await loadCustomNetworks())[networkId];
+  return (
+    (customNetwork && getNetworkApiBaseUrl(customNetwork)) ||
+    DEFAULT_REST_API_BASE
   );
 }
 
@@ -285,15 +300,16 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 async function fetchPendingNonce(publicKey: string): Promise<number> {
-  if (!REST_API_BASE) {
+  const restApiBase = await getActiveRestApiBase();
+  if (!restApiBase) {
     return 0;
   }
 
   const [accountResponse, mempoolResponse] = await Promise.all([
-    fetch(`${REST_API_BASE}/v1/mina/accounts/${publicKey}`, {
+    fetch(`${restApiBase}/v1/mina/accounts/${publicKey}`, {
       headers: { 'ngrok-skip-browser-warning': 'true' },
     }).then((response) => response.json() as Promise<{ nonce?: number }>),
-    fetch(`${REST_API_BASE}/v1/mina/mempool/${publicKey}`, {
+    fetch(`${restApiBase}/v1/mina/mempool/${publicKey}`, {
       headers: { 'ngrok-skip-browser-warning': 'true' },
     })
       .then((response) => response.json() as Promise<{ mempool?: unknown[] }>)
@@ -1483,7 +1499,8 @@ async function performSendPayment(
     );
   }
 
-  if (!REST_API_BASE) {
+  const restApiBase = await getActiveRestApiBase();
+  if (!restApiBase) {
     throw createDappError(
       DAPP_ERROR_CODES.internalError,
       'Payment broadcast is not configured.',
@@ -1504,7 +1521,7 @@ async function performSendPayment(
     signature: unknown;
   };
   const result = await postJson<{ hash?: string; id?: string }>(
-    `${REST_API_BASE}/v1/mina/transaction`,
+    `${restApiBase}/v1/mina/transaction`,
     { input, signature: signed.signature },
   );
 
@@ -1536,7 +1553,8 @@ async function performSendStakeDelegation(
     );
   }
 
-  if (!REST_API_BASE) {
+  const restApiBase = await getActiveRestApiBase();
+  if (!restApiBase) {
     throw createDappError(
       DAPP_ERROR_CODES.internalError,
       'Delegation broadcast is not configured.',
@@ -1556,7 +1574,7 @@ async function performSendStakeDelegation(
     signature: unknown;
   };
   const result = await postJson<{ hash?: string; id?: string }>(
-    `${REST_API_BASE}/v1/mina/transaction/delegation`,
+    `${restApiBase}/v1/mina/transaction/delegation`,
     { input, signature: signed.signature },
   );
 

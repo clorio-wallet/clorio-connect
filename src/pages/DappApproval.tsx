@@ -28,6 +28,7 @@ import { useNetworkStore } from '@/stores/network-store';
 import { useSettingsStore } from '@/stores/settings-store';
 import { VaultManager } from '@/lib/vault-manager';
 import { formatAddress } from '@/lib/utils';
+import { getNetworkApiBaseUrl } from '@/lib/networks';
 import { sessionStorage } from '@/lib/storage';
 import {
   decryptCredential,
@@ -159,7 +160,10 @@ const DappApprovalPage: React.FC = () => {
     (state) => state.ledgerAccountIndex,
   );
   const networkId = useSettingsStore((state) => state.networkId);
-  const apiUrl = useNetworkStore((state) => state.networks[networkId]?.apiUrl);
+  const apiUrl = useNetworkStore((state) => {
+    const network = state.networks[networkId];
+    return network ? getNetworkApiBaseUrl(network) : undefined;
+  });
   const {
     connect,
     signPayment,
