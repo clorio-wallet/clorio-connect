@@ -16,8 +16,10 @@ import {
   NetworkId,
 } from '@/lib/ledger';
 import type { SignPaymentMessage, SignPaymentResponse } from '@/messages/types';
-import { getNetworkApiBaseUrl } from '@/lib/networks';
-import { trackTransaction } from '@/lib/notifications';
+import {
+  getNotificationApiUrl,
+  trackTransaction,
+} from '@/lib/notifications';
 
 export interface BroadcastResult {
   kind: 'broadcast';
@@ -275,7 +277,7 @@ export function useSendTransaction() {
           : await sendWithSoftware(formData, password);
 
       if (!FEATURES.DRY_RUN_SEND_TX && publicKey) {
-        const apiUrl = getNetworkApiBaseUrl(network);
+        const apiUrl = getNotificationApiUrl(network);
         if (apiUrl) {
           trackTransaction({
             hash: result.hash ?? result.id,

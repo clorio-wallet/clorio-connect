@@ -1,6 +1,13 @@
 import type { AppMessage } from '@/messages/types';
+import { getNetworkApiBaseUrl, type NetworkConfig } from '@/lib/networks';
 
 export const NOTIFICATION_LANGUAGE_STORAGE_KEY = 'clorio_language';
+
+export function getNotificationApiUrl(
+  network: NetworkConfig | undefined,
+): string | undefined {
+  return network ? getNetworkApiBaseUrl(network) : undefined;
+}
 
 export type NotificationTransactionType = 'payment' | 'delegation' | 'zkapp';
 

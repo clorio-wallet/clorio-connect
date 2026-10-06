@@ -21,8 +21,10 @@ import type {
   SignDelegationMessage,
   SignDelegationResponse,
 } from '@/messages/types';
-import { getNetworkApiBaseUrl } from '@/lib/networks';
-import { trackTransaction } from '@/lib/notifications';
+import {
+  getNotificationApiUrl,
+  trackTransaction,
+} from '@/lib/notifications';
 
 const DELEGATION_FEE_MINA = '0.012';
 
@@ -252,7 +254,7 @@ export function useDelegateTransaction() {
           : await delegateWithSoftware(validatorPublicKey, password);
 
       if (!FEATURES.DRY_RUN_SEND_TX && publicKey) {
-        const apiUrl = getNetworkApiBaseUrl(network);
+        const apiUrl = getNotificationApiUrl(network);
         if (apiUrl) {
           trackTransaction({
             hash: result.hash,

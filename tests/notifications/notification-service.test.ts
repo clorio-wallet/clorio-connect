@@ -4,6 +4,7 @@ import {
   isNotificationMessage,
   notificationId,
 } from '../../src/background/notifications';
+import { getNotificationApiUrl } from '../../src/lib/notifications';
 
 describe('notification service', () => {
   it('uses the requested locale and falls back to English', () => {
@@ -20,6 +21,10 @@ describe('notification service', () => {
     expect(notificationId('transaction', 'abc')).toBe(
       'clorio_transaction_abc',
     );
+  });
+
+  it('does not require a loaded network config to resolve a tracking URL', () => {
+    expect(getNotificationApiUrl(undefined)).toBeUndefined();
   });
 
   it('rejects malformed runtime notification messages', () => {
