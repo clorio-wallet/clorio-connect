@@ -6,6 +6,7 @@
     "dev": "vite --host",
     "dev:firefox": "BROWSER=firefox vite --host",
     "build": "vite build",
+    "test": "vitest run",
     "build:firefox": "BROWSER=firefox vite build",
     "preview": "vite preview",
     "api:gen": "orval"

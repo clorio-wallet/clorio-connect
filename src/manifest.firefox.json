@@ -3,7 +3,7 @@
   "name": "Clorio Connect",
   "version": "1.1.1",
   "description": "Your gateway to Mina Protocol. Store, send, and stake with complete control over your assets.",
-  "permissions": ["storage", "tabs", "notifications"],
+  "permissions": ["storage", "tabs", "notifications", "alarms"],
   "host_permissions": ["https://*/*", "http://*/*"],
   "icons": {
     "16": "icon-16.png",

@@ -15,6 +15,21 @@
       "minutes_left": "{{minutes}}Min verbleibend"
     }
   },
+  "notifications": {
+    "title": "Clorio Connect",
+    "dapp": {
+      "request": "Eine dApp fordert Zugriff an. Klicken Sie, um die Wallet zu öffnen."
+    },
+    "transaction": {
+      "applied": "Transaktion {{hash}} wurde bestätigt.",
+      "failed": "Transaktion {{hash}} ist fehlgeschlagen."
+    },
+    "session": {
+      "locked": "Ihre Wallet-Sitzung ist gesperrt.",
+      "unlocked": "Ihre Wallet ist entsperrt."
+    },
+    "software_update": "Clorio Connect wurde erfolgreich aktualisiert."
+  },
   "send": {
     "amount_label": "Betrag",
     "available_label": "Verfügbar",

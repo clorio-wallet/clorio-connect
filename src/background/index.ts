@@ -1,5 +1,18 @@
 import './sidepanel';
 
+import {
+  isNotificationMessage,
+  registerNotificationHandlers,
+  showSoftwareUpdateNotification,
+} from './notifications';
+
+registerNotificationHandlers();
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'update') {
+    void showSoftwareUpdateNotification();
+  }
+});
+
 import type { AppMessage, SetUiModeResponse } from '@/messages/types';
 import type {
   DeriveKeysResponse,
@@ -355,6 +368,10 @@ function route(
   sender: chrome.runtime.MessageSender,
   sendResponse: (r: AnyResponse) => void,
 ): boolean {
+  if (isNotificationMessage(message)) {
+    return false;
+  }
+
   if (
     message.type !== 'DAPP_RPC_REQUEST' &&
     !isTrustedExtensionPage(sender)

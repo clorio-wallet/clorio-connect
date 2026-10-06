@@ -18,6 +18,21 @@
       "minutes_left": "{{minutes}}m left"
     }
   },
+  "notifications": {
+    "title": "Clorio Connect",
+    "dapp": {
+      "request": "A dApp is requesting access. Click to open the wallet."
+    },
+    "transaction": {
+      "applied": "Transaction {{hash}} was confirmed.",
+      "failed": "Transaction {{hash}} failed."
+    },
+    "session": {
+      "locked": "Your wallet session is locked.",
+      "unlocked": "Your wallet is unlocked."
+    },
+    "software_update": "Clorio Connect was updated successfully."
+  },
   "error": {
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again."

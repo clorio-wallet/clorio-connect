@@ -15,6 +15,21 @@
       "minutes_left": "Il reste {{minutes}}m"
     }
   },
+  "notifications": {
+    "title": "Clorio Connect",
+    "dapp": {
+      "request": "Une dApp demande un accès. Cliquez pour ouvrir le portefeuille."
+    },
+    "transaction": {
+      "applied": "La transaction {{hash}} a été confirmée.",
+      "failed": "La transaction {{hash}} a échoué."
+    },
+    "session": {
+      "locked": "La session de votre portefeuille est verrouillée.",
+      "unlocked": "Votre portefeuille est déverrouillé."
+    },
+    "software_update": "Clorio Connect a été mis à jour avec succès."
+  },
   "send": {
     "amount_label": "Montant",
     "available_label": "Disponible",

@@ -15,6 +15,21 @@
       "minutes_left": "Quedan {{minutes}}m"
     }
   },
+  "notifications": {
+    "title": "Clorio Connect",
+    "dapp": {
+      "request": "Una dApp solicita acceso. Haz clic para abrir la billetera."
+    },
+    "transaction": {
+      "applied": "La transacción {{hash}} fue confirmada.",
+      "failed": "La transacción {{hash}} falló."
+    },
+    "session": {
+      "locked": "La sesión de tu billetera está bloqueada.",
+      "unlocked": "Tu billetera está desbloqueada."
+    },
+    "software_update": "Clorio Connect se actualizó correctamente."
+  },
   "send": {
     "amount_label": "Cantidad",
     "available_label": "Disponible",
