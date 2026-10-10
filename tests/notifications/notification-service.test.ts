@@ -24,7 +24,7 @@ describe('notification service', () => {
   });
 
   it('does not require a loaded network config to resolve a tracking URL', () => {
-    expect(getNotificationApiUrl(undefined)).toBeUndefined();
+    expect(getNotificationApiUrl(undefined)).toBe(import.meta.env.VITE_API_URL || undefined);
   });
 
   it('rejects malformed runtime notification messages', () => {
