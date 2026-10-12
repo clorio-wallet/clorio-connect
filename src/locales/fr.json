@@ -13,7 +13,20 @@
       "days_hours_left": "Il reste {{days}}j {{hours}}h",
       "hours_minutes_left": "Il reste {{hours}}h {{minutes}}m",
       "minutes_left": "Il reste {{minutes}}m"
-    }
+    },
+    "actions": "Actions",
+    "adding": "Ajout...",
+    "advanced": "Avancé",
+    "characters": "caractères",
+    "confirm": "Confirmer",
+    "copy": "Copier",
+    "done": "Terminé",
+    "optional": "Facultatif",
+    "refresh": "Actualiser",
+    "reload": "Recharger",
+    "retry": "Réessayer",
+    "revoke": "Révoquer",
+    "save": "Enregistrer"
   },
   "notifications": {
     "title": "Clorio Connect",
@@ -22,7 +35,8 @@
     },
     "transaction": {
       "applied": "La transaction {{hash}} a été confirmée.",
-      "failed": "La transaction {{hash}} a échoué."
+      "failed": "La transaction {{hash}} a échoué.",
+      "dropped": "La transaction {{hash}} n’est plus dans le mempool et reste introuvable dans l’historique après deux nouvelles vérifications sur 5 minutes. Sa confirmation n’a pas pu être vérifiée."
     },
     "session": {
       "locked": "La session de votre portefeuille est verrouillée.",
@@ -40,9 +54,11 @@
     "network_fee_label": "Frais de réseau",
     "total_label": "Total",
     "error_failed": "Échec de l'envoi de la transaction",
+    "sent_toast": "Transaction envoyée. En attente de confirmation du réseau.",
     "sending_button": "Envoi...",
     "send_button": "Envoyer",
-    "continue_button": "Continuer"
+    "continue_button": "Continuer",
+    "broadcast_error": "Impossible de diffuser la transaction"
   },
   "staking": {
     "validator_label": "Validateur",
@@ -55,7 +71,28 @@
     "warning_text": "Les fonds délégués sont bloqués pendant 21 jours après le retrait. Vous ne gagnerez pas de récompenses pendant la période de déblocage.",
     "error_failed": "Échec de la délégation",
     "staking_button": "Délégation...",
-    "stake_button": "Déléguer"
+    "stake_button": "Déléguer",
+    "broadcasting": "Diffusion de la délégation...",
+    "broadcasting_desc": "Veuillez patienter pendant l'envoi de votre délégation au réseau.",
+    "confirm_delegation": "Confirmer la délégation",
+    "custom_address_confirm_desc": "Vous déléguez directement à une clé publique de validateur saisie manuellement.",
+    "custom_address_label": "Adresse personnalisée",
+    "custom_delegate_button": "Adresse personnalisée",
+    "custom_delegate_desc": "Saisissez la clé publique du validateur auquel vous souhaitez déléguer.",
+    "custom_delegate_field": "Clé publique du validateur",
+    "custom_delegate_hint": "Utilisez une adresse de validateur Mina valide commençant par B62.",
+    "custom_delegate_title": "Déléguer à une adresse personnalisée",
+    "epoch": "Époque",
+    "failed_desc": "Une erreur est survenue.",
+    "failed_title": "Échec de la délégation",
+    "no_delegate": "Aucun délégué",
+    "success_desc": "Votre délégation a été diffusée avec succès.",
+    "success_title": "Délégation envoyée",
+    "title": "Staking",
+    "transaction_hash": "Hash de la transaction",
+    "validator": "Validateur",
+    "validator_address": "Adresse",
+    "your_stake": "Votre participation"
   },
   "validators": {
     "current_badge": "Actuel",
@@ -72,7 +109,12 @@
       "start_button": "Commencer à déléguer",
       "delegated_label": "Délégué",
       "stake_title": "Stake"
-    }
+    },
+    "address_label": "Adresse",
+    "delegation_failed": "Échec de la délégation",
+    "delegation_success": "Délégation envoyée",
+    "empty_generic_hint": "Essayez d'actualiser la liste des validateurs.",
+    "empty_search_hint": "Essayez une autre recherche."
   },
   "transaction_confirm": {
     "title": "Confirmer la transaction",
@@ -118,7 +160,15 @@
     "rename_coming_soon": "La fonctionnalité de renommage sera bientôt disponible.",
     "send_tx_coming_soon": "Fonctionnalité d'envoi de transaction bientôt disponible.",
     "transactions_title": "Transactions",
-    "history_title": "Historique"
+    "history_title": "Historique",
+    "block_height": "Hauteur du bloc",
+    "checking": "Vérification...",
+    "epoch": "Époque",
+    "offline_data_desc": "Affichage des données de la dernière connexion",
+    "offline_mode": "Mode hors ligne",
+    "open_window": "Ouvrir dans une nouvelle fenêtre",
+    "slot": "Slot",
+    "status": "Statut"
   },
   "receive": {
     "title": "Recevoir",
@@ -146,7 +196,15 @@
     "network_sheet": {
       "title": "Sélectionner le réseau",
       "desc": "Choisissez le réseau Mina auquel vous connecter.",
-      "switched_toast": "Passé à {{networkName}}"
+      "switched_toast": "Passé à {{networkName}}",
+      "add_custom_action": "Ajouter un endpoint",
+      "add_custom_desc": "Enregistrez un endpoint REST comme réseau personnalisé et utilisez-le immédiatement.",
+      "add_custom_title": "Ajouter un endpoint personnalisé",
+      "custom_added": "{{networkName}} ajouté",
+      "custom_id": "ID du réseau (facultatif)",
+      "custom_name": "Nom du réseau",
+      "custom_name_placeholder": "Mon réseau",
+      "custom_url": "Endpoint REST"
     },
     "security_sheet": {
       "title": "Paramètres de sécurité",
@@ -166,7 +224,8 @@
       "desc": "Cette action supprimera définitivement votre portefeuille de cet appareil. Assurez-vous d'avoir sauvegardé votre phrase mnémonique ou clé privée. Cette action est irréversible.",
       "confirm_button": "Réinitialiser le portefeuille",
       "success_title": "Portefeuille réinitialisé",
-      "success_desc": "Votre portefeuille a été supprimé de cet appareil."
+      "success_desc": "Votre portefeuille a été supprimé de cet appareil.",
+      "error_desc": "Impossible de réinitialiser le portefeuille. Veuillez réessayer."
     },
     "refresh_sheet": {
       "title": "Fréquence d'actualisation du solde",
@@ -193,7 +252,18 @@
       "rename": "Renommer",
       "view_backup": "Voir la sauvegarde",
       "remove": "Supprimer"
-    }
+    },
+    "connected_apps_desc": "Gérez les zkApps connectées à votre portefeuille.",
+    "connected_apps_empty": "Aucune zkApp connectée",
+    "general": "Général",
+    "language": "Langue",
+    "prelogin_desc": "Configurez vos préférences avant de déverrouiller votre portefeuille.",
+    "select_account": "Sélectionner un compte",
+    "select_account_desc": "Choisissez le compte à utiliser.",
+    "switch_account": "Changer de compte",
+    "zkapps_revoke_failed": "Impossible de déconnecter la zkApp",
+    "zkapps_revoked": "zkApp déconnectée",
+    "zkapps_revoked_desc": "La zkApp n'a plus accès à votre portefeuille."
   },
   "security": {
     "password_label": "Mot de passe",
@@ -234,7 +304,16 @@
       "public_address_hint": "Utilisez cette adresse pour recevoir des MINA. Elle peut être partagée.",
       "secret_hint": "Scannez ou saisissez ce secret pour restaurer le portefeuille.",
       "fold_line": "Plier ici",
-      "paper_warning": "Toute personne possédant ce secret peut contrôler vos fonds. Gardez ce papier privé, hors ligne et protégé. Si vous enregistrez un PDF, utilisez un disque hors ligne chiffré et supprimez les copies supplémentaires."
+      "paper_warning": "Toute personne possédant ce secret peut contrôler vos fonds. Gardez ce papier privé, hors ligne et protégé. Si vous enregistrez un PDF, utilisez un disque hors ligne chiffré et supprimez les copies supplémentaires.",
+      "pdf_create_button": "Créer un PDF protégé",
+      "pdf_downloaded": "PDF protégé téléchargé. Conservez-le en lieu sûr.",
+      "pdf_generating": "Création du PDF protégé...",
+      "pdf_generation_failed": "Impossible de générer le PDF protégé. Veuillez réessayer.",
+      "pdf_password_hint": "Ce mot de passe n'est pas enregistré et diffère de celui de votre portefeuille.",
+      "pdf_password_label": "Mot de passe du PDF",
+      "pdf_password_placeholder": "Saisissez un mot de passe distinct",
+      "pdf_password_too_short": "Utilisez au moins 8 caractères pour le mot de passe du PDF.",
+      "pdf_password_warning": "Ce PDF contient votre phrase de récupération et votre clé privée. Il sera protégé par un mot de passe PDF distinct."
     }
   },
   "welcome": {
@@ -243,7 +322,8 @@
     "subtitle_2": "VOTRE CONTRÔLE",
     "start_button": "Commençons",
     "terms": "Conditions d'utilisation",
-    "privacy": "Politique de confidentialité"
+    "privacy": "Politique de confidentialité",
+    "settings": "Paramètres"
   },
   "wallet_unlock": {
     "title": "Bon retour",
@@ -268,7 +348,8 @@
       "saved_label": "J'ai sauvegardé ma phrase de récupération secrète",
       "error_password": "Mot de passe non défini. Veuillez redémarrer l'intégration.",
       "next_button": "Suivant",
-      "back_button": "Retour"
+      "back_button": "Retour",
+      "error_title": "Impossible de créer le portefeuille"
     },
     "import": {
       "title": "Importer Portefeuille",
@@ -327,7 +408,9 @@
       "strength_kinda_weak": "Un peu faible",
       "strength_strong": "Fort",
       "strength_very_strong": "Très fort",
-      "terms_label": "J'accepte les Termes et Conditions"
+      "terms_label": "J'accepte les Termes et Conditions",
+      "terms_link": "Conditions générales",
+      "terms_prefix": "J'accepte les"
     },
     "wallet_keys_sheet": {
       "show_key_button": "Afficher la clé privée",
@@ -387,6 +470,102 @@
       "error_read": "Impossible de lire l'adresse depuis l'appareil.",
       "error_save": "Impossible d'enregistrer le compte.",
       "success_desc": "Compte Ledger importé avec succès."
+    }
+  },
+  "error": {
+    "description": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "title": "Une erreur est survenue"
+  },
+  "transaction_details": {
+    "date": "Date",
+    "fee": "Frais",
+    "from": "De",
+    "memo": "Mémo",
+    "nonce": "Nonce",
+    "none": "Aucun",
+    "received": "Reçu",
+    "sent": "Envoyé",
+    "title_received": "Reçu avec succès",
+    "title_sent": "Envoyé avec succès",
+    "to": "À",
+    "total": "Total",
+    "view_in_explorer": "Voir dans l'explorateur"
+  },
+  "wallets": {
+    "account": "Compte",
+    "account_index": "Index du compte",
+    "active": "Actif",
+    "active_wallet": "Portefeuille actif",
+    "add_success": "Portefeuille ajouté",
+    "add_success_desc": "Compte créé",
+    "add_success_desc_import": "Portefeuille importé",
+    "add_wallet": "Ajouter un portefeuille",
+    "add_wallet_desc": "Choisissez comment ajouter un portefeuille.",
+    "balance_loading": "Chargement du solde...",
+    "confirm_delete": {
+      "confirm": "Supprimer le portefeuille",
+      "description": "Voulez-vous vraiment supprimer « {{name}} » ? Cette action est irréversible. Assurez-vous d'avoir sauvegardé votre phrase de récupération ou votre clé privée.",
+      "title": "Supprimer le portefeuille ?"
+    },
+    "connect_ledger": "Connecter Ledger",
+    "connect_ledger_desc": "Importez un compte depuis votre appareil Ledger.",
+    "connect_ledger_title": "Connecter Ledger",
+    "delete_success": "Portefeuille supprimé",
+    "delete_success_desc": "Le portefeuille a été supprimé",
+    "delete_wallet": "Supprimer le portefeuille",
+    "delete_wallet_desc": "Supprimez ce portefeuille de l'extension. Assurez-vous d'avoir une sauvegarde.",
+    "derivation_path": "Chemin de dérivation",
+    "derive_desc": "Créez un nouveau compte à partir de votre graine existante avec BIP44",
+    "derive_title": "Créer un compte",
+    "errors": {
+      "add_failed": "Impossible d'ajouter le portefeuille",
+      "cannot_delete_last": "Vous ne pouvez pas supprimer le dernier portefeuille",
+      "delete_failed": "Impossible de supprimer le portefeuille",
+      "invalid_mnemonic": "Phrase de récupération invalide",
+      "invalid_mnemonic_desc": "Vérifiez votre phrase de récupération et réessayez.",
+      "invalid_name": "Saisissez un nom de portefeuille",
+      "invalid_private_key": "Clé privée invalide",
+      "invalid_private_key_desc": "Vérifiez votre clé privée et réessayez.",
+      "load_failed": "Impossible de charger les portefeuilles",
+      "name_too_long": "Nom de portefeuille trop long (50 caractères maximum)",
+      "no_password": "Saisissez le mot de passe de votre portefeuille",
+      "rename_failed": "Impossible de renommer le portefeuille",
+      "switch_failed": "Impossible de changer de portefeuille"
+    },
+    "import_mnemonic_desc": "Importez un portefeuille avec sa phrase de récupération.",
+    "import_mnemonic_title": "Importer une phrase de récupération",
+    "import_privatekey_desc": "Importez un portefeuille avec sa clé privée.",
+    "import_privatekey_title": "Importer une clé privée",
+    "last_used": "Dernière utilisation",
+    "ledger_step_1": "1. Connectez votre Ledger",
+    "ledger_step_1_desc": "Assurez-vous qu'il est déverrouillé et que l'application Mina est ouverte",
+    "ledger_step_2": "2. Importez le compte",
+    "ledger_step_2_desc": "Vous serez redirigé vers la page d'importation Ledger",
+    "no_wallets": "Aucun portefeuille trouvé",
+    "private_key": "Clé privée",
+    "public_key": "Clé publique",
+    "recovery_phrase": "Phrase de récupération",
+    "rename_success": "Portefeuille renommé",
+    "rename_success_desc": "Nom du portefeuille mis à jour",
+    "rename_wallet": "Renommer le portefeuille",
+    "rename_wallet_desc": "Saisissez un nouveau nom pour ce portefeuille.",
+    "set_active": "Définir comme actif",
+    "switch_success": "Portefeuille changé",
+    "switch_success_desc": "Le portefeuille est maintenant actif",
+    "switch_wallet": "Changer de portefeuille",
+    "switch_wallet_desc": "Choisissez le portefeuille à utiliser.",
+    "title": "Portefeuilles",
+    "total_wallets": "Portefeuilles : {{count}}",
+    "vault_password": "Mot de passe du portefeuille",
+    "vault_password_placeholder": "Saisissez votre mot de passe",
+    "view_secret": "Afficher les informations de récupération",
+    "wallet_name": "Nom du portefeuille",
+    "wallet_name_placeholder": "Mon portefeuille",
+    "wallet_types": {
+      "ledger": "Ledger",
+      "mnemonic": "Phrase de récupération",
+      "privateKey": "Clé privée",
+      "seed": "Phrase de récupération"
     }
   }
 }

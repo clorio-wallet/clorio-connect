@@ -13,7 +13,20 @@
       "days_hours_left": "{{days}}T {{hours}}Std verbleibend",
       "hours_minutes_left": "{{hours}}Std {{minutes}}Min verbleibend",
       "minutes_left": "{{minutes}}Min verbleibend"
-    }
+    },
+    "actions": "Aktionen",
+    "adding": "Wird hinzugefügt...",
+    "advanced": "Erweitert",
+    "characters": "Zeichen",
+    "confirm": "Bestätigen",
+    "copy": "Kopieren",
+    "done": "Fertig",
+    "optional": "Optional",
+    "refresh": "Aktualisieren",
+    "reload": "Neu laden",
+    "retry": "Erneut versuchen",
+    "revoke": "Widerrufen",
+    "save": "Speichern"
   },
   "notifications": {
     "title": "Clorio Connect",
@@ -22,7 +35,8 @@
     },
     "transaction": {
       "applied": "Transaktion {{hash}} wurde bestätigt.",
-      "failed": "Transaktion {{hash}} ist fehlgeschlagen."
+      "failed": "Transaktion {{hash}} ist fehlgeschlagen.",
+      "dropped": "Transaktion {{hash}} ist nicht mehr im Mempool und wurde nach zwei erneuten Prüfungen über 5 Minuten nicht im Verlauf gefunden. Die Bestätigung konnte nicht verifiziert werden."
     },
     "session": {
       "locked": "Ihre Wallet-Sitzung ist gesperrt.",
@@ -40,9 +54,11 @@
     "network_fee_label": "Netzwerkgebühr",
     "total_label": "Gesamt",
     "error_failed": "Transaktion fehlgeschlagen",
+    "sent_toast": "Transaktion gesendet. Warten auf die Bestätigung durch das Netzwerk.",
     "sending_button": "Senden...",
     "send_button": "Senden",
-    "continue_button": "Weiter"
+    "continue_button": "Weiter",
+    "broadcast_error": "Transaktion konnte nicht übertragen werden"
   },
   "staking": {
     "validator_label": "Validator",
@@ -55,7 +71,28 @@
     "warning_text": "Gestakte Mittel sind 21 Tage nach dem Unstaking gesperrt. Während der Unbonding-Periode erhalten Sie keine Rewards.",
     "error_failed": "Staking fehlgeschlagen",
     "staking_button": "Staking...",
-    "stake_button": "Staken"
+    "stake_button": "Staken",
+    "broadcasting": "Delegierung wird übertragen...",
+    "broadcasting_desc": "Bitte warte, während deine Delegierung an das Netzwerk gesendet wird.",
+    "confirm_delegation": "Delegierung bestätigen",
+    "custom_address_confirm_desc": "Du delegierst direkt an einen manuell eingegebenen öffentlichen Validator-Schlüssel.",
+    "custom_address_label": "Benutzerdefinierte Adresse",
+    "custom_delegate_button": "Benutzerdefinierte Adresse",
+    "custom_delegate_desc": "Gib den öffentlichen Schlüssel des Validators ein, an den du delegieren möchtest.",
+    "custom_delegate_field": "Öffentlicher Validator-Schlüssel",
+    "custom_delegate_hint": "Verwende eine gültige Mina-Validator-Adresse, die mit B62 beginnt.",
+    "custom_delegate_title": "An benutzerdefinierte Adresse delegieren",
+    "epoch": "Epoche",
+    "failed_desc": "Etwas ist schiefgelaufen.",
+    "failed_title": "Delegierung fehlgeschlagen",
+    "no_delegate": "Kein Delegierter",
+    "success_desc": "Deine Delegierung wurde erfolgreich übertragen.",
+    "success_title": "Delegierung erfolgreich",
+    "title": "Staking",
+    "transaction_hash": "Transaktionshash",
+    "validator": "Validator",
+    "validator_address": "Adresse",
+    "your_stake": "Dein Stake"
   },
   "validators": {
     "current_badge": "Aktuell",
@@ -72,7 +109,12 @@
       "start_button": "Delegieren starten",
       "delegated_label": "Delegiert",
       "stake_title": "Stake"
-    }
+    },
+    "address_label": "Adresse",
+    "delegation_failed": "Delegierung fehlgeschlagen",
+    "delegation_success": "Delegierung gesendet",
+    "empty_generic_hint": "Versuche, die Validator-Liste zu aktualisieren.",
+    "empty_search_hint": "Versuche einen anderen Suchbegriff."
   },
   "transaction_confirm": {
     "title": "Transaktion bestätigen",
@@ -118,7 +160,15 @@
     "rename_coming_soon": "Umbenennungsfunktion kommt bald.",
     "send_tx_coming_soon": "Funktion zum Senden von Transaktionen kommt bald.",
     "transactions_title": "Transaktionen",
-    "history_title": "Transaktionsverlauf"
+    "history_title": "Transaktionsverlauf",
+    "block_height": "Blockhöhe",
+    "checking": "Wird geprüft...",
+    "epoch": "Epoche",
+    "offline_data_desc": "Daten der letzten Verbindung werden angezeigt",
+    "offline_mode": "Offline-Modus",
+    "open_window": "In neuem Fenster öffnen",
+    "slot": "Slot",
+    "status": "Status"
   },
   "receive": {
     "title": "Empfangen",
@@ -146,7 +196,15 @@
     "network_sheet": {
       "title": "Netzwerk auswählen",
       "desc": "Wählen Sie das Mina-Netzwerk, mit dem Sie sich verbinden möchten.",
-      "switched_toast": "Gewechselt zu {{networkName}}"
+      "switched_toast": "Gewechselt zu {{networkName}}",
+      "add_custom_action": "Endpunkt hinzufügen",
+      "add_custom_desc": "Speichere einen REST-Endpunkt als benutzerdefiniertes Netzwerk und wechsle sofort dorthin.",
+      "add_custom_title": "Benutzerdefinierten Endpunkt hinzufügen",
+      "custom_added": "{{networkName}} hinzugefügt",
+      "custom_id": "Netzwerk-ID (optional)",
+      "custom_name": "Netzwerkname",
+      "custom_name_placeholder": "Mein Netzwerk",
+      "custom_url": "REST-Endpunkt"
     },
     "security_sheet": {
       "title": "Sicherheitseinstellungen",
@@ -166,7 +224,8 @@
       "desc": "Diese Aktion wird Ihre Wallet dauerhaft von diesem Gerät löschen. Stellen Sie sicher, dass Sie Ihre mnemonische Phrase oder Ihren privaten Schlüssel gesichert haben. Diese Aktion kann nicht rückgängig gemacht werden.",
       "confirm_button": "Wallet zurücksetzen",
       "success_title": "Wallet zurückgesetzt",
-      "success_desc": "Ihre Wallet wurde von diesem Gerät entfernt."
+      "success_desc": "Ihre Wallet wurde von diesem Gerät entfernt.",
+      "error_desc": "Wallet konnte nicht zurückgesetzt werden. Bitte versuche es erneut."
     },
     "refresh_sheet": {
       "title": "Saldo-Aktualisierungsrate",
@@ -193,7 +252,18 @@
       "rename": "Umbenennen",
       "view_backup": "Backup anzeigen",
       "remove": "Entfernen"
-    }
+    },
+    "connected_apps_desc": "Verwalte die mit deinem Wallet verbundenen zkApps.",
+    "connected_apps_empty": "Keine verbundenen zkApps",
+    "general": "Allgemein",
+    "language": "Sprache",
+    "prelogin_desc": "Passe deine Einstellungen an, bevor du dein Wallet entsperrst.",
+    "select_account": "Konto auswählen",
+    "select_account_desc": "Wähle das Konto aus, das du verwenden möchtest.",
+    "switch_account": "Konto wechseln",
+    "zkapps_revoke_failed": "zkApp konnte nicht getrennt werden",
+    "zkapps_revoked": "zkApp getrennt",
+    "zkapps_revoked_desc": "Die zkApp hat keinen Zugriff mehr auf dein Wallet."
   },
   "security": {
     "password_label": "Passwort",
@@ -234,7 +304,16 @@
       "public_address_hint": "Verwenden Sie diese Adresse, um MINA zu empfangen. Sie kann sicher geteilt werden.",
       "secret_hint": "Scannen oder geben Sie dieses Geheimnis ein, um die Wallet wiederherzustellen.",
       "fold_line": "Hier falten",
-      "paper_warning": "Jeder mit diesem Geheimnis kann Ihre Gelder kontrollieren. Bewahren Sie das Papier privat, offline und geschützt auf. Speichern Sie PDFs nur auf einem verschlüsselten Offline-Laufwerk und löschen Sie zusätzliche Kopien."
+      "paper_warning": "Jeder mit diesem Geheimnis kann Ihre Gelder kontrollieren. Bewahren Sie das Papier privat, offline und geschützt auf. Speichern Sie PDFs nur auf einem verschlüsselten Offline-Laufwerk und löschen Sie zusätzliche Kopien.",
+      "pdf_create_button": "Geschützte PDF erstellen",
+      "pdf_downloaded": "Geschützte PDF heruntergeladen. Bewahre sie sicher auf.",
+      "pdf_generating": "Geschützte PDF wird erstellt...",
+      "pdf_generation_failed": "Die geschützte PDF konnte nicht erstellt werden. Bitte versuche es erneut.",
+      "pdf_password_hint": "Dieses Passwort wird nicht gespeichert und unterscheidet sich von deinem Wallet-Passwort.",
+      "pdf_password_label": "PDF-Passwort",
+      "pdf_password_placeholder": "Gib ein separates Passwort ein",
+      "pdf_password_too_short": "Verwende mindestens 8 Zeichen für das PDF-Passwort.",
+      "pdf_password_warning": "Diese PDF enthält deine Wiederherstellungsphrase und deinen privaten Schlüssel. Sie wird mit einem separaten PDF-Passwort geschützt."
     }
   },
   "welcome": {
@@ -243,7 +322,8 @@
     "subtitle_2": "IHRE KONTROLLE",
     "start_button": "Lass uns anfangen",
     "terms": "Nutzungsbedingungen",
-    "privacy": "Datenschutzrichtlinie"
+    "privacy": "Datenschutzrichtlinie",
+    "settings": "Einstellungen"
   },
   "wallet_unlock": {
     "title": "Willkommen zurück",
@@ -268,7 +348,8 @@
       "saved_label": "Ich habe meine geheime Wiederherstellungsphrase gespeichert",
       "error_password": "Passwort nicht festgelegt. Bitte starten Sie das Onboarding neu.",
       "next_button": "Weiter",
-      "back_button": "Zurück"
+      "back_button": "Zurück",
+      "error_title": "Wallet konnte nicht erstellt werden"
     },
     "import": {
       "title": "Brieftasche Importieren",
@@ -327,7 +408,9 @@
       "strength_kinda_weak": "Etwas schwach",
       "strength_strong": "Stark",
       "strength_very_strong": "Sehr stark",
-      "terms_label": "Ich akzeptiere die Allgemeinen Geschäftsbedingungen"
+      "terms_label": "Ich akzeptiere die Allgemeinen Geschäftsbedingungen",
+      "terms_link": "Allgemeinen Geschäftsbedingungen",
+      "terms_prefix": "Ich akzeptiere die"
     },
     "wallet_keys_sheet": {
       "show_key_button": "Privaten Schlüssel anzeigen",
@@ -387,6 +470,102 @@
       "error_read": "Adresse konnte nicht vom Gerät gelesen werden.",
       "error_save": "Konto konnte nicht gespeichert werden.",
       "success_desc": "Ledger-Konto erfolgreich importiert."
+    }
+  },
+  "error": {
+    "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "title": "Etwas ist schiefgelaufen"
+  },
+  "transaction_details": {
+    "date": "Datum",
+    "fee": "Gebühr",
+    "from": "Von",
+    "memo": "Memo",
+    "nonce": "Nonce",
+    "none": "Keine",
+    "received": "Empfangen",
+    "sent": "Gesendet",
+    "title_received": "Erfolgreich empfangen",
+    "title_sent": "Erfolgreich gesendet",
+    "to": "An",
+    "total": "Gesamt",
+    "view_in_explorer": "Im Explorer anzeigen"
+  },
+  "wallets": {
+    "account": "Konto",
+    "account_index": "Kontoindex",
+    "active": "Aktiv",
+    "active_wallet": "Aktives Wallet",
+    "add_success": "Wallet hinzugefügt",
+    "add_success_desc": "Konto erstellt",
+    "add_success_desc_import": "Wallet importiert",
+    "add_wallet": "Wallet hinzufügen",
+    "add_wallet_desc": "Wähle, wie du ein Wallet hinzufügen möchtest.",
+    "balance_loading": "Guthaben wird geladen...",
+    "confirm_delete": {
+      "confirm": "Wallet löschen",
+      "description": "Möchtest du „{{name}}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden. Stelle sicher, dass du deine Wiederherstellungsphrase oder deinen privaten Schlüssel gesichert hast.",
+      "title": "Wallet löschen?"
+    },
+    "connect_ledger": "Ledger verbinden",
+    "connect_ledger_desc": "Importiere ein Konto von deinem Ledger-Gerät.",
+    "connect_ledger_title": "Ledger verbinden",
+    "delete_success": "Wallet gelöscht",
+    "delete_success_desc": "Wallet wurde entfernt",
+    "delete_wallet": "Wallet löschen",
+    "delete_wallet_desc": "Entferne dieses Wallet aus der Erweiterung. Stelle sicher, dass du eine Sicherung hast.",
+    "derivation_path": "Ableitungspfad",
+    "derive_desc": "Erstelle mit BIP44 ein neues Konto aus deinem vorhandenen Seed",
+    "derive_title": "Konto erstellen",
+    "errors": {
+      "add_failed": "Wallet konnte nicht hinzugefügt werden",
+      "cannot_delete_last": "Du kannst das letzte Wallet nicht löschen",
+      "delete_failed": "Wallet konnte nicht gelöscht werden",
+      "invalid_mnemonic": "Ungültige Wiederherstellungsphrase",
+      "invalid_mnemonic_desc": "Prüfe deine Wiederherstellungsphrase und versuche es erneut.",
+      "invalid_name": "Gib einen Wallet-Namen ein",
+      "invalid_private_key": "Ungültiger privater Schlüssel",
+      "invalid_private_key_desc": "Prüfe deinen privaten Schlüssel und versuche es erneut.",
+      "load_failed": "Wallets konnten nicht geladen werden",
+      "name_too_long": "Wallet-Name zu lang (maximal 50 Zeichen)",
+      "no_password": "Gib dein Wallet-Passwort ein",
+      "rename_failed": "Wallet konnte nicht umbenannt werden",
+      "switch_failed": "Wallet konnte nicht gewechselt werden"
+    },
+    "import_mnemonic_desc": "Importiere ein Wallet mit seiner Wiederherstellungsphrase.",
+    "import_mnemonic_title": "Wiederherstellungsphrase importieren",
+    "import_privatekey_desc": "Importiere ein Wallet mit seinem privaten Schlüssel.",
+    "import_privatekey_title": "Privaten Schlüssel importieren",
+    "last_used": "Zuletzt verwendet",
+    "ledger_step_1": "1. Verbinde deinen Ledger",
+    "ledger_step_1_desc": "Stelle sicher, dass er entsperrt und die Mina-App geöffnet ist",
+    "ledger_step_2": "2. Importiere das Konto",
+    "ledger_step_2_desc": "Du wirst zur Ledger-Importseite weitergeleitet",
+    "no_wallets": "Keine Wallets gefunden",
+    "private_key": "Privater Schlüssel",
+    "public_key": "Öffentlicher Schlüssel",
+    "recovery_phrase": "Wiederherstellungsphrase",
+    "rename_success": "Wallet umbenannt",
+    "rename_success_desc": "Wallet-Name aktualisiert",
+    "rename_wallet": "Wallet umbenennen",
+    "rename_wallet_desc": "Gib einen neuen Namen für dieses Wallet ein.",
+    "set_active": "Als aktiv festlegen",
+    "switch_success": "Wallet gewechselt",
+    "switch_success_desc": "Wallet ist jetzt aktiv",
+    "switch_wallet": "Wallet wechseln",
+    "switch_wallet_desc": "Wähle das Wallet aus, das du verwenden möchtest.",
+    "title": "Wallets",
+    "total_wallets": "Wallets: {{count}}",
+    "vault_password": "Wallet-Passwort",
+    "vault_password_placeholder": "Gib dein Passwort ein",
+    "view_secret": "Wiederherstellungsinformationen anzeigen",
+    "wallet_name": "Wallet-Name",
+    "wallet_name_placeholder": "Mein Wallet",
+    "wallet_types": {
+      "ledger": "Ledger",
+      "mnemonic": "Wiederherstellungsphrase",
+      "privateKey": "Privater Schlüssel",
+      "seed": "Wiederherstellungsphrase"
     }
   }
 }

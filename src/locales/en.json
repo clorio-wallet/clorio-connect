@@ -16,7 +16,17 @@
       "days_hours_left": "{{days}}d {{hours}}h left",
       "hours_minutes_left": "{{hours}}h {{minutes}}m left",
       "minutes_left": "{{minutes}}m left"
-    }
+    },
+    "actions": "Actions",
+    "adding": "Adding...",
+    "characters": "characters",
+    "confirm": "Confirm",
+    "done": "Done",
+    "optional": "Optional",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "revoke": "Revoke",
+    "save": "Save"
   },
   "notifications": {
     "title": "Clorio Connect",
@@ -25,7 +35,8 @@
     },
     "transaction": {
       "applied": "Transaction {{hash}} was confirmed.",
-      "failed": "Transaction {{hash}} failed."
+      "failed": "Transaction {{hash}} failed.",
+      "dropped": "Transaction {{hash}} is no longer in the mempool and was not found in transaction history after two retries over 5 minutes. Confirmation could not be verified."
     },
     "session": {
       "locked": "Your wallet session is locked.",
@@ -47,9 +58,11 @@
     "network_fee_label": "Network Fee",
     "total_label": "Total",
     "error_failed": "Failed to send transaction",
+    "sent_toast": "Transaction sent. Waiting for network confirmation.",
     "sending_button": "Sending...",
     "send_button": "Send",
-    "continue_button": "Continue"
+    "continue_button": "Continue",
+    "broadcast_error": "Could not broadcast the transaction"
   },
   "staking": {
     "title": "Staking",
@@ -67,7 +80,23 @@
     "confirm_delegation": "Confirm delegation",
     "no_delegate": "No Delegate",
     "your_stake": "Your Stake",
-    "epoch": "Epoch"
+    "epoch": "Epoch",
+    "broadcasting": "Broadcasting delegation...",
+    "broadcasting_desc": "Please wait while your delegation is sent to the network.",
+    "custom_address_confirm_desc": "You are delegating directly to a validator public key that was entered manually.",
+    "custom_address_label": "Custom address",
+    "custom_delegate_button": "Custom address",
+    "custom_delegate_desc": "Enter the public key of the validator you want to delegate to.",
+    "custom_delegate_field": "Validator public key",
+    "custom_delegate_hint": "Use a valid Mina validator address starting with B62.",
+    "custom_delegate_title": "Delegate to custom address",
+    "failed_desc": "Something went wrong.",
+    "failed_title": "Delegation failed",
+    "success_desc": "Your delegation has been successfully broadcast.",
+    "success_title": "Delegation successful",
+    "transaction_hash": "Transaction Hash",
+    "validator": "Validator",
+    "validator_address": "Address"
   },
   "validators": {
     "current_badge": "Current",
@@ -83,7 +112,13 @@
     "fee_label": "Fee",
     "total_stake_label": "Total Stake",
     "search_placeholder": "Search validator...",
-    "empty_list": "No validators found"
+    "empty_list": "No validators found",
+    "address_label": "Address",
+    "delegation_failed": "Delegation failed",
+    "delegation_success": "Delegation sent",
+    "empty_generic_hint": "Try refreshing the validator list.",
+    "empty_search_hint": "Try a different search.",
+    "users_label": "Users"
   },
   "transaction_confirm": {
     "title": "Confirm Transaction",
@@ -150,7 +185,9 @@
     "block_height": "Block Height",
     "epoch": "Epoch",
     "slot": "Slot",
-    "checking": "Checking..."
+    "checking": "Checking...",
+    "offline_data_desc": "Showing data from last connection",
+    "offline_mode": "Offline mode"
   },
   "receive": {
     "title": "Receive",
@@ -178,7 +215,15 @@
     "network_sheet": {
       "title": "Select Network",
       "desc": "Choose the Mina network you want to connect to.",
-      "switched_toast": "Switched to {{networkName}}"
+      "switched_toast": "Switched to {{networkName}}",
+      "add_custom_action": "Add endpoint",
+      "add_custom_desc": "Save a REST endpoint as a custom network and switch to it immediately.",
+      "add_custom_title": "Add custom endpoint",
+      "custom_added": "{{networkName}} added",
+      "custom_id": "Network ID (optional)",
+      "custom_name": "Network name",
+      "custom_name_placeholder": "My network",
+      "custom_url": "REST endpoint"
     },
     "security_sheet": {
       "title": "Security Settings",
@@ -198,7 +243,8 @@
       "desc": "This action will permanently delete your wallet from this device. Make sure you have backed up your mnemonic phrase or private key. This action cannot be undone.",
       "confirm_button": "Reset Wallet",
       "success_title": "Wallet Reset",
-      "success_desc": "Your wallet has been removed from this device."
+      "success_desc": "Your wallet has been removed from this device.",
+      "error_desc": "Could not reset the wallet. Please try again."
     },
     "refresh_sheet": {
       "title": "Balance Refresh Rate",
@@ -225,7 +271,18 @@
       "rename": "Rename",
       "view_backup": "View Backup",
       "remove": "Remove"
-    }
+    },
+    "connected_apps_desc": "Manage zkApps connected to your wallet.",
+    "connected_apps_empty": "No connected zkApps",
+    "general": "General",
+    "language": "Language",
+    "prelogin_desc": "Configure your preferences before unlocking your wallet.",
+    "select_account": "Select Account",
+    "select_account_desc": "Choose the account you want to use.",
+    "switch_account": "Switch Account",
+    "zkapps_revoke_failed": "Could not disconnect the zkApp",
+    "zkapps_revoked": "zkApp disconnected",
+    "zkapps_revoked_desc": "The zkApp no longer has access to your wallet."
   },
   "security": {
     "password_label": "Password",
@@ -266,7 +323,16 @@
       "public_address_hint": "Use this address to receive MINA. It is safe to share.",
       "secret_hint": "Scan or enter this secret to restore the wallet.",
       "fold_line": "Fold here",
-      "paper_warning": "Anyone with this secret can control your funds. Keep this paper private, offline, and protected from loss. If saving a PDF, use an encrypted offline drive and delete extra copies."
+      "paper_warning": "Anyone with this secret can control your funds. Keep this paper private, offline, and protected from loss. If saving a PDF, use an encrypted offline drive and delete extra copies.",
+      "pdf_create_button": "Create protected PDF",
+      "pdf_downloaded": "Protected PDF downloaded. Store it securely.",
+      "pdf_generating": "Creating protected PDF...",
+      "pdf_generation_failed": "Could not generate the protected PDF. Please try again.",
+      "pdf_password_hint": "This password is not saved and is different from your wallet password.",
+      "pdf_password_label": "PDF password",
+      "pdf_password_placeholder": "Enter a separate password",
+      "pdf_password_too_short": "Use at least 8 characters for the PDF password.",
+      "pdf_password_warning": "This PDF contains your recovery phrase and private key. It will be protected with a separate PDF password."
     }
   },
   "welcome": {
@@ -301,7 +367,8 @@
       "saved_label": "I have saved my secret recovery phrase",
       "error_password": "Password not set. Please restart onboarding.",
       "next_button": "Next",
-      "back_button": "Back"
+      "back_button": "Back",
+      "error_title": "Could not create wallet"
     },
     "import": {
       "title": "Import Wallet",
@@ -360,7 +427,9 @@
       "strength_kinda_weak": "Kinda weak",
       "strength_strong": "Strong",
       "strength_very_strong": "Very strong",
-      "terms_label": "I accept Terms of Condition"
+      "terms_label": "I accept Terms of Condition",
+      "terms_link": "Terms and Conditions",
+      "terms_prefix": "I agree to the"
     },
     "wallet_keys_sheet": {
       "show_key_button": "Show private key",
@@ -420,6 +489,83 @@
       "error_read": "Could not read address from device.",
       "error_save": "Failed to save the account.",
       "success_desc": "Ledger account imported successfully."
+    }
+  },
+  "wallets": {
+    "account": "Account",
+    "account_index": "Account index",
+    "active": "Active",
+    "active_wallet": "Active wallet",
+    "add_success": "Wallet added",
+    "add_success_desc": "Account created",
+    "add_success_desc_import": "Wallet imported",
+    "add_wallet": "Add Wallet",
+    "add_wallet_desc": "Choose how to add a wallet.",
+    "balance_loading": "Loading balance...",
+    "confirm_delete": {
+      "confirm": "Delete wallet",
+      "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. Make sure you have backed up your recovery phrase or private key.",
+      "title": "Delete wallet?"
+    },
+    "connect_ledger": "Connect Ledger",
+    "connect_ledger_desc": "Import an account from your Ledger device.",
+    "connect_ledger_title": "Connect Ledger",
+    "delete_success": "Wallet deleted",
+    "delete_success_desc": "Wallet has been removed",
+    "delete_wallet": "Delete Wallet",
+    "delete_wallet_desc": "Remove this wallet from the extension. Make sure you have a backup.",
+    "derivation_path": "Derivation path",
+    "derive_desc": "Create a new account from your existing seed using BIP44",
+    "derive_title": "Create account",
+    "errors": {
+      "add_failed": "Failed to add wallet",
+      "cannot_delete_last": "You cannot delete the last wallet",
+      "delete_failed": "Failed to delete wallet",
+      "invalid_mnemonic": "Invalid recovery phrase",
+      "invalid_mnemonic_desc": "Check your recovery phrase and try again.",
+      "invalid_name": "Enter a wallet name",
+      "invalid_private_key": "Invalid private key",
+      "invalid_private_key_desc": "Check your private key and try again.",
+      "load_failed": "Failed to load wallets",
+      "name_too_long": "Wallet name too long (max 50 characters)",
+      "no_password": "Enter your wallet password",
+      "rename_failed": "Failed to rename wallet",
+      "switch_failed": "Failed to switch wallet"
+    },
+    "import_mnemonic_desc": "Import a wallet using its recovery phrase.",
+    "import_mnemonic_title": "Import recovery phrase",
+    "import_privatekey_desc": "Import a wallet using its private key.",
+    "import_privatekey_title": "Import private key",
+    "last_used": "Last used",
+    "ledger_step_1": "1. Connect your Ledger",
+    "ledger_step_1_desc": "Make sure it is unlocked and the Mina app is open",
+    "ledger_step_2": "2. Import account",
+    "ledger_step_2_desc": "You will be redirected to the Ledger import page",
+    "no_wallets": "No wallets found",
+    "private_key": "Private key",
+    "public_key": "Public key",
+    "recovery_phrase": "Recovery phrase",
+    "rename_success": "Wallet renamed",
+    "rename_success_desc": "Wallet name updated",
+    "rename_wallet": "Rename Wallet",
+    "rename_wallet_desc": "Enter a new name for this wallet.",
+    "set_active": "Set as active",
+    "switch_success": "Wallet switched",
+    "switch_success_desc": "Wallet is now active",
+    "switch_wallet": "Switch Wallet",
+    "switch_wallet_desc": "Choose the wallet you want to use.",
+    "title": "Wallets",
+    "total_wallets": "Wallets: {{count}}",
+    "vault_password": "Wallet password",
+    "vault_password_placeholder": "Enter your password",
+    "view_secret": "View recovery information",
+    "wallet_name": "Wallet name",
+    "wallet_name_placeholder": "My Wallet",
+    "wallet_types": {
+      "ledger": "Ledger",
+      "mnemonic": "Recovery phrase",
+      "privateKey": "Private key",
+      "seed": "Recovery phrase"
     }
   }
 }
