@@ -278,8 +278,13 @@ export function useSendTransaction() {
 
       if (!FEATURES.DRY_RUN_SEND_TX && publicKey) {
         const apiUrl = getNotificationApiUrl(network);
-        if (apiUrl) {
-          trackTransaction({
+        if (!apiUrl) {
+          console.warn(
+            '[notifications] payment tracking skipped: API URL unavailable',
+            { networkId },
+          );
+        } else {
+          await trackTransaction({
             hash: result.hash ?? result.id,
             address: publicKey,
             apiUrl,

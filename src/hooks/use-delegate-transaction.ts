@@ -255,8 +255,13 @@ export function useDelegateTransaction() {
 
       if (!FEATURES.DRY_RUN_SEND_TX && publicKey) {
         const apiUrl = getNotificationApiUrl(network);
-        if (apiUrl) {
-          trackTransaction({
+        if (!apiUrl) {
+          console.warn(
+            '[notifications] delegation tracking skipped: API URL unavailable',
+            { networkId },
+          );
+        } else {
+          await trackTransaction({
             hash: result.hash,
             address: publicKey,
             apiUrl,
