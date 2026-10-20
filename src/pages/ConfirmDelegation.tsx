@@ -1,3 +1,4 @@
+import { useGetAccountNonce } from '@/api/mina/transactions';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,7 +19,6 @@ import {
 } from '@/components/ui';
 import { HoldToConfirmButton } from '@/components/wallet/hold-to-confirm-button';
 import { ValidatorDetails } from '@/components/wallet/validator-details-sheet';
-import { useGetAccount } from '@/api/mina/mina';
 import { useSettingsStore } from '@/stores/settings-store';
 import { useWalletStore } from '@/stores/wallet-store';
 import { formatBalance, formatAddress, truncateMiddle } from '@/lib/utils';
@@ -121,14 +121,11 @@ export function ConfirmDelegationSheet({
     null,
   );
 
-  const { data: accountData } = useGetAccount(publicKey || '', {
-    query: {
-      queryKey: ['account', publicKey, networkId],
-      enabled: !!publicKey,
-    },
+  const { data: accountData } = useGetAccountNonce(publicKey || '', {
+    enabled: !!publicKey && open,
   });
 
-  const nonce = accountData?.nonce ?? 0;
+  const nonce = accountData?.pendingNonce ?? 0;
   const isEffectivelyLoading = isLedger ? ledgerLoading : loading;
   const isHoldDisabled = isEffectivelyLoading || !password;
 

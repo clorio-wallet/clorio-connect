@@ -6,6 +6,7 @@
     "dev": "vite --host",
     "dev:firefox": "BROWSER=firefox vite --host",
     "build": "vite build",
+    "test": "vitest run",
     "build:firefox": "BROWSER=firefox vite build",
     "preview": "vite preview",
     "api:gen": "orval"
@@ -91,7 +92,7 @@
     "mina-attestations": "^0.5.3",
     "mina-ledger-js": "^1.0.7",
     "mina-signer": "^3.1.0",
-    "o1js": "^2.15.0",
+    "o1js": "^3.1.0",
     "pdfkit": "^0.20.1",
     "posthog-node": "^5.21.2",
     "qrcode": "^1.5.4",

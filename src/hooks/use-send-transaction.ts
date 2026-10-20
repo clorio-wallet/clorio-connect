@@ -45,7 +45,7 @@ function mockBroadcastResult(fee: string, amount: string): BroadcastResult {
 export function useSendTransaction() {
   const { publicKey, accountType, ledgerAccountIndex } = useWalletStore();
   const { networkId } = useSettingsStore();
-  const { data: accountNonceData, refetch: refetchAccountNonce } =
+  const { refetch: refetchAccountNonce } =
     useGetAccountNonce(publicKey || '', {
       enabled: !!publicKey,
     });
@@ -62,10 +62,11 @@ export function useSendTransaction() {
     const index = ledgerAccountIndex ?? 0;
 
     // Refresh to get latest nonce including mempool
-    const refreshed = await refetchAccountNonce();
-    // Use pendingNonce which includes account nonce + mempool transactions
+    const refreshed = await refetchAccountNonce({ throwOnError: true });
+    if (!refreshed.data) throw new Error('Unable to verify transaction nonce');
+    // Use the verified next nonce from account and outgoing mempool commands
     const nonce =
-      refreshed.data?.pendingNonce ?? accountNonceData?.pendingNonce ?? 0;
+      refreshed.data.pendingNonce;
 
     const { status, app } = await checkLedgerStatus();
     if (status !== LedgerStatus.READY || !app) {
@@ -168,12 +169,11 @@ export function useSendTransaction() {
     if (!publicKey) throw new Error('Wallet not initialized');
 
     // Refresh to get latest nonce including mempool
-    const refreshed = await refetchAccountNonce();
-    // Use pendingNonce which includes account nonce + mempool transactions
+    const refreshed = await refetchAccountNonce({ throwOnError: true });
+    if (!refreshed.data) throw new Error('Unable to verify transaction nonce');
+    // Use the verified next nonce from account and outgoing mempool commands
     const nonce = (
-      refreshed.data?.pendingNonce ??
-      accountNonceData?.pendingNonce ??
-      0
+      refreshed.data.pendingNonce
     ).toString();
 
     const payment = {

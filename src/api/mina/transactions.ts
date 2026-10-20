@@ -1,3 +1,4 @@
+import { calculatePendingNonce } from '@/lib/nonce';
 import {
   useQuery,
   UseQueryOptions,
@@ -374,38 +375,12 @@ export const getAccountNonce = async (
       url: `/v1/mina/mempool/${publicKey}`,
       method: 'GET',
       signal,
-    }).catch(() => ({ mempool: [] })), // Gracefully handle mempool errors
+    }),
   ]);
 
-  const accountNonce = accountResponse.nonce ?? 0;
+  const accountNonce = accountResponse.nonce;
 
-  // Count outgoing mempool transactions from this address
-  const mempool = Array.isArray(mempoolResponse.mempool)
-    ? (mempoolResponse.mempool.filter(isRecord) as Record<string, unknown>[])
-    : [];
-
-  const outgoingMempoolCount = mempool.filter((tx: Record<string, unknown>) => {
-    const sender =
-      asString(
-        pickFirst(tx, [
-          'sender',
-          'from',
-          'fromAddress',
-          'senderAddress',
-          'source',
-        ]),
-      ) ?? '';
-    return sender === publicKey;
-  }).length;
-
-  // Calculate the pending nonce (account nonce + number of pending transactions)
-  const pendingNonce = accountNonce + outgoingMempoolCount;
-
-  return {
-    nonce: accountNonce,
-    pendingNonce,
-    mempoolCount: outgoingMempoolCount,
-  };
+  return calculatePendingNonce(accountNonce, Array.isArray(mempoolResponse) ? mempoolResponse : mempoolResponse.mempool, publicKey);
 };
 
 export const useGetAccountNonce = (

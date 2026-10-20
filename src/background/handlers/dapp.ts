@@ -1,3 +1,4 @@
+import { calculatePendingNonce } from '@/lib/nonce';
 import type { WalletEntry } from '@/lib/types/vault';
 import type {
   DappGetPendingApprovalResponse,
@@ -301,40 +302,23 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 async function fetchPendingNonce(publicKey: string): Promise<number> {
   const restApiBase = await getActiveRestApiBase();
-  if (!restApiBase) {
-    return 0;
-  }
+  if (!restApiBase) throw new Error('No active API configured');
 
-  const [accountResponse, mempoolResponse] = await Promise.all([
-    fetch(`${restApiBase}/v1/mina/accounts/${publicKey}`, {
+  const read = async (path: string): Promise<unknown> => {
+    const response = await fetch(`${restApiBase}${path}`, {
       headers: { 'ngrok-skip-browser-warning': 'true' },
-    }).then((response) => response.json() as Promise<{ nonce?: number }>),
-    fetch(`${restApiBase}/v1/mina/mempool/${publicKey}`, {
-      headers: { 'ngrok-skip-browser-warning': 'true' },
-    })
-      .then((response) => response.json() as Promise<{ mempool?: unknown[] }>)
-      .catch(() => ({ mempool: [] })),
+      cache: 'no-store',
+    });
+    if (!response.ok) throw new Error(`Nonce verification failed: HTTP ${response.status}`);
+    return response.json();
+  };
+  const [account, pool] = await Promise.all([
+    read(`/v1/mina/accounts/${publicKey}`),
+    read(`/v1/mina/mempool/${publicKey}`),
   ]);
-
-  const accountNonce =
-    typeof accountResponse?.nonce === 'number' ? accountResponse.nonce : 0;
-  const mempool = Array.isArray(mempoolResponse?.mempool)
-    ? (mempoolResponse.mempool.filter(isRecord) as Record<string, unknown>[])
-    : [];
-
-  const outgoingCount = mempool.filter((tx) => {
-    const sender =
-      typeof tx.sender === 'string'
-        ? tx.sender
-        : typeof tx.from === 'string'
-          ? tx.from
-          : typeof tx.fromAddress === 'string'
-            ? tx.fromAddress
-            : undefined;
-    return sender === publicKey;
-  }).length;
-
-  return accountNonce + outgoingCount;
+  const nonce = isRecord(account) ? account.nonce : undefined;
+  const mempool = Array.isArray(pool) ? pool : isRecord(pool) ? pool.mempool : undefined;
+  return calculatePendingNonce(nonce as number, mempool, publicKey).pendingNonce;
 }
 
 async function getActiveWallet(): Promise<WalletEntry> {
