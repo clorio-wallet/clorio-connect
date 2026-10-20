@@ -8,6 +8,7 @@
     "build": "vite build",
     "test": "vitest run",
     "build:firefox": "BROWSER=firefox vite build",
+    "package:firefox": "npm run build:firefox && rm -f dist-firefox.zip && (cd dist && zip -qr ../dist-firefox.zip .)",
     "preview": "vite preview",
     "api:gen": "orval"
   },
