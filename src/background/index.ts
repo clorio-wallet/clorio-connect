@@ -1,4 +1,7 @@
+import { registerUpdateNotification } from './update-notification';
 import './sidepanel';
+
+registerUpdateNotification();
 
 import type { AppMessage, SetUiModeResponse } from '@/messages/types';
 import type {
