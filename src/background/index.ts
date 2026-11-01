@@ -1,6 +1,12 @@
 import { registerUpdateNotification } from './update-notification';
 import './sidepanel';
 
+import {
+  isNotificationMessage,
+  registerNotificationHandlers,
+} from './notifications';
+
+registerNotificationHandlers();
 registerUpdateNotification();
 
 import type { AppMessage, SetUiModeResponse } from '@/messages/types';
@@ -358,6 +364,10 @@ function route(
   sender: chrome.runtime.MessageSender,
   sendResponse: (r: AnyResponse) => void,
 ): boolean {
+  if (isNotificationMessage(message)) {
+    return false;
+  }
+
   if (
     message.type !== 'DAPP_RPC_REQUEST' &&
     !isTrustedExtensionPage(sender)

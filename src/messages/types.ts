@@ -3,6 +3,7 @@ import type {
   DappProviderError,
   DappRpcPayload,
 } from '@/lib/dapp';
+import type { NotificationTransaction } from '@/lib/notifications';
 
 export type UiMode = 'popup' | 'sidepanel';
 
@@ -25,7 +26,12 @@ export type MessageType =
   | 'DAPP_GET_PENDING_APPROVAL'
   | 'DAPP_RESOLVE_PENDING_APPROVAL'
   | 'STORE_PAPER_WALLET'
-  | 'TAKE_PAPER_WALLET';
+  | 'TAKE_PAPER_WALLET'
+  | 'SHOW_NATIVE_NOTIFICATION'
+  | 'TRACK_TRANSACTION'
+  | 'SESSION_LOCKED'
+  | 'SESSION_UNLOCKED'
+  | 'LANGUAGE_CHANGED';
 
 export interface BaseMessage {
   type: MessageType;
@@ -194,6 +200,30 @@ export interface TakePaperWalletMessage extends BaseMessage {
   payload: { token: string };
 }
 
+export interface ShowNativeNotificationMessage extends BaseMessage {
+  type: 'SHOW_NATIVE_NOTIFICATION';
+  payload: {
+    id: string;
+    title: string;
+    message: string;
+    priority?: number;
+  };
+}
+
+export interface TrackTransactionMessage extends BaseMessage {
+  type: 'TRACK_TRANSACTION';
+  payload: NotificationTransaction;
+}
+
+export interface SessionNotificationMessage extends BaseMessage {
+  type: 'SESSION_LOCKED' | 'SESSION_UNLOCKED';
+}
+
+export interface LanguageChangedMessage extends BaseMessage {
+  type: 'LANGUAGE_CHANGED';
+  language: string;
+}
+
 export type AppMessage =
   | DeriveKeysMessage
   | ValidatePrivateKeyMessage
@@ -212,7 +242,11 @@ export type AppMessage =
   | DappGetPendingApprovalMessage
   | DappResolvePendingApprovalMessage
   | StorePaperWalletMessage
-  | TakePaperWalletMessage;
+  | TakePaperWalletMessage
+  | ShowNativeNotificationMessage
+  | TrackTransactionMessage
+  | SessionNotificationMessage
+  | LanguageChangedMessage;
 
 export interface DeriveKeysResponse {
   publicKey: string;

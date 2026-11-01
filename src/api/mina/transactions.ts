@@ -5,6 +5,8 @@ import {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { customInstance } from '../axios-instance';
+import { useNetworkStore } from '@/stores/network-store';
+import { getNotificationApiUrl, trackPendingTransactions, trackTransaction } from '@/lib/notifications';
 import { useSettingsStore } from '@/stores/settings-store';
 
 export type TransactionType = 'payment' | 'delegation' | 'zkapp';
@@ -70,6 +72,7 @@ function pickFirst<T = unknown>(
 
 function normalizeTransactionType(value: unknown): TransactionType {
   const v = asString(value)?.toLowerCase();
+  if (v === 'stake_delegation' || v === 'stakedelegation') return 'delegation';
   if (v === 'payment' || v === 'delegation' || v === 'zkapp') return v;
   return 'payment';
 }
@@ -108,7 +111,7 @@ function normalizeMempoolTx(
 
   return {
     id: asString(tx.id) ?? asString(tx.hash) ?? '',
-    type: normalizeTransactionType(tx.type),
+    type: normalizeTransactionType(tx.type ?? tx.kind ?? tx.commandType),
     status: 'pending',
     amount:
       asNumber(pickFirst(tx, ['amount', 'amountNano', 'value', 'total'])) ?? 0,
@@ -149,7 +152,7 @@ function normalizeTx(
 
   return {
     id: asString(tx.id) ?? asString(tx.hash) ?? '',
-    type: normalizeTransactionType(tx.type),
+    type: normalizeTransactionType(tx.type ?? tx.kind ?? tx.commandType),
     status: normalizeTransactionStatus(tx.status),
     amount:
       asNumber(pickFirst(tx, ['amount', 'amountNano', 'value', 'total'])) ?? 0,
@@ -167,10 +170,20 @@ function normalizeTx(
   };
 }
 
+function getTrackingContext(address: string) {
+  const networkId = useSettingsStore.getState().networkId;
+  return {
+    address,
+    networkId,
+    apiUrl: getNotificationApiUrl(useNetworkStore.getState().networks[networkId]),
+  };
+}
+
 export const getTransactions = async (
   address: string,
   signal?: AbortSignal,
 ): Promise<Transaction[]> => {
+  const context = getTrackingContext(address);
   const response = await customInstance<TransactionsResponse>({
     url: `/v1/mina/transactions/${address}`,
     method: 'GET',
@@ -184,13 +197,13 @@ export const getTransactions = async (
     : [];
 
   const mempool = Array.isArray(response.mempool)
-    ? response.mempool
-        .filter(isRecord)
-        .map((tx) => normalizeMempoolTx(tx, address))
+    ? response.mempool.filter(isRecord).map((tx) => normalizeMempoolTx(tx, address))
     : [];
 
   // Combine mempool (pending) transactions first, then confirmed transactions
-  return [...mempool, ...transactions];
+  const combined = [...mempool, ...transactions];
+  await trackPendingTransactions(combined, context);
+  return combined;
 };
 
 export const useGetTransactions = (
@@ -229,25 +242,41 @@ export interface BroadcastResult {
   amount?: string;
 }
 
+async function broadcastTrackedTransaction(
+  input: BroadcastPaymentInput | Omit<BroadcastPaymentInput, 'amount'>,
+  signature: BroadcastSignature,
+  type: 'payment' | 'delegation',
+): Promise<BroadcastResult> {
+  const context = getTrackingContext(input.from);
+  const result = await customInstance<BroadcastResult>({
+    url: type === 'payment' ? '/v1/mina/transaction' : '/v1/mina/transaction/delegation',
+    method: 'POST',
+    data: { input, signature },
+    // Use exactly the same endpoint for broadcasting and status polling.
+    baseURL: context.apiUrl,
+  });
+  const hash = result.hash || result.id;
+  if (hash && context.apiUrl) {
+    await trackTransaction({ ...context, apiUrl: context.apiUrl, hash, type, nonce: Number(input.nonce) });
+  } else {
+    console.warn('[notifications] broadcast tracking unavailable:', {
+      networkId: context.networkId,
+      hasHash: !!hash,
+      hasApiUrl: !!context.apiUrl,
+    });
+  }
+  return result;
+}
+
 export const broadcastPayment = (
   input: BroadcastPaymentInput,
   signature: BroadcastSignature,
-): Promise<BroadcastResult> =>
-  customInstance<BroadcastResult>({
-    url: '/v1/mina/transaction',
-    method: 'POST',
-    data: { input, signature },
-  });
+): Promise<BroadcastResult> => broadcastTrackedTransaction(input, signature, 'payment');
 
 export const broadcastDelegation = (
   input: Omit<BroadcastPaymentInput, 'amount'>,
   signature: BroadcastSignature,
-): Promise<BroadcastResult> =>
-  customInstance<BroadcastResult>({
-    url: '/v1/mina/transaction/delegation',
-    method: 'POST',
-    data: { input, signature },
-  });
+): Promise<BroadcastResult> => broadcastTrackedTransaction(input, signature, 'delegation');
 
 export const getTransaction = async (
   hash: string,
@@ -279,7 +308,7 @@ export const getTransaction = async (
 
   return {
     id: asString(tx.id) ?? asString(tx.hash) ?? '',
-    type: normalizeTransactionType(tx.type),
+    type: normalizeTransactionType(tx.type ?? tx.kind ?? tx.commandType),
     status: normalizeTransactionStatus(tx.status),
     amount:
       asNumber(pickFirst(tx, ['amount', 'amountNano', 'value', 'total'])) ?? 0,
@@ -322,18 +351,19 @@ export const getMempool = async (
   publicKey: string,
   signal?: AbortSignal,
 ): Promise<Transaction[]> => {
+  const context = getTrackingContext(publicKey);
   const response = await customInstance<MempoolResponse>({
     url: `/v1/mina/mempool/${publicKey}`,
     method: 'GET',
     signal,
   });
 
-  const mempool = Array.isArray(response.mempool)
-    ? response.mempool
-        .filter(isRecord)
-        .map((tx) => normalizeMempoolTx(tx, publicKey))
-    : [];
+  const rawMempool = Array.isArray(response)
+    ? response
+    : Array.isArray(response.mempool) ? response.mempool : [];
+  const mempool = rawMempool.filter(isRecord).map((tx) => normalizeMempoolTx(tx, publicKey));
 
+  await trackPendingTransactions(mempool, context);
   return mempool;
 };
 

@@ -7,6 +7,7 @@ import {
   getNetworkApiBaseUrl,
 } from '@/lib/networks';
 import { DAPP_NETWORK_ID_STORAGE_KEY } from '@/lib/dapp';
+import { registerTransactionWatch } from '../notifications';
 import type {
   LedgerImportAccountResponse,
   LedgerSubmitTxResponse,
@@ -140,6 +141,19 @@ export async function handleSubmitPayment(
       rawSignature: signature,
     });
 
+    const apiUrl = await getActiveApiBase();
+    const networkId =
+      (await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY)) || 'mainnet';
+    if (apiUrl && result.hash) {
+      await registerTransactionWatch({
+        hash: result.hash,
+        address: from,
+        apiUrl,
+        networkId,
+        type: 'payment',
+      });
+    }
+
     sendResponse({ success: true, hash: result.hash });
   } catch (error) {
     console.error('[ledger] LEDGER_SUBMIT_PAYMENT failed:', error);
@@ -181,6 +195,19 @@ export async function handleSubmitDelegation(
         rawSignature: signature,
       },
     );
+
+    const apiUrl = await getActiveApiBase();
+    const networkId =
+      (await storage.get<string>(DAPP_NETWORK_ID_STORAGE_KEY)) || 'mainnet';
+    if (apiUrl && result.hash) {
+      await registerTransactionWatch({
+        hash: result.hash,
+        address: from,
+        apiUrl,
+        networkId,
+        type: 'delegation',
+      });
+    }
 
     sendResponse({ success: true, hash: result.hash });
   } catch (error) {

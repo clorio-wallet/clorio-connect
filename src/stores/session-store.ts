@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 
 import { useSettingsStore } from '@/stores/settings-store';
+import {
+  notifySessionLocked,
+  notifySessionUnlocked,
+  sessionNotificationEvent,
+} from '@/lib/notifications';
 
 let autoLockTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -46,6 +51,7 @@ async function lockUiSession(set: SessionSetter): Promise<void> {
     tempPassword: null,
     tempMnemonic: null,
   });
+  notifySessionLocked();
 }
 
 function armAutoLock(get: () => SessionState, set: SessionSetter): void {
@@ -74,7 +80,11 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   isAuthenticated: false,
   setIsAuthenticated: (isAuthenticated) => {
+    const event = sessionNotificationEvent(get().isAuthenticated, isAuthenticated);
     set({ isAuthenticated });
+
+    if (event === 'SESSION_LOCKED') notifySessionLocked();
+    if (event === 'SESSION_UNLOCKED') notifySessionUnlocked();
 
     if (!isAuthenticated) {
       clearAutoLockTimer();
@@ -95,11 +105,13 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const { sessionStorage } = await import('@/lib/storage');
     const { useWalletStore } = await import('@/stores/wallet-store');
 
+    const wasAuthenticated = get().isAuthenticated;
     clearAutoLockTimer();
     await sessionStorage.remove('clorio_session');
     await sessionStorage.remove('clorio_onboarding_password');
 
     useWalletStore.getState().resetWallet();
+    if (wasAuthenticated) notifySessionLocked();
 
     set({
       tempPassword: null,
@@ -112,6 +124,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     const { storage, sessionStorage } = await import('@/lib/storage');
     const { useWalletStore } = await import('@/stores/wallet-store');
 
+    const wasAuthenticated = get().isAuthenticated;
     clearAutoLockTimer();
     await storage.remove('clorio_vault');
     await storage.remove('clorio_ledger_account');
@@ -119,6 +132,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     await sessionStorage.remove('clorio_onboarding_password');
 
     useWalletStore.getState().resetWallet();
+    if (wasAuthenticated) notifySessionLocked();
 
     set({
       hasVault: false,

@@ -9,15 +9,15 @@
  */
 
 import type { UiMode, SetUiModeResponse } from '@/messages/types';
+import { showDappRequestNotification } from './notifications';
 
 const STORAGE_KEY = 'uiMode';
 const DEFAULT_MODE: UiMode = 'sidepanel';
 const PANEL_PATH = 'src/popup/index.html';
 
 // Queue for sidePanel.open() requests that require user gesture
-let sidePanelOpenQueue: (() => Promise<void>)[] = [];
+const sidePanelOpenQueue: (() => Promise<void>)[] = [];
 let isProcessingQueue = false;
-let queuedRequestCount = 0;
 
 // Track the popup window opened as sidepanel fallback
 let dappPopupWindowId: number | null = null;
@@ -48,31 +48,6 @@ function applyPanelBehavior(mode: UiMode): void {
     .catch((e) => console.warn('[sidepanel] setOptions failed:', e));
 }
 
-/**
- * Update badge to show number of queued zkApp requests
- */
-function notifySidePanelQueue(): void {
-  const count = sidePanelOpenQueue.length + queuedRequestCount;
-
-  if (count > 0) {
-    const badgeText = count > 9 ? '9+' : String(count);
-    chrome.action
-      .setBadgeText({ text: badgeText })
-      .catch((e) => console.warn('[sidepanel] setBadgeText failed:', e));
-
-    chrome.action
-      .setBadgeBackgroundColor({ color: '#EA6D20' }) // Orange-red
-      .catch((e) =>
-        console.warn('[sidepanel] setBadgeBackgroundColor failed:', e),
-      );
-  } else {
-    // Clear badge when queue is empty
-    chrome.action
-      .setBadgeText({ text: '' })
-      .catch((e) => console.warn('[sidepanel] clearBadge failed:', e));
-  }
-}
-
 async function broadcastCloseView(): Promise<void> {
   await chrome.runtime.sendMessage({ type: 'CLOSE_VIEW' }).catch(() => {
     // Ignore if no extension view is currently listening.
@@ -100,9 +75,6 @@ async function broadcastCloseView(): Promise<void> {
  */
 async function processQueue(): Promise<void> {
   if (isProcessingQueue || sidePanelOpenQueue.length === 0) {
-    // Clear badge when processing queue (or if queue is empty)
-    queuedRequestCount = 0;
-    notifySidePanelQueue();
     return;
   }
 
@@ -121,8 +93,6 @@ async function processQueue(): Promise<void> {
   }
 
   isProcessingQueue = false;
-  queuedRequestCount = 0;
-  notifySidePanelQueue();
 }
 
 async function openDappPopup(): Promise<void> {
@@ -159,16 +129,6 @@ async function openDappPopup(): Promise<void> {
 }
 
 const DAPP_NOTIFICATION_ID = 'clorio_dapp_request';
-
-function showDappRequestNotification(): void {
-  chrome.notifications.create(DAPP_NOTIFICATION_ID, {
-    type: 'basic',
-    iconUrl: 'icon-48.png',
-    title: 'Clorio Connect',
-    message: 'A dApp is requesting access. Click to open the wallet.',
-    priority: 2,
-  });
-}
 
 chrome.notifications.onClicked.addListener((notificationId) => {
   if (notificationId === DAPP_NOTIFICATION_ID) {
@@ -208,11 +168,9 @@ async function openSidePanel(): Promise<void> {
       sidePanelOpenQueue.push(async () => {
         await chrome.sidePanel.open({ windowId: targetWindowId });
       });
-      queuedRequestCount++;
-      notifySidePanelQueue();
+      showDappRequestNotification();
       await openDappPopup().catch(() => {
-        // If popup also fails, fall back to badge + notification
-        showDappRequestNotification();
+        // Native notification remains available when the popup cannot open.
       });
     } else {
       console.warn('[sidepanel] sidePanel.open() failed:', error);

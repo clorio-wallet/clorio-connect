@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWalletStore } from '@/stores/wallet-store';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useNetworkStore } from '@/stores/network-store';
 import { broadcastPayment, useGetAccountNonce } from '@/api/mina/transactions';
 import { useToast } from '@/hooks/use-toast';
 import { SendTransactionFormData } from '@/lib/validations';
@@ -15,6 +16,10 @@ import {
   NetworkId,
 } from '@/lib/ledger';
 import type { SignPaymentMessage, SignPaymentResponse } from '@/messages/types';
+import {
+  getNotificationApiUrl,
+  trackTransaction,
+} from '@/lib/notifications';
 
 export interface BroadcastResult {
   kind: 'broadcast';
@@ -45,6 +50,7 @@ function mockBroadcastResult(fee: string, amount: string): BroadcastResult {
 export function useSendTransaction() {
   const { publicKey, accountType, ledgerAccountIndex } = useWalletStore();
   const { networkId } = useSettingsStore();
+  const network = useNetworkStore((state) => state.networks[networkId]);
   const { refetch: refetchAccountNonce } =
     useGetAccountNonce(publicKey || '', {
       enabled: !!publicKey,
@@ -269,6 +275,25 @@ export function useSendTransaction() {
         accountType === 'ledger'
           ? await sendWithLedger(formData)
           : await sendWithSoftware(formData, password);
+
+      if (!FEATURES.DRY_RUN_SEND_TX && publicKey) {
+        const apiUrl = getNotificationApiUrl(network);
+        if (!apiUrl) {
+          console.warn(
+            '[notifications] payment tracking skipped: API URL unavailable',
+            { networkId },
+          );
+        } else {
+          await trackTransaction({
+            hash: result.hash ?? result.id,
+            address: publicKey,
+            apiUrl,
+            networkId,
+            type: 'payment',
+          });
+        }
+      }
+
       return result;
     } catch (err) {
       throw err;

@@ -58,6 +58,7 @@ import { VaultManager } from '@/lib/vault-manager';
 import { openExtension } from '../sidepanel';
 import { getPrivateKeyFromVault } from './wallet';
 import { getSignerClient } from '../mina-client-manager';
+import { registerTransactionWatch } from '../notifications';
 
 const REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
 const DEFAULT_PAYMENT_FEE = '0.1';
@@ -1509,8 +1510,19 @@ async function performSendPayment(
     { input, signature: signed.signature },
   );
 
+  const hash = result.hash ?? result.id;
+  if (hash) {
+    await registerTransactionWatch({
+      hash,
+      address: wallet.publicKey,
+      apiUrl: restApiBase,
+      networkId: await getCurrentNetworkId(),
+      type: 'payment',
+    });
+  }
+
   return {
-    hash: result.hash ?? result.id,
+    hash,
     id: result.id ?? result.hash,
   };
 }
@@ -1562,8 +1574,19 @@ async function performSendStakeDelegation(
     { input, signature: signed.signature },
   );
 
+  const hash = result.hash ?? result.id;
+  if (hash) {
+    await registerTransactionWatch({
+      hash,
+      address: wallet.publicKey,
+      apiUrl: restApiBase,
+      networkId: await getCurrentNetworkId(),
+      type: 'delegation',
+    });
+  }
+
   return {
-    hash: result.hash ?? result.id,
+    hash,
     id: result.id ?? result.hash,
   };
 }
@@ -1731,8 +1754,20 @@ async function performTransactionSignature(
     );
   }
 
+  const hash = zkapp.hash ?? zkapp.id;
+  const restApiBase = await getActiveRestApiBase();
+  if (hash && restApiBase) {
+    await registerTransactionWatch({
+      hash,
+      address: wallet.publicKey,
+      apiUrl: restApiBase,
+      networkId: await getCurrentNetworkId(),
+      type: 'zkapp',
+    });
+  }
+
   return {
-    hash: zkapp.hash ?? zkapp.id,
+    hash,
     id: zkapp.id ?? zkapp.hash,
     failureReason: zkapp.failureReason,
   };

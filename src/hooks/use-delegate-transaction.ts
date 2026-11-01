@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { toNano } from '@/lib/utils';
 import { FEATURES } from '@/lib/const';
 import { useSettingsStore } from '@/stores/settings-store';
+import { useNetworkStore } from '@/stores/network-store';
 import {
   NetworkId,
   checkLedgerStatus,
@@ -20,6 +21,10 @@ import type {
   SignDelegationMessage,
   SignDelegationResponse,
 } from '@/messages/types';
+import {
+  getNotificationApiUrl,
+  trackTransaction,
+} from '@/lib/notifications';
 
 const DELEGATION_FEE_MINA = '0.012';
 
@@ -43,6 +48,7 @@ export function useDelegateTransaction() {
       enabled: !!publicKey,
     });
   const { networkId } = useSettingsStore();
+  const network = useNetworkStore((state) => state.networks[networkId]);
 
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -246,6 +252,25 @@ export function useDelegateTransaction() {
         accountType === 'ledger'
           ? await delegateWithLedger(validatorPublicKey)
           : await delegateWithSoftware(validatorPublicKey, password);
+
+      if (!FEATURES.DRY_RUN_SEND_TX && publicKey) {
+        const apiUrl = getNotificationApiUrl(network);
+        if (!apiUrl) {
+          console.warn(
+            '[notifications] delegation tracking skipped: API URL unavailable',
+            { networkId },
+          );
+        } else {
+          await trackTransaction({
+            hash: result.hash,
+            address: publicKey,
+            apiUrl,
+            networkId,
+            type: 'delegation',
+          });
+        }
+      }
+
       return result;
     } catch (err) {
       throw err;
